@@ -20,6 +20,7 @@ import {
   MonthlyRepeatOption,
   TimeOfDay,
 } from "../models/WorkSession";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -116,195 +117,202 @@ export const NewSessionModal = ({
 
   return (
     <Modal visible={visible} animationType="slide">
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.header}>근무 일정 추가</Text>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <Text style={styles.header}>근무 일정 추가</Text>
 
-        {/* 근무지 */}
-        <TextInput
-          style={styles.input}
-          placeholder="근무지"
-          value={jobName}
-          onChangeText={setJobName}
-        />
+          {/* 근무지 */}
+          <TextInput
+            style={styles.input}
+            placeholder="근무지"
+            value={jobName}
+            onChangeText={setJobName}
+          />
 
-        {/* 시급 */}
-        <TextInput
-          style={styles.input}
-          placeholder="시급"
-          value={wage}
-          keyboardType="numeric"
-          onChangeText={setWage}
-        />
+          {/* 시급 */}
+          <TextInput
+            style={styles.input}
+            placeholder="시급"
+            value={wage}
+            keyboardType="numeric"
+            onChangeText={setWage}
+          />
 
-        {/* 시간 */}
-        <Text style={styles.label}>시간</Text>
-        <View style={styles.row}>
-          <TouchableOpacity
-            style={styles.timeButton}
-            onPress={() => {
-              setShowDatePicker({ mode: "time", isStart: true });
-              setDatePickerVisible(true);
-            }}
-          >
-            <Text>
-              {startTime
-                ? `${startTime.hour}:${startTime.minute}`
-                : "시작 시간"}
-            </Text>
-          </TouchableOpacity>
-          <Text> ~ </Text>
-          <TouchableOpacity
-            style={styles.timeButton}
-            onPress={() => {
-              setShowDatePicker({ mode: "time", isStart: false });
-              setDatePickerVisible(true);
-            }}
-          >
-            <Text>
-              {endTime ? `${endTime.hour}:${endTime.minute}` : "종료 시간"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 반복 주기 */}
-        <Text style={styles.label}>반복 주기</Text>
-        <View style={styles.rowWrap}>
-          {(
-            [
-              "none",
-              "weekly",
-              "biweekly",
-              "triweekly",
-              "monthly",
-            ] as RepeatOption[]
-          ).map((opt) => (
+          {/* 시간 */}
+          <Text style={styles.label}>시간</Text>
+          <View style={styles.row}>
             <TouchableOpacity
-              key={opt}
-              style={[
-                styles.optionButton,
-                repeatOption === opt && styles.optionButtonSelected,
-              ]}
-              onPress={() => setRepeatOption(opt)}
-            >
-              <Text>{opt}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* 요일 선택 */}
-        {repeatOption === "weekly" && (
-          <>
-            <Text style={styles.label}>근무 요일</Text>
-            <View style={styles.rowWrap}>
-              {["월", "화", "수", "목", "금", "토", "일"].map((day, index) => (
-                <TouchableOpacity
-                  key={day}
-                  style={[
-                    styles.optionButton,
-                    selectedWeekDays.has(index) && styles.optionButtonSelected,
-                  ]}
-                  onPress={() => toggleWeekDay(index)}
-                >
-                  <Text>{day}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </>
-        )}
-
-        {/* 월별 반복 옵션 */}
-        {repeatOption === "monthly" && (
-          <>
-            <Text style={styles.label}>반복 방식</Text>
-            <View style={styles.rowWrap}>
-              {(["byDayOfMonth", "byDayOfWeek"] as MonthlyRepeatOption[]).map(
-                (opt) => (
-                  <TouchableOpacity
-                    key={opt}
-                    style={[
-                      styles.optionButton,
-                      monthlyRepeatOption === opt &&
-                        styles.optionButtonSelected,
-                    ]}
-                    onPress={() => setMonthlyRepeatOption(opt)}
-                  >
-                    <Text>{opt}</Text>
-                  </TouchableOpacity>
-                )
-              )}
-            </View>
-          </>
-        )}
-
-        {/* 기간 */}
-        <Text style={styles.label}>근무 기간</Text>
-        <View style={styles.row}>
-          <TouchableOpacity
-            style={styles.timeButton}
-            onPress={() => {
-              setShowDatePicker({ mode: "date", isStart: true });
-              setDatePickerVisible(true);
-            }}
-          >
-            <Text>{startDate}</Text>
-          </TouchableOpacity>
-          <Text> ~ </Text>
-          <TouchableOpacity
-            style={[
-              styles.timeButton,
-              isCurrentlyWorking && { backgroundColor: "#ccc" },
-            ]}
-            onPress={() => {
-              if (!isCurrentlyWorking) {
-                setShowDatePicker({ mode: "date", isStart: false });
+              style={styles.timeButton}
+              onPress={() => {
+                setShowDatePicker({ mode: "time", isStart: true });
                 setDatePickerVisible(true);
-              }
-            }}
-          >
-            <Text>{isCurrentlyWorking ? "계속 반복" : endDate ?? "선택"}</Text>
+              }}
+            >
+              <Text>
+                {startTime
+                  ? `${startTime.hour}:${startTime.minute}`
+                  : "시작 시간"}
+              </Text>
+            </TouchableOpacity>
+            <Text> ~ </Text>
+            <TouchableOpacity
+              style={styles.timeButton}
+              onPress={() => {
+                setShowDatePicker({ mode: "time", isStart: false });
+                setDatePickerVisible(true);
+              }}
+            >
+              <Text>
+                {endTime ? `${endTime.hour}:${endTime.minute}` : "종료 시간"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 반복 주기 */}
+          <Text style={styles.label}>반복 주기</Text>
+          <View style={styles.rowWrap}>
+            {(
+              [
+                "none",
+                "weekly",
+                "biweekly",
+                "triweekly",
+                "monthly",
+              ] as RepeatOption[]
+            ).map((opt) => (
+              <TouchableOpacity
+                key={opt}
+                style={[
+                  styles.optionButton,
+                  repeatOption === opt && styles.optionButtonSelected,
+                ]}
+                onPress={() => setRepeatOption(opt)}
+              >
+                <Text>{opt}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* 요일 선택 */}
+          {repeatOption === "weekly" && (
+            <>
+              <Text style={styles.label}>근무 요일</Text>
+              <View style={styles.rowWrap}>
+                {["월", "화", "수", "목", "금", "토", "일"].map(
+                  (day, index) => (
+                    <TouchableOpacity
+                      key={day}
+                      style={[
+                        styles.optionButton,
+                        selectedWeekDays.has(index) &&
+                          styles.optionButtonSelected,
+                      ]}
+                      onPress={() => toggleWeekDay(index)}
+                    >
+                      <Text>{day}</Text>
+                    </TouchableOpacity>
+                  )
+                )}
+              </View>
+            </>
+          )}
+
+          {/* 월별 반복 옵션 */}
+          {repeatOption === "monthly" && (
+            <>
+              <Text style={styles.label}>반복 방식</Text>
+              <View style={styles.rowWrap}>
+                {(["byDayOfMonth", "byDayOfWeek"] as MonthlyRepeatOption[]).map(
+                  (opt) => (
+                    <TouchableOpacity
+                      key={opt}
+                      style={[
+                        styles.optionButton,
+                        monthlyRepeatOption === opt &&
+                          styles.optionButtonSelected,
+                      ]}
+                      onPress={() => setMonthlyRepeatOption(opt)}
+                    >
+                      <Text>{opt}</Text>
+                    </TouchableOpacity>
+                  )
+                )}
+              </View>
+            </>
+          )}
+
+          {/* 기간 */}
+          <Text style={styles.label}>근무 기간</Text>
+          <View style={styles.row}>
+            <TouchableOpacity
+              style={styles.timeButton}
+              onPress={() => {
+                setShowDatePicker({ mode: "date", isStart: true });
+                setDatePickerVisible(true);
+              }}
+            >
+              <Text>{startDate}</Text>
+            </TouchableOpacity>
+            <Text> ~ </Text>
+            <TouchableOpacity
+              style={[
+                styles.timeButton,
+                isCurrentlyWorking && { backgroundColor: "#ccc" },
+              ]}
+              onPress={() => {
+                if (!isCurrentlyWorking) {
+                  setShowDatePicker({ mode: "date", isStart: false });
+                  setDatePickerVisible(true);
+                }
+              }}
+            >
+              <Text>
+                {isCurrentlyWorking ? "계속 반복" : endDate ?? "선택"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.row}>
+            <Text>계속 반복하기</Text>
+            <Switch
+              value={isCurrentlyWorking}
+              onValueChange={setIsCurrentlyWorking}
+            />
+          </View>
+
+          {/* 메모 */}
+          <TextInput
+            style={[styles.input, { height: 80 }]}
+            placeholder="메모"
+            value={note}
+            multiline
+            onChangeText={setNote}
+          />
+
+          {/* 저장 버튼 */}
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>저장</Text>
           </TouchableOpacity>
-        </View>
-        <View style={styles.row}>
-          <Text>계속 반복하기</Text>
-          <Switch
-            value={isCurrentlyWorking}
-            onValueChange={setIsCurrentlyWorking}
-          />
-        </View>
 
-        {/* 메모 */}
-        <TextInput
-          style={[styles.input, { height: 80 }]}
-          placeholder="메모"
-          value={note}
-          multiline
-          onChangeText={setNote}
-        />
+          {/* 닫기 */}
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeButtonText}>닫기</Text>
+          </TouchableOpacity>
 
-        {/* 저장 버튼 */}
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>저장</Text>
-        </TouchableOpacity>
-
-        {/* 닫기 */}
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={styles.closeButtonText}>닫기</Text>
-        </TouchableOpacity>
-
-        {/* DateTimePicker */}
-        {datePickerVisible && (
-          <DateTimePicker
-            value={new Date()}
-            mode={showDatePicker.mode}
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={
-              showDatePicker.mode === "time"
-                ? handleTimeChange
-                : handleDateChange
-            }
-          />
-        )}
-      </ScrollView>
+          {/* DateTimePicker */}
+          {datePickerVisible && (
+            <DateTimePicker
+              value={new Date()}
+              mode={showDatePicker.mode}
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              onChange={
+                showDatePicker.mode === "time"
+                  ? handleTimeChange
+                  : handleDateChange
+              }
+            />
+          )}
+        </ScrollView>
+      </SafeAreaView>
     </Modal>
   );
 };
