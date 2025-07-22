@@ -1,5 +1,3 @@
-// src/components/NewSessionModal.tsx
-
 import React, { useState } from "react";
 import {
   Modal,
@@ -117,7 +115,7 @@ export const NewSessionModal = ({
 
   return (
     <Modal visible={visible} animationType="slide">
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.areaContainer}>
         <ScrollView contentContainerStyle={styles.container}>
           <Text style={styles.header}>근무 일정 추가</Text>
 
@@ -288,16 +286,17 @@ export const NewSessionModal = ({
             onChangeText={setNote}
           />
 
-          {/* 저장 버튼 */}
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>저장</Text>
-          </TouchableOpacity>
+          <View style={styles.buttonContainer}>
+            {/* 저장 버튼 */}
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <Text style={styles.saveButtonText}>저장</Text>
+            </TouchableOpacity>
 
-          {/* 닫기 */}
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>닫기</Text>
-          </TouchableOpacity>
-
+            {/* 닫기 */}
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>닫기</Text>
+            </TouchableOpacity>
+          </View>
           {/* DateTimePicker */}
           {datePickerVisible && (
             <DateTimePicker
@@ -318,8 +317,14 @@ export const NewSessionModal = ({
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 16, paddingBottom: 40 },
-  header: { fontSize: 20, fontWeight: "bold", marginBottom: 16 },
+  areaContainer: { flex: 1 },
+  container: { padding: 16, paddingBottom: 40, position: "relative", flex: 1 },
+  header: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+    textAlign: "center",
+  },
   input: {
     borderWidth: 1,
     borderColor: "#ddd",
@@ -347,14 +352,33 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
+  buttonContainer: {
+    position: "absolute",
+    width: "100%",
+    bottom: 24,
+    marginHorizontal: 16,
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   saveButton: {
     backgroundColor: "#007aff",
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
+    width: "100%",
     marginTop: 16,
   },
   saveButtonText: { color: "#fff", fontWeight: "bold" },
-  closeButton: { marginTop: 12, alignItems: "center" },
+  closeButton: {
+    marginTop: 16,
+    alignItems: "center",
+    backgroundColor: "white",
+    padding: 14,
+    borderRadius: 8,
+    borderColor: "#007aff",
+    width: "100%",
+    borderWidth: 1,
+  },
   closeButtonText: { color: "#007aff" },
 });

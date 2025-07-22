@@ -1,5 +1,3 @@
-// src/models/WorkSession.ts
-
 export type RepeatOption =
   | "none"
   | "weekly"
@@ -19,7 +17,7 @@ export interface WorkSession {
   startTime: TimeOfDay;
   endTime: TimeOfDay;
   repeatOption: RepeatOption;
-  selectedWeekDays: Set<number>; // 0 = 월, 6 = 일
+  selectedWeekDays: Set<number>; // 0 = 월 ~ 6 = 일
   monthlyRepeatOption: MonthlyRepeatOption;
   startDate: string; // YYYY-MM-DD 형식
   endDate?: string | null;

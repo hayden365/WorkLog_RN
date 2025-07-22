@@ -1,12 +1,13 @@
-// src/components/HeaderSection.tsx
-
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useDateStore } from "../store/dateStore";
 
 export const HeaderSection = () => {
+  const { month } = useDateStore();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>6월 수익</Text>
+      <Text style={styles.title}>{month} 수익</Text>
     </View>
   );
 };

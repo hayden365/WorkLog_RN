@@ -1,9 +1,8 @@
-// src/components/CalendarPage.tsx
-
 import React, { useState } from "react";
 import { Calendar } from "react-native-calendars";
 import { WorkSession } from "../models/WorkSession";
 import dayjs from "dayjs";
+import { useDateStore } from "../store/dateStore";
 
 interface CalendarPageProps {
   eventsMap: Record<string, WorkSession[]>;
@@ -15,7 +14,7 @@ export const CalendarPage = ({
   onDaySelected,
 }: CalendarPageProps) => {
   const [selectedDay, setSelectedDay] = useState(dayjs().format("YYYY-MM-DD"));
-
+  const { setMonth } = useDateStore();
   const markedDates: Record<string, any> = {
     [selectedDay]: {
       selected: true,
@@ -39,6 +38,9 @@ export const CalendarPage = ({
       onDayPress={(day) => {
         setSelectedDay(day.dateString);
         onDaySelected(day.dateString);
+      }}
+      onMonthChange={(month) => {
+        setMonth(month.month.toString() + "월");
       }}
       markedDates={markedDates}
       firstDay={1}
