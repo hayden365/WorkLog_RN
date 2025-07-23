@@ -19,6 +19,10 @@ import {
   TimeOfDay,
 } from "../models/WorkSession";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import SegmentedControl from "@react-native-segmented-control/segmented-control";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import RNDateTimePicker from "@react-native-community/datetimepicker";
+import DateTimeModal from "./DateTimeModal";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -33,54 +37,43 @@ export const NewSessionModal = ({
 }: NewSessionModalProps) => {
   const [jobName, setJobName] = useState("");
   const [wage, setWage] = useState("");
-  const [startTime, setStartTime] = useState<TimeOfDay | null>(null);
-  const [endTime, setEndTime] = useState<TimeOfDay | null>(null);
+  const [startDateTime, setStartDateTime] = useState<Date>(new Date());
+  const [endDateTime, setEndDateTime] = useState<Date>(new Date());
   const [repeatOption, setRepeatOption] = useState<RepeatOption>("none");
   const [selectedWeekDays, setSelectedWeekDays] = useState<Set<number>>(
     new Set()
   );
   const [monthlyRepeatOption, setMonthlyRepeatOption] =
     useState<MonthlyRepeatOption>("byDayOfMonth");
-  const [startDate, setStartDate] = useState<string>(
-    dayjs().format("YYYY-MM-DD")
-  );
-  const [endDate, setEndDate] = useState<string | null>(null);
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(true);
   const [note, setNote] = useState("");
+  const [wageType, setWageType] = useState<"hourly" | "daily">("hourly");
+  const [openPicker, setOpenPicker] = useState<null | {
+    index: number;
+    type: "date" | "time";
+  }>(null);
 
-  const [showDatePicker, setShowDatePicker] = useState<{
-    mode: "date" | "time";
-    isStart: boolean;
-  }>({
-    mode: "date",
-    isStart: true,
-  });
-  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  // 숫자에 콤마 추가하는 함수
+  const formatNumberWithComma = (value: string) => {
+    // 숫자가 아닌 문자 제거
+    const numericValue = value.replace(/[^0-9]/g, "");
+    // 세자리마다 콤마 추가
+    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
+  // 시급/일급 입력 처리
+  const handleWageChange = (value: string) => {
+    const formattedValue = formatNumberWithComma(value);
+    setWage(formattedValue);
+  };
 
   const handleTimeChange = (event: any, selectedDate: Date | undefined) => {
-    setDatePickerVisible(false);
     if (selectedDate) {
       const newTime = {
         hour: selectedDate.getHours(),
         minute: selectedDate.getMinutes(),
       };
-      if (showDatePicker.isStart) {
-        setStartTime(newTime);
-      } else {
-        setEndTime(newTime);
-      }
-    }
-  };
-
-  const handleDateChange = (event: any, selectedDate: Date | undefined) => {
-    setDatePickerVisible(false);
-    if (selectedDate) {
-      const dateStr = dayjs(selectedDate).format("YYYY-MM-DD");
-      if (showDatePicker.isStart) {
-        setStartDate(dateStr);
-      } else {
-        setEndDate(dateStr);
-      }
+      setStartDateTime(selectedDate);
     }
   };
 
@@ -95,17 +88,29 @@ export const NewSessionModal = ({
   };
 
   const handleSave = () => {
-    if (!startTime || !endTime) return;
+    if (!startDateTime || !endDateTime) return;
+
+    // 콤마 제거 후 숫자로 변환
+    const numericWage = parseInt(wage.replace(/,/g, "")) || 0;
+
     const newSession: WorkSession = {
       jobName,
-      wage: parseInt(wage) || 0,
-      startTime,
-      endTime,
+      wage: numericWage,
+      startTime: {
+        hour: startDateTime.getHours(),
+        minute: startDateTime.getMinutes(),
+      },
+      endTime: {
+        hour: endDateTime.getHours(),
+        minute: endDateTime.getMinutes(),
+      },
       repeatOption,
       selectedWeekDays,
       monthlyRepeatOption,
-      startDate,
-      endDate: isCurrentlyWorking ? null : endDate,
+      startDate: dayjs(startDateTime).format("YYYY-MM-DD"),
+      endDate: isCurrentlyWorking
+        ? null
+        : dayjs(endDateTime).format("YYYY-MM-DD"),
       isCurrentlyWorking,
       note,
     };
@@ -120,52 +125,121 @@ export const NewSessionModal = ({
           <Text style={styles.header}>근무 일정 추가</Text>
 
           {/* 근무지 */}
-          <TextInput
-            style={styles.input}
-            placeholder="근무지"
-            value={jobName}
-            onChangeText={setJobName}
-          />
-
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>근무지</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="근무지명을 입력하세요"
+              value={jobName}
+              onChangeText={setJobName}
+            />
+          </View>
+          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
           {/* 시급 */}
-          <TextInput
-            style={styles.input}
-            placeholder="시급"
-            value={wage}
-            keyboardType="numeric"
-            onChangeText={setWage}
-          />
+          <View style={{ gap: 12 }}>
+            <SegmentedControl
+              tintColor="#007aff"
+              values={["시급", "일급"]}
+              selectedIndex={wageType === "hourly" ? 0 : 1}
+              onChange={(event) => {
+                setWageType(
+                  event.nativeEvent.selectedSegmentIndex === 0
+                    ? "hourly"
+                    : "daily"
+                );
+              }}
+            />
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>
+                <Ionicons name="cash-outline" size={24} color="black" />
+              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  flex: 1,
+                  gap: 10,
+                }}
+              >
+                <FontAwesome name="won" size={16} color="black" />
+                <TextInput
+                  style={styles.input}
+                  placeholder={wageType === "hourly" ? "시급" : "일급"}
+                  value={wage}
+                  keyboardType="number-pad"
+                  onChangeText={handleWageChange}
+                />
+              </View>
+            </View>
+          </View>
+          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
 
           {/* 시간 */}
-          <Text style={styles.label}>시간</Text>
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.timeButton}
-              onPress={() => {
-                setShowDatePicker({ mode: "time", isStart: true });
-                setDatePickerVisible(true);
+          <View style={{ minHeight: 48 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
+            >
+              <Text style={[styles.inputLabel, { alignSelf: "flex-start" }]}>
+                <Ionicons name="time-outline" size={24} color="black" />
+              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flex: 1,
+                }}
+              >
+                <Text>종료일 없음</Text>
+                <Switch
+                  value={isCurrentlyWorking}
+                  onValueChange={setIsCurrentlyWorking}
+                  trackColor={{
+                    true: "#007aff",
+                    false: "#ddd",
+                  }}
+                  thumbColor="#fff"
+                />
+              </View>
+            </View>
+            <View
+              style={{
+                justifyContent: "flex-end",
+                marginLeft: 80,
+                padding: 12,
+                margin: 0,
+                gap: 20,
               }}
             >
-              <Text>
-                {startTime
-                  ? `${startTime.hour}:${startTime.minute}`
-                  : "시작 시간"}
-              </Text>
-            </TouchableOpacity>
-            <Text> ~ </Text>
-            <TouchableOpacity
-              style={styles.timeButton}
-              onPress={() => {
-                setShowDatePicker({ mode: "time", isStart: false });
-                setDatePickerVisible(true);
-              }}
-            >
-              <Text>
-                {endTime ? `${endTime.hour}:${endTime.minute}` : "종료 시간"}
-              </Text>
-            </TouchableOpacity>
+              <DateTimeModal
+                selectedDate={startDateTime}
+                setSelectedDate={setStartDateTime}
+                isOpen={openPicker?.index === 0}
+                openType={openPicker?.index === 0 ? openPicker.type : null}
+                onToggle={(type) => {
+                  if (openPicker?.index === 0 && openPicker.type === type) {
+                    setOpenPicker(null); // 닫기
+                  } else {
+                    setOpenPicker({ index: 0, type });
+                  }
+                }}
+              />
+              <DateTimeModal
+                selectedDate={endDateTime}
+                setSelectedDate={setEndDateTime}
+                isOpen={openPicker?.index === 1}
+                openType={openPicker?.index === 1 ? openPicker.type : null}
+                onToggle={(type) => {
+                  if (openPicker?.index === 1 && openPicker.type === type) {
+                    setOpenPicker(null); // 닫기
+                  } else {
+                    setOpenPicker({ index: 1, type });
+                  }
+                }}
+              />
+            </View>
           </View>
-
+          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
           {/* 반복 주기 */}
           <Text style={styles.label}>반복 주기</Text>
           <View style={styles.rowWrap}>
@@ -238,45 +312,6 @@ export const NewSessionModal = ({
               </View>
             </>
           )}
-
-          {/* 기간 */}
-          <Text style={styles.label}>근무 기간</Text>
-          <View style={styles.row}>
-            <TouchableOpacity
-              style={styles.timeButton}
-              onPress={() => {
-                setShowDatePicker({ mode: "date", isStart: true });
-                setDatePickerVisible(true);
-              }}
-            >
-              <Text>{startDate}</Text>
-            </TouchableOpacity>
-            <Text> ~ </Text>
-            <TouchableOpacity
-              style={[
-                styles.timeButton,
-                isCurrentlyWorking && { backgroundColor: "#ccc" },
-              ]}
-              onPress={() => {
-                if (!isCurrentlyWorking) {
-                  setShowDatePicker({ mode: "date", isStart: false });
-                  setDatePickerVisible(true);
-                }
-              }}
-            >
-              <Text>
-                {isCurrentlyWorking ? "계속 반복" : endDate ?? "선택"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.row}>
-            <Text>계속 반복하기</Text>
-            <Switch
-              value={isCurrentlyWorking}
-              onValueChange={setIsCurrentlyWorking}
-            />
-          </View>
-
           {/* 메모 */}
           <TextInput
             style={[styles.input, { height: 80 }]}
@@ -297,19 +332,6 @@ export const NewSessionModal = ({
               <Text style={styles.closeButtonText}>닫기</Text>
             </TouchableOpacity>
           </View>
-          {/* DateTimePicker */}
-          {datePickerVisible && (
-            <DateTimePicker
-              value={new Date()}
-              mode={showDatePicker.mode}
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              onChange={
-                showDatePicker.mode === "time"
-                  ? handleTimeChange
-                  : handleDateChange
-              }
-            />
-          )}
         </ScrollView>
       </SafeAreaView>
     </Modal>
@@ -318,22 +340,50 @@ export const NewSessionModal = ({
 
 const styles = StyleSheet.create({
   areaContainer: { flex: 1 },
-  container: { padding: 16, paddingBottom: 40, position: "relative", flex: 1 },
+  container: {
+    padding: 16,
+    paddingBottom: 40,
+    position: "relative",
+    flex: 1,
+    gap: 16,
+  },
   header: {
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 16,
     textAlign: "center",
   },
+  inputGroup: {
+    flexDirection: "row",
+    minHeight: 48,
+    alignItems: "center",
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    width: 80,
+    height: 48,
+    textAlignVertical: "top",
+    lineHeight: 48,
+  },
   input: {
+    flex: 1,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 12,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: "#fff",
+    height: 48,
   },
   label: { fontSize: 14, fontWeight: "bold", marginTop: 12, marginBottom: 6 },
-  row: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    justifyContent: "space-between",
+  },
   rowWrap: { flexDirection: "row", flexWrap: "wrap", marginBottom: 12 },
   optionButton: {
     padding: 8,
