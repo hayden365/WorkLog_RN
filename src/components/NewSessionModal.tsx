@@ -23,6 +23,7 @@ import SegmentedControl from "@react-native-segmented-control/segmented-control"
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import RNDateTimePicker from "@react-native-community/datetimepicker";
 import DateTimeModal from "./DateTimeModal";
+import { useShiftStore } from "../store/shiftStore";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -35,10 +36,9 @@ export const NewSessionModal = ({
   onClose,
   onSave,
 }: NewSessionModalProps) => {
+  const { startDate, endDate } = useShiftStore();
   const [jobName, setJobName] = useState("");
   const [wage, setWage] = useState("");
-  const [startDateTime, setStartDateTime] = useState<Date>(new Date());
-  const [endDateTime, setEndDateTime] = useState<Date>(new Date());
   const [repeatOption, setRepeatOption] = useState<RepeatOption>("none");
   const [selectedWeekDays, setSelectedWeekDays] = useState<Set<number>>(
     new Set()
@@ -48,10 +48,6 @@ export const NewSessionModal = ({
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(true);
   const [note, setNote] = useState("");
   const [wageType, setWageType] = useState<"hourly" | "daily">("hourly");
-  const [openPicker, setOpenPicker] = useState<null | {
-    index: number;
-    type: "date" | "time";
-  }>(null);
 
   // 숫자에 콤마 추가하는 함수
   const formatNumberWithComma = (value: string) => {
@@ -67,16 +63,6 @@ export const NewSessionModal = ({
     setWage(formattedValue);
   };
 
-  const handleTimeChange = (event: any, selectedDate: Date | undefined) => {
-    if (selectedDate) {
-      const newTime = {
-        hour: selectedDate.getHours(),
-        minute: selectedDate.getMinutes(),
-      };
-      setStartDateTime(selectedDate);
-    }
-  };
-
   const toggleWeekDay = (index: number) => {
     const newSet = new Set(selectedWeekDays);
     if (newSet.has(index)) {
@@ -88,7 +74,7 @@ export const NewSessionModal = ({
   };
 
   const handleSave = () => {
-    if (!startDateTime || !endDateTime) return;
+    if (!startDate || !endDate) return;
 
     // 콤마 제거 후 숫자로 변환
     const numericWage = parseInt(wage.replace(/,/g, "")) || 0;
@@ -97,20 +83,18 @@ export const NewSessionModal = ({
       jobName,
       wage: numericWage,
       startTime: {
-        hour: startDateTime.getHours(),
-        minute: startDateTime.getMinutes(),
+        hour: startDate.getHours(),
+        minute: startDate.getMinutes(),
       },
       endTime: {
-        hour: endDateTime.getHours(),
-        minute: endDateTime.getMinutes(),
+        hour: endDate.getHours(),
+        minute: endDate.getMinutes(),
       },
       repeatOption,
       selectedWeekDays,
       monthlyRepeatOption,
-      startDate: dayjs(startDateTime).format("YYYY-MM-DD"),
-      endDate: isCurrentlyWorking
-        ? null
-        : dayjs(endDateTime).format("YYYY-MM-DD"),
+      startDate: dayjs(startDate).format("YYYY-MM-DD"),
+      endDate: isCurrentlyWorking ? null : dayjs(endDate).format("YYYY-MM-DD"),
       isCurrentlyWorking,
       note,
     };
@@ -138,7 +122,7 @@ export const NewSessionModal = ({
           {/* 시급 */}
           <View style={{ gap: 12 }}>
             <SegmentedControl
-              tintColor="#007aff"
+              tintColor="#fff"
               values={["시급", "일급"]}
               selectedIndex={wageType === "hourly" ? 0 : 1}
               onChange={(event) => {
@@ -175,19 +159,17 @@ export const NewSessionModal = ({
           <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
 
           {/* 시간 */}
-          <View style={{ minHeight: 48 }}>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
-            >
-              <Text style={[styles.inputLabel, { alignSelf: "flex-start" }]}>
-                <Ionicons name="time-outline" size={24} color="black" />
-              </Text>
+          <View style={{ minHeight: 48, flexDirection: "row" }}>
+            <Text style={[styles.inputLabel, { alignSelf: "flex-start" }]}>
+              <Ionicons name="time-outline" size={24} color="black" />
+            </Text>
+            <View style={{ flex: 1 }}>
               <View
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  flex: 1,
+                  height: 48,
                 }}
               >
                 <Text>종료일 없음</Text>
@@ -201,42 +183,7 @@ export const NewSessionModal = ({
                   thumbColor="#fff"
                 />
               </View>
-            </View>
-            <View
-              style={{
-                justifyContent: "flex-end",
-                marginLeft: 80,
-                padding: 12,
-                margin: 0,
-                gap: 20,
-              }}
-            >
-              <DateTimeModal
-                selectedDate={startDateTime}
-                setSelectedDate={setStartDateTime}
-                isOpen={openPicker?.index === 0}
-                openType={openPicker?.index === 0 ? openPicker.type : null}
-                onToggle={(type) => {
-                  if (openPicker?.index === 0 && openPicker.type === type) {
-                    setOpenPicker(null); // 닫기
-                  } else {
-                    setOpenPicker({ index: 0, type });
-                  }
-                }}
-              />
-              <DateTimeModal
-                selectedDate={endDateTime}
-                setSelectedDate={setEndDateTime}
-                isOpen={openPicker?.index === 1}
-                openType={openPicker?.index === 1 ? openPicker.type : null}
-                onToggle={(type) => {
-                  if (openPicker?.index === 1 && openPicker.type === type) {
-                    setOpenPicker(null); // 닫기
-                  } else {
-                    setOpenPicker({ index: 1, type });
-                  }
-                }}
-              />
+              <DateTimeModal />
             </View>
           </View>
           <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
@@ -362,7 +309,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
-    width: 80,
+    width: 60,
     height: 48,
     textAlignVertical: "top",
     lineHeight: 48,
