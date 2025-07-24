@@ -20,40 +20,30 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const DateTimeModal = () => {
+const DatePicker = ({
+  isCurrentlyWorking,
+}: {
+  isCurrentlyWorking: boolean;
+}) => {
   const { startDate, setStartDate, endDate, setEndDate } = useShiftStore();
   const [openPicker, setOpenPicker] = useState<null | {
     index: number;
-    type: "date" | "time";
+    type: "date";
   }>(null);
   const anim = useRef(new Animated.Value(0)).current;
 
-  const handleToggle = (index: number, type: "date" | "time") => {
+  const handleToggle = (index: number, type: "date") => {
     // 레이아웃 애니메이션 설정
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
 
     if (openPicker?.index === index && openPicker?.type === type) {
-      // 같은 picker를 다시 클릭하면 닫기 __ ok
+      // 같은 picker를 다시 클릭하면 닫기
       Animated.timing(anim, {
         toValue: 0,
         duration: 250,
         useNativeDriver: true,
       }).start(() => {
         setOpenPicker(null);
-      });
-    } else if (openPicker?.index === index && openPicker?.type !== type) {
-      // 같은 index, 다른 type - 애니메이션으로 전환 __ ok
-      Animated.timing(anim, {
-        toValue: 0,
-        duration: 100,
-        useNativeDriver: true,
-      }).start(() => {
-        setOpenPicker({ index, type });
-        Animated.timing(anim, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: true,
-        }).start();
       });
     } else if (openPicker?.index !== index) {
       // 다른 index - 애니메이션으로 전환
@@ -79,32 +69,16 @@ const DateTimeModal = () => {
     }
   };
 
-  // // openPicker가 변경될 때 애니메이션 실행
-  // useEffect(() => {
-  //   if (openPicker) {
-  //     Animated.timing(anim, {
-  //       toValue: 1,
-  //       duration: 300,
-  //       useNativeDriver: true,
-  //     }).start();
-  //   } else {
-  //     Animated.timing(anim, {
-  //       toValue: 0,
-  //       duration: 300,
-  //       useNativeDriver: true,
-  //     }).start();
-  //   }
-  // }, [openPicker]);
-
   return (
     <View style={styles.container}>
-      {/* 시작 날짜/시간 섹션 */}
-      <View style={styles.row}>
+      {/* 날짜 섹션 */}
+      <View style={styles.buttonContainer}>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => {
             handleToggle(0, "date");
           }}
+          style={styles.button}
         >
           <Text
             style={[
@@ -121,71 +95,19 @@ const DateTimeModal = () => {
             })}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => {
-            handleToggle(0, "time");
-          }}
-        >
-          <Text
-            style={[
-              styles.value,
-              openPicker?.index === 0 &&
-                openPicker?.type === "time" &&
-                styles.activeValue,
-            ]}
-          >
-            {startDate.toLocaleTimeString("ko-KR", {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      {/* DateTimePicker */}
-      {openPicker?.index === 0 && (
-        <Animated.View
-          style={{
-            width: "100%",
-            justifyContent: "center",
-            alignItems: "center",
-            opacity: anim,
-            transform: [
-              {
-                translateY: anim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [-20, 0],
-                }),
-              },
-            ],
-          }}
-        >
-          <DateTimePicker
-            value={startDate}
-            style={{ width: "100%", left: -30 }}
-            textColor="black"
-            mode={openPicker.type}
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(event, selectedDate) => {
-              if (selectedDate) {
-                setStartDate(selectedDate);
-              }
-            }}
-          />
-        </Animated.View>
-      )}
-      {/* 종료 날짜/시간 섹션 */}
-      <View style={styles.row}>
+
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => {
             handleToggle(1, "date");
           }}
+          style={styles.button}
+          disabled={isCurrentlyWorking}
         >
           <Text
             style={[
               styles.value,
+              isCurrentlyWorking && styles.disabled,
               openPicker?.index === 1 &&
                 openPicker?.type === "date" &&
                 styles.activeValue,
@@ -198,31 +120,10 @@ const DateTimeModal = () => {
             })}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => {
-            handleToggle(1, "time");
-          }}
-        >
-          <Text
-            style={[
-              styles.value,
-              openPicker?.index === 1 &&
-                openPicker?.type === "time" &&
-                styles.activeValue,
-            ]}
-          >
-            {endDate.toLocaleTimeString("ko-KR", {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })}
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {/* DateTimePicker */}
-      {openPicker?.index === 1 && (
+      {openPicker?.type === "date" && (
         <Animated.View
           style={{
             width: "100%",
@@ -240,16 +141,21 @@ const DateTimeModal = () => {
           }}
         >
           <DateTimePicker
-            value={endDate}
+            value={openPicker.index === 1 ? endDate : startDate}
             style={{ width: "100%", left: -30 }}
             textColor="black"
             mode={openPicker.type}
             display={Platform.OS === "ios" ? "spinner" : "default"}
             onChange={(event, selectedDate) => {
               if (selectedDate) {
-                setEndDate(selectedDate);
+                if (openPicker.index === 1) {
+                  setEndDate(selectedDate);
+                } else {
+                  setStartDate(selectedDate);
+                }
               }
             }}
+            locale="ko-KR"
           />
         </Animated.View>
       )}
@@ -257,27 +163,12 @@ const DateTimeModal = () => {
   );
 };
 
-export default DateTimeModal;
+export default DatePicker;
 
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#fff",
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 8,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    height: 40,
-  },
-  label: {
-    fontSize: 16,
-    color: "#444",
+    gap: 16,
   },
   value: {
     fontSize: 16,
@@ -285,6 +176,25 @@ const styles = StyleSheet.create({
   },
   activeValue: {
     color: "#007AFF", // 활성화된 상태의 색상
-    fontWeight: "600",
+  },
+  disabled: {
+    color: "#ddd",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    height: 40,
+  },
+  button: {
+    maxWidth: 145,
+    backgroundColor: "#f5f5f5",
+    flex: 1,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#ddd",
   },
 });

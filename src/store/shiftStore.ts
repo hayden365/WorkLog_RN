@@ -5,6 +5,8 @@ interface ShiftStore {
   setStartDate: (date: Date) => void;
   endDate: Date;
   setEndDate: (date: Date) => void;
+  repeat: string;
+  setRepeat: (repeat: string) => void;
 }
 
 export const useShiftStore = create<ShiftStore>((set) => ({
@@ -12,4 +14,6 @@ export const useShiftStore = create<ShiftStore>((set) => ({
   setStartDate: (startDate) => set({ startDate }),
   endDate: new Date(),
   setEndDate: (endDate) => set({ endDate }),
+  repeat: "none",
+  setRepeat: (repeat) => set({ repeat }),
 }));

@@ -6,24 +6,23 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Switch,
   StyleSheet,
-  Platform,
+  Switch,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import dayjs from "dayjs";
 import {
   WorkSession,
   RepeatOption,
   MonthlyRepeatOption,
-  TimeOfDay,
 } from "../models/WorkSession";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
-import RNDateTimePicker from "@react-native-community/datetimepicker";
-import DateTimeModal from "./DateTimeModal";
 import { useShiftStore } from "../store/shiftStore";
+import Dropdown from "./Dropdown";
+import { repeatOptions } from "../utils/repeatOptions";
+import TimePicker from "./TimePicker";
+import DatePicker from "./DatePicker";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -110,7 +109,9 @@ export const NewSessionModal = ({
 
           {/* 근무지 */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>근무지</Text>
+            <Text style={styles.inputLabel}>
+              <Ionicons name="location-outline" size={24} color="black" />
+            </Text>
             <TextInput
               style={styles.input}
               placeholder="근무지명을 입력하세요"
@@ -164,6 +165,18 @@ export const NewSessionModal = ({
               <Ionicons name="time-outline" size={24} color="black" />
             </Text>
             <View style={{ flex: 1 }}>
+              <TimePicker />
+            </View>
+          </View>
+          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+
+          {/* 날짜 */}
+          <View style={styles.inputGroup}>
+            <Text style={[styles.inputLabel, { alignSelf: "flex-start" }]}>
+              <Ionicons name="calendar-outline" size={24} color="black" />
+            </Text>
+            <View style={{ flex: 1 }}>
+              <DatePicker isCurrentlyWorking={isCurrentlyWorking} />
               <View
                 style={{
                   flexDirection: "row",
@@ -172,7 +185,9 @@ export const NewSessionModal = ({
                   height: 48,
                 }}
               >
-                <Text>종료일 없음</Text>
+                <Text style={{ fontSize: 16, marginLeft: 10 }}>
+                  종료일 없음
+                </Text>
                 <Switch
                   value={isCurrentlyWorking}
                   onValueChange={setIsCurrentlyWorking}
@@ -183,37 +198,26 @@ export const NewSessionModal = ({
                   thumbColor="#fff"
                 />
               </View>
-              <DateTimeModal />
             </View>
           </View>
           <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+
           {/* 반복 주기 */}
-          <Text style={styles.label}>반복 주기</Text>
-          <View style={styles.rowWrap}>
-            {(
-              [
-                "none",
-                "weekly",
-                "biweekly",
-                "triweekly",
-                "monthly",
-              ] as RepeatOption[]
-            ).map((opt) => (
-              <TouchableOpacity
-                key={opt}
-                style={[
-                  styles.optionButton,
-                  repeatOption === opt && styles.optionButtonSelected,
-                ]}
-                onPress={() => setRepeatOption(opt)}
-              >
-                <Text>{opt}</Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>
+              <Ionicons name="repeat-outline" size={24} color="black" />
+            </Text>
+            <View style={{ flex: 1 }}>
+              <Dropdown
+                data={repeatOptions}
+                onChange={(item) => setRepeatOption(item.value as RepeatOption)}
+                placeholder="반복 주기 선택"
+              />
+            </View>
           </View>
 
           {/* 요일 선택 */}
-          {repeatOption === "weekly" && (
+          {repeatOption !== "none" && (
             <>
               <Text style={styles.label}>근무 요일</Text>
               <View style={styles.rowWrap}>
@@ -292,7 +296,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     position: "relative",
     flex: 1,
-    gap: 16,
+    gap: 24,
   },
   header: {
     fontSize: 20,
@@ -309,7 +313,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
-    width: 60,
+    width: 50,
     height: 48,
     textAlignVertical: "top",
     lineHeight: 48,
@@ -354,9 +358,11 @@ const styles = StyleSheet.create({
     width: "100%",
     bottom: 24,
     marginHorizontal: 16,
-    display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    display: "flex",
+    flexDirection: "row",
+    gap: 16,
   },
   saveButton: {
     backgroundColor: "#007aff",

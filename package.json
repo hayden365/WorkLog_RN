@@ -22,6 +22,7 @@
     "react-native-mmkv": "^3.2.0",
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-picker-select": "^9.3.1",
+    "react-native-popup-menu": "^0.18.0",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
     "zustand": "^5.0.6"
