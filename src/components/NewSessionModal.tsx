@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Modal,
   View,
@@ -8,6 +8,9 @@ import {
   ScrollView,
   StyleSheet,
   Switch,
+  LayoutRectangle,
+  Dimensions,
+  Animated,
 } from "react-native";
 import dayjs from "dayjs";
 import {
@@ -17,12 +20,14 @@ import {
 } from "../models/WorkSession";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import { FontAwesome, Ionicons } from "@expo/vector-icons";
+import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
 import { useShiftStore } from "../store/shiftStore";
 import Dropdown from "./Dropdown";
 import { repeatOptions } from "../utils/repeatOptions";
 import TimePicker from "./TimePicker";
 import DatePicker from "./DatePicker";
+import FadeInView from "./FadeInView";
+import SlideInView from "./SlideInView";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -39,6 +44,7 @@ export const NewSessionModal = ({
   const [jobName, setJobName] = useState("");
   const [wage, setWage] = useState("");
   const [repeatOption, setRepeatOption] = useState<RepeatOption>("none");
+
   const [selectedWeekDays, setSelectedWeekDays] = useState<Set<number>>(
     new Set()
   );
@@ -48,6 +54,8 @@ export const NewSessionModal = ({
   const [note, setNote] = useState("");
   const [wageType, setWageType] = useState<"hourly" | "daily">("hourly");
 
+  const scrollViewRef = useRef<ScrollView>(null);
+  const anim = useRef(new Animated.Value(0)).current;
   // 숫자에 콤마 추가하는 함수
   const formatNumberWithComma = (value: string) => {
     // 숫자가 아닌 문자 제거
@@ -102,11 +110,29 @@ export const NewSessionModal = ({
   };
 
   return (
-    <Modal visible={visible} animationType="slide">
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+    >
       <SafeAreaView style={styles.areaContainer}>
-        <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.headerContainer}>
+          {/* 닫기 */}
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <Text style={styles.closeButtonText}>
+              <Feather name="x" size={20} color="black" />
+            </Text>
+          </TouchableOpacity>
           <Text style={styles.header}>근무 일정 추가</Text>
-
+          {/* 저장 버튼 */}
+          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+            <Text style={styles.saveButtonText}>저장</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.container}
+        >
           {/* 근무지 */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>
@@ -158,7 +184,6 @@ export const NewSessionModal = ({
             </View>
           </View>
           <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
-
           {/* 시간 */}
           <View style={{ minHeight: 48, flexDirection: "row" }}>
             <Text style={[styles.inputLabel, { alignSelf: "flex-start" }]}>
@@ -169,13 +194,12 @@ export const NewSessionModal = ({
             </View>
           </View>
           <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
-
           {/* 날짜 */}
           <View style={styles.inputGroup}>
             <Text style={[styles.inputLabel, { alignSelf: "flex-start" }]}>
               <Ionicons name="calendar-outline" size={24} color="black" />
             </Text>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, gap: 8 }}>
               <DatePicker isCurrentlyWorking={isCurrentlyWorking} />
               <View
                 style={{
@@ -201,25 +225,47 @@ export const NewSessionModal = ({
             </View>
           </View>
           <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
-
           {/* 반복 주기 */}
-          <View style={styles.inputGroup}>
+          <View style={[styles.inputGroup, { marginBottom: -18 }]}>
             <Text style={styles.inputLabel}>
               <Ionicons name="repeat-outline" size={24} color="black" />
             </Text>
             <View style={{ flex: 1 }}>
               <Dropdown
                 data={repeatOptions}
-                onChange={(item) => setRepeatOption(item.value as RepeatOption)}
+                onChange={(item) => {
+                  setRepeatOption(item.value as RepeatOption);
+                  Animated.timing(anim, {
+                    toValue: 1,
+                    duration: 300,
+                    useNativeDriver: true,
+                  }).start();
+                }}
                 placeholder="반복 주기 선택"
               />
             </View>
           </View>
-
           {/* 요일 선택 */}
-          {repeatOption !== "none" && (
-            <>
-              <Text style={styles.label}>근무 요일</Text>
+          <SlideInView
+            visible={
+              repeatOption === "weekly" ||
+              repeatOption === "biweekly" ||
+              repeatOption === "triweekly"
+            }
+            direction="down"
+          >
+            <View
+              style={
+                repeatOption === "weekly" ||
+                repeatOption === "biweekly" ||
+                repeatOption === "triweekly"
+                  ? {
+                      height: 50,
+                      paddingTop: 12,
+                    }
+                  : { height: 0 }
+              }
+            >
               <View style={styles.rowWrap}>
                 {["월", "화", "수", "목", "금", "토", "일"].map(
                   (day, index) => (
@@ -232,56 +278,33 @@ export const NewSessionModal = ({
                       ]}
                       onPress={() => toggleWeekDay(index)}
                     >
-                      <Text>{day}</Text>
+                      <Text
+                        style={
+                          selectedWeekDays.has(index) &&
+                          styles.optionButtonTextSelected
+                        }
+                      >
+                        {day}
+                      </Text>
                     </TouchableOpacity>
                   )
                 )}
               </View>
-            </>
-          )}
-
-          {/* 월별 반복 옵션 */}
-          {repeatOption === "monthly" && (
-            <>
-              <Text style={styles.label}>반복 방식</Text>
-              <View style={styles.rowWrap}>
-                {(["byDayOfMonth", "byDayOfWeek"] as MonthlyRepeatOption[]).map(
-                  (opt) => (
-                    <TouchableOpacity
-                      key={opt}
-                      style={[
-                        styles.optionButton,
-                        monthlyRepeatOption === opt &&
-                          styles.optionButtonSelected,
-                      ]}
-                      onPress={() => setMonthlyRepeatOption(opt)}
-                    >
-                      <Text>{opt}</Text>
-                    </TouchableOpacity>
-                  )
-                )}
-              </View>
-            </>
-          )}
+            </View>
+          </SlideInView>
+          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
           {/* 메모 */}
-          <TextInput
-            style={[styles.input, { height: 80 }]}
-            placeholder="메모"
-            value={note}
-            multiline
-            onChangeText={setNote}
-          />
-
-          <View style={styles.buttonContainer}>
-            {/* 저장 버튼 */}
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveButtonText}>저장</Text>
-            </TouchableOpacity>
-
-            {/* 닫기 */}
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <Text style={styles.closeButtonText}>닫기</Text>
-            </TouchableOpacity>
+          <View style={styles.inputGroup}>
+            <Text style={[styles.inputLabel, { alignSelf: "flex-start" }]}>
+              <Entypo name="text" size={24} color="black" />
+            </Text>
+            <TextInput
+              style={[styles.input, { height: "100%", padding: 13 }]}
+              placeholder="설명 추가"
+              value={note}
+              multiline
+              onChangeText={setNote}
+            />
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -293,15 +316,11 @@ const styles = StyleSheet.create({
   areaContainer: { flex: 1 },
   container: {
     padding: 16,
-    paddingBottom: 40,
-    position: "relative",
-    flex: 1,
+    paddingBottom: 60,
     gap: 24,
   },
   header: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
+    fontSize: 16,
     textAlign: "center",
   },
   inputGroup: {
@@ -335,16 +354,33 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     justifyContent: "space-between",
   },
-  rowWrap: { flexDirection: "row", flexWrap: "wrap", marginBottom: 12 },
+  rowWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: -10,
+    marginBottom: 12,
+    width: "100%",
+    flex: 1,
+    justifyContent: "space-around",
+  },
   optionButton: {
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
     padding: 8,
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 8,
+    borderRadius: 20,
     marginRight: 6,
     marginBottom: 6,
   },
-  optionButtonSelected: { backgroundColor: "#007aff", borderColor: "#007aff" },
+  optionButtonSelected: {
+    backgroundColor: "#007aff",
+    borderColor: "#007aff",
+    color: "#fff",
+  },
+  optionButtonTextSelected: { color: "#fff" },
   timeButton: {
     padding: 10,
     borderWidth: 1,
@@ -353,35 +389,24 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
-  buttonContainer: {
-    position: "absolute",
-    width: "100%",
-    bottom: 24,
-    marginHorizontal: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    display: "flex",
+  headerContainer: {
     flexDirection: "row",
-    gap: 16,
+    width: "100%",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+    paddingBottom: 16,
   },
   saveButton: {
-    backgroundColor: "#007aff",
-    padding: 14,
-    borderRadius: 8,
     alignItems: "center",
-    width: "100%",
-    marginTop: 16,
+    borderRadius: 8,
   },
-  saveButtonText: { color: "#fff", fontWeight: "bold" },
+  saveButtonText: { color: "#007aff", fontWeight: "bold" },
   closeButton: {
-    marginTop: 16,
-    alignItems: "center",
     backgroundColor: "white",
-    padding: 14,
-    borderRadius: 8,
-    borderColor: "#007aff",
-    width: "100%",
-    borderWidth: 1,
   },
-  closeButtonText: { color: "#007aff" },
+  closeButtonText: { color: "#333" },
 });

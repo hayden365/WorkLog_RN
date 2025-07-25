@@ -42,20 +42,6 @@ const TimePicker = () => {
       }).start(() => {
         setOpenPicker(null);
       });
-    } else if (openPicker?.index === index && openPicker?.type !== type) {
-      // 같은 index, 다른 type - 애니메이션으로 전환
-      Animated.timing(anim, {
-        toValue: 0,
-        duration: 100,
-        useNativeDriver: true,
-      }).start(() => {
-        setOpenPicker({ index, type });
-        Animated.timing(anim, {
-          toValue: 1,
-          duration: 250,
-          useNativeDriver: true,
-        }).start();
-      });
     } else if (openPicker?.index !== index) {
       // 다른 index - 애니메이션으로 전환
       setOpenPicker({ index, type });
