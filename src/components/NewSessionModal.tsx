@@ -12,12 +12,7 @@ import {
   Dimensions,
   Animated,
 } from "react-native";
-import dayjs from "dayjs";
-import {
-  WorkSession,
-  RepeatOption,
-  MonthlyRepeatOption,
-} from "../models/WorkSession";
+import { WorkSession, RepeatOption } from "../models/WorkSession";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
@@ -26,7 +21,6 @@ import Dropdown from "./Dropdown";
 import { repeatOptions } from "../utils/repeatOptions";
 import TimePicker from "./TimePicker";
 import DatePicker from "./DatePicker";
-import FadeInView from "./FadeInView";
 import SlideInView from "./SlideInView";
 
 interface NewSessionModalProps {
@@ -40,7 +34,7 @@ export const NewSessionModal = ({
   onClose,
   onSave,
 }: NewSessionModalProps) => {
-  const { startDate, endDate } = useShiftStore();
+  const { startDate, endDate, startTime, endTime } = useShiftStore();
   const [jobName, setJobName] = useState("");
   const [wage, setWage] = useState("");
   const [repeatOption, setRepeatOption] = useState<RepeatOption>("none");
@@ -48,10 +42,8 @@ export const NewSessionModal = ({
   const [selectedWeekDays, setSelectedWeekDays] = useState<Set<number>>(
     new Set()
   );
-  const [monthlyRepeatOption, setMonthlyRepeatOption] =
-    useState<MonthlyRepeatOption>("byDayOfMonth");
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(true);
-  const [note, setNote] = useState("");
+  const [description, setDescription] = useState("");
   const [wageType, setWageType] = useState<"hourly" | "daily">("hourly");
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -82,30 +74,24 @@ export const NewSessionModal = ({
 
   const handleSave = () => {
     if (!startDate || !endDate) return;
-
+    const endDateValue = isCurrentlyWorking ? null : endDate;
     // 콤마 제거 후 숫자로 변환
     const numericWage = parseInt(wage.replace(/,/g, "")) || 0;
 
     const newSession: WorkSession = {
       jobName,
       wage: numericWage,
-      startTime: {
-        hour: startDate.getHours(),
-        minute: startDate.getMinutes(),
-      },
-      endTime: {
-        hour: endDate.getHours(),
-        minute: endDate.getMinutes(),
-      },
+      startTime,
+      endTime,
+      startDate,
+      endDate: endDateValue,
       repeatOption,
       selectedWeekDays,
-      monthlyRepeatOption,
-      startDate: dayjs(startDate).format("YYYY-MM-DD"),
-      endDate: isCurrentlyWorking ? null : dayjs(endDate).format("YYYY-MM-DD"),
       isCurrentlyWorking,
-      note,
+      description,
     };
     onSave(newSession);
+    console.log("newSession", newSession);
     onClose();
   };
 
@@ -301,9 +287,9 @@ export const NewSessionModal = ({
             <TextInput
               style={[styles.input, { height: "100%", padding: 13 }]}
               placeholder="설명 추가"
-              value={note}
+              value={description}
               multiline
-              onChangeText={setNote}
+              onChangeText={setDescription}
             />
           </View>
         </ScrollView>

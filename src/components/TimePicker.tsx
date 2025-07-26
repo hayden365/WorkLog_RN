@@ -22,7 +22,7 @@ if (
 }
 
 const TimePicker = () => {
-  const { startDate, setStartDate, endDate, setEndDate } = useShiftStore();
+  const { startTime, setStartTime, endTime, setEndTime } = useShiftStore();
   const [openPicker, setOpenPicker] = useState<null | {
     index: number;
     type: "time";
@@ -85,7 +85,7 @@ const TimePicker = () => {
                 styles.activeValue,
             ]}
           >
-            {startDate.toLocaleTimeString("ko-KR", {
+            {startTime.toLocaleTimeString("ko-KR", {
               hour: "numeric",
               minute: "2-digit",
               hour12: true,
@@ -108,7 +108,7 @@ const TimePicker = () => {
                 styles.activeValue,
             ]}
           >
-            {endDate.toLocaleTimeString("ko-KR", {
+            {endTime.toLocaleTimeString("ko-KR", {
               hour: "numeric",
               minute: "2-digit",
               hour12: true,
@@ -136,7 +136,7 @@ const TimePicker = () => {
           }}
         >
           <DateTimePicker
-            value={openPicker.index === 1 ? endDate : startDate}
+            value={openPicker.index === 1 ? endTime : startTime}
             style={{ width: "100%", left: -30 }}
             textColor="black"
             mode={openPicker.type}
@@ -144,9 +144,9 @@ const TimePicker = () => {
             onChange={(event, selectedDate) => {
               if (selectedDate) {
                 if (openPicker.index === 1) {
-                  setEndDate(selectedDate);
+                  setEndTime(selectedDate);
                 } else {
-                  setStartDate(selectedDate);
+                  setStartTime(selectedDate);
                 }
               }
             }}

@@ -31,7 +31,7 @@ const HomeScreen = () => {
     const newMap: Record<string, WorkSession[]> = {};
 
     sessions.forEach((session) => {
-      const dateKey = session.startDate;
+      const dateKey = session.startDate.toISOString().slice(0, 10);
       if (!newMap[dateKey]) newMap[dateKey] = [];
       newMap[dateKey].push(session);
     });
@@ -55,8 +55,9 @@ const HomeScreen = () => {
             <View key={index} style={styles.sessionCard}>
               <Text style={styles.sessionTitle}>{session.jobName}</Text>
               <Text>
-                시간: {session.startTime.hour}:{session.startTime.minute} ~{" "}
-                {session.endTime.hour}:{session.endTime.minute}
+                시간: {session.startDate.getHours()}:
+                {session.startDate.getMinutes()}~ {session.endDate?.getHours()}:
+                {session.endDate?.getMinutes()}
               </Text>
             </View>
           ))
@@ -83,8 +84,13 @@ const calculateMonthlyEarnings = (sessions: WorkSession[]) => {
   const now = new Date();
   let total = 0;
   sessions.forEach((session) => {
-    const startMinutes = session.startTime.hour * 60 + session.startTime.minute;
-    const endMinutes = session.endTime.hour * 60 + session.endTime.minute;
+    const startMinutes =
+      session.startDate.getHours() * 60 + session.startDate.getMinutes();
+    let endMinutes = 0;
+    if (session.endDate) {
+      endMinutes =
+        session.endDate.getHours() * 60 + session.endDate.getMinutes();
+    }
     const workMinutes = endMinutes - startMinutes;
     const workHours = workMinutes / 60;
     total += workHours * session.wage;

@@ -4,23 +4,17 @@ export type RepeatOption =
   | "biweekly"
   | "triweekly"
   | "monthly";
-export type MonthlyRepeatOption = "byDayOfMonth" | "byDayOfWeek";
 
-export interface TimeOfDay {
-  hour: number;
-  minute: number;
-}
-
+// 데이터 저장 형식
 export interface WorkSession {
   jobName: string;
   wage: number;
-  startTime: TimeOfDay;
-  endTime: TimeOfDay;
+  startTime: Date;
+  endTime: Date;
+  startDate: Date;
+  endDate: Date | null;
   repeatOption: RepeatOption;
   selectedWeekDays: Set<number>; // 0 = 월 ~ 6 = 일
-  monthlyRepeatOption: MonthlyRepeatOption;
-  startDate: string; // YYYY-MM-DD 형식
-  endDate?: string | null;
   isCurrentlyWorking: boolean;
-  note: string;
+  description: string;
 }
