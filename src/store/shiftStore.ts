@@ -2,12 +2,10 @@ import { create } from "zustand";
 import { RepeatOption } from "../models/WorkSession";
 
 interface ShiftStore {
-  repeat: RepeatOption;
-  setRepeat: (repeat: RepeatOption) => void;
   jobName: string;
   setJobName: (jobName: string) => void;
-  wage: number;
-  setWage: (wage: number) => void;
+  wage: number | null;
+  setWage: (wage: number | null) => void;
   startDate: Date;
   setStartDate: (date: Date) => void;
   endDate: Date;
@@ -16,16 +14,19 @@ interface ShiftStore {
   setStartTime: (startTime: Date) => void;
   endTime: Date;
   setEndTime: (endTime: Date) => void;
+  repeatOption: RepeatOption;
+  setRepeatOption: (repeatOption: RepeatOption) => void;
   selectedWeekDays: Set<number>;
   setSelectedWeekDays: (weekDays: Set<number>) => void;
   description: string;
   setDescription: (description: string) => void;
+  reset: () => void;
 }
 
 export const useShiftStore = create<ShiftStore>((set) => ({
   jobName: "",
   setJobName: (jobName) => set({ jobName }),
-  wage: 0,
+  wage: null,
   setWage: (wage) => set({ wage }),
   startDate: new Date(),
   setStartDate: (startDate) => set({ startDate }),
@@ -35,10 +36,22 @@ export const useShiftStore = create<ShiftStore>((set) => ({
   setStartTime: (startTime) => set({ startTime }),
   endTime: new Date(),
   setEndTime: (endTime) => set({ endTime }),
-  repeat: "none",
-  setRepeat: (repeat) => set({ repeat }),
+  repeatOption: "none",
+  setRepeatOption: (repeatOption) => set({ repeatOption }),
   selectedWeekDays: new Set(),
   setSelectedWeekDays: (selectedWeekDays) => set({ selectedWeekDays }),
   description: "",
   setDescription: (description) => set({ description }),
+  reset: () =>
+    set({
+      jobName: "",
+      wage: null,
+      startDate: new Date(),
+      endDate: new Date(),
+      startTime: new Date(),
+      endTime: new Date(),
+      repeatOption: "none",
+      selectedWeekDays: new Set(),
+      description: "",
+    }),
 }));

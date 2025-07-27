@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Modal,
   StyleSheet,
 } from "react-native";
 import { EarningsCard } from "../components/EarningsCard";
@@ -20,7 +19,7 @@ const HomeScreen = () => {
     new Date().toISOString().slice(0, 10)
   );
   const [modalVisible, setModalVisible] = useState(false);
-
+  console.log("workSessions", workSessions);
   const handleSave = (newSession: WorkSession) => {
     const updatedSessions = [...workSessions, newSession];
     setWorkSessions(updatedSessions);
@@ -81,15 +80,14 @@ const HomeScreen = () => {
 };
 
 const calculateMonthlyEarnings = (sessions: WorkSession[]) => {
-  const now = new Date();
   let total = 0;
   sessions.forEach((session) => {
     const startMinutes =
-      session.startDate.getHours() * 60 + session.startDate.getMinutes();
+      session.startTime.getHours() * 60 + session.startTime.getMinutes();
     let endMinutes = 0;
-    if (session.endDate) {
+    if (session.endTime) {
       endMinutes =
-        session.endDate.getHours() * 60 + session.endDate.getMinutes();
+        session.endTime.getHours() * 60 + session.endTime.getMinutes();
     }
     const workMinutes = endMinutes - startMinutes;
     const workHours = workMinutes / 60;

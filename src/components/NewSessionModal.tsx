@@ -34,17 +34,25 @@ export const NewSessionModal = ({
   onClose,
   onSave,
 }: NewSessionModalProps) => {
-  const { startDate, endDate, startTime, endTime } = useShiftStore();
-  const [jobName, setJobName] = useState("");
-  const [wage, setWage] = useState("");
-  const [repeatOption, setRepeatOption] = useState<RepeatOption>("none");
-
-  const [selectedWeekDays, setSelectedWeekDays] = useState<Set<number>>(
-    new Set()
-  );
+  const {
+    jobName,
+    setJobName,
+    wage,
+    setWage,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    selectedWeekDays,
+    setSelectedWeekDays,
+    repeatOption,
+    setRepeatOption,
+    reset,
+  } = useShiftStore();
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(true);
   const [description, setDescription] = useState("");
   const [wageType, setWageType] = useState<"hourly" | "daily">("hourly");
+  const [wageValue, setWageValue] = useState<string>("");
 
   const scrollViewRef = useRef<ScrollView>(null);
   const anim = useRef(new Animated.Value(0)).current;
@@ -59,7 +67,8 @@ export const NewSessionModal = ({
   // 시급/일급 입력 처리
   const handleWageChange = (value: string) => {
     const formattedValue = formatNumberWithComma(value);
-    setWage(formattedValue);
+    setWageValue(formattedValue);
+    setWage(Number(formattedValue));
   };
 
   const toggleWeekDay = (index: number) => {
@@ -76,11 +85,10 @@ export const NewSessionModal = ({
     if (!startDate || !endDate) return;
     const endDateValue = isCurrentlyWorking ? null : endDate;
     // 콤마 제거 후 숫자로 변환
-    const numericWage = parseInt(wage.replace(/,/g, "")) || 0;
 
     const newSession: WorkSession = {
       jobName,
-      wage: numericWage,
+      wage: wage || 0,
       startTime,
       endTime,
       startDate,
@@ -91,7 +99,11 @@ export const NewSessionModal = ({
       description,
     };
     onSave(newSession);
+    setWageValue("");
+    setIsCurrentlyWorking(true);
+    setDescription("");
     console.log("newSession", newSession);
+    reset();
     onClose();
   };
 
@@ -162,7 +174,7 @@ export const NewSessionModal = ({
                 <TextInput
                   style={styles.input}
                   placeholder={wageType === "hourly" ? "시급" : "일급"}
-                  value={wage}
+                  value={wageValue}
                   keyboardType="number-pad"
                   onChangeText={handleWageChange}
                 />
@@ -253,28 +265,34 @@ export const NewSessionModal = ({
               }
             >
               <View style={styles.rowWrap}>
-                {["월", "화", "수", "목", "금", "토", "일"].map(
-                  (day, index) => (
-                    <TouchableOpacity
-                      key={day}
-                      style={[
-                        styles.optionButton,
-                        selectedWeekDays.has(index) &&
-                          styles.optionButtonSelected,
-                      ]}
-                      onPress={() => toggleWeekDay(index)}
+                {[
+                  { label: "월", value: 1 },
+                  { label: "화", value: 2 },
+                  { label: "수", value: 3 },
+                  { label: "목", value: 4 },
+                  { label: "금", value: 5 },
+                  { label: "토", value: 6 },
+                  { label: "일", value: 0 },
+                ].map((day) => (
+                  <TouchableOpacity
+                    key={day.value}
+                    style={[
+                      styles.optionButton,
+                      selectedWeekDays.has(day.value) &&
+                        styles.optionButtonSelected,
+                    ]}
+                    onPress={() => toggleWeekDay(day.value)}
+                  >
+                    <Text
+                      style={
+                        selectedWeekDays.has(day.value) &&
+                        styles.optionButtonTextSelected
+                      }
                     >
-                      <Text
-                        style={
-                          selectedWeekDays.has(index) &&
-                          styles.optionButtonTextSelected
-                        }
-                      >
-                        {day}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                )}
+                      {day.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
           </SlideInView>
