@@ -11,7 +11,6 @@ const FadeInView = ({
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    console.log(visible);
     if (visible) {
       Animated.timing(opacity, {
         toValue: 1,

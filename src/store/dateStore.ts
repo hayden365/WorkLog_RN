@@ -1,11 +1,11 @@
 import { create } from "zustand";
 
 interface DateStore {
-  month: string;
-  setMonth: (month: string) => void;
+  month: number;
+  setMonth: (month: number) => void;
 }
 
 export const useDateStore = create<DateStore>((set) => ({
-  month: new Date().toLocaleString("ko-KR", { month: "long" }),
+  month: new Date().getMonth(),
   setMonth: (month) => set({ month }),
 }));

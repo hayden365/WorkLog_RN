@@ -7,7 +7,7 @@ export const HeaderSection = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{month} 수익</Text>
+      <Text style={styles.title}>{month}월 수익</Text>
     </View>
   );
 };

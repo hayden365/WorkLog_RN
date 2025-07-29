@@ -15,7 +15,6 @@ const SlideInView = ({
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    console.log(visible);
     if (visible) {
       // 슬라이드 인 + 페이드 인 애니메이션
       Animated.parallel([

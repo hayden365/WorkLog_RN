@@ -102,7 +102,6 @@ export const NewSessionModal = ({
     setWageValue("");
     setIsCurrentlyWorking(true);
     setDescription("");
-    console.log("newSession", newSession);
     reset();
     onClose();
   };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,19 +11,29 @@ import { HeaderSection } from "../components/HeaderSection";
 import { NewSessionModal } from "../components/NewSessionModal";
 import { WorkSession } from "../models/WorkSession";
 import { CalendarPage } from "../components/CalendarPage";
+import { useDateStore } from "../store/dateStore";
+import { useScheduleStore } from "../store/shiftStore";
+import {
+  getMarkedDatesFromMonthlySchedule,
+  getMarkedDatesFromWeeklySchedule,
+} from "../utils/calendarfns";
+import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 
 const HomeScreen = () => {
-  const [workSessions, setWorkSessions] = useState<WorkSession[]>([]);
+  const { schedule, setSchedule } = useScheduleStore();
+  const [scheduleMap, setScheduleMap] = useState<Record<string, MarkingProps>>(
+    {}
+  );
   const [eventsMap, setEventsMap] = useState<Record<string, WorkSession[]>>({});
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().slice(0, 10)
   );
   const [modalVisible, setModalVisible] = useState(false);
-  console.log("workSessions", workSessions);
+  const { month } = useDateStore();
+  // updatemap과 schedulemap 연동하는방법
   const handleSave = (newSession: WorkSession) => {
-    const updatedSessions = [...workSessions, newSession];
-    setWorkSessions(updatedSessions);
-    updateEventsMap(updatedSessions);
+    const updatedSchedule = [...schedule, newSession];
+    setSchedule(updatedSchedule);
   };
 
   const updateEventsMap = (sessions: WorkSession[]) => {
@@ -36,7 +46,44 @@ const HomeScreen = () => {
     });
 
     setEventsMap(newMap);
+    console.log("newMap", newMap);
   };
+
+  useEffect(() => {
+    schedule.forEach((session) => {
+      if (session.repeatOption === "none") {
+        setScheduleMap((prev) => ({
+          ...prev,
+          [session.startDate.toISOString().slice(0, 10)]: {
+            periods: [
+              {
+                startingDay: true,
+                endingDay: true,
+                color: "#f0e68c",
+              },
+            ],
+          },
+        }));
+      } else if (session.repeatOption === "weekly") {
+        setScheduleMap((prev) => ({
+          ...prev,
+          ...getMarkedDatesFromWeeklySchedule({
+            schedule: session,
+            viewMonth: new Date(new Date().setMonth(month)),
+          }),
+        }));
+      } else if (session.repeatOption === "monthly") {
+        setScheduleMap((prev) => ({
+          ...prev,
+          ...getMarkedDatesFromMonthlySchedule({
+            schedule: session,
+            viewMonth: new Date(new Date().setMonth(month)),
+          }),
+        }));
+      }
+    });
+    updateEventsMap(schedule);
+  }, [schedule]);
 
   const selectedDayEvents = eventsMap[selectedDate] || [];
 
@@ -44,8 +91,8 @@ const HomeScreen = () => {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <HeaderSection />
-        <EarningsCard totalEarnings={calculateMonthlyEarnings(workSessions)} />
-        <CalendarPage eventsMap={eventsMap} onDaySelected={setSelectedDate} />
+        <EarningsCard totalEarnings={calculateMonthlyEarnings(schedule)} />
+        <CalendarPage eventsMap={scheduleMap} onDaySelected={setSelectedDate} />
         <Text style={styles.dateText}>{selectedDate} 일정</Text>
         {selectedDayEvents.length === 0 ? (
           <Text>일정 없음</Text>

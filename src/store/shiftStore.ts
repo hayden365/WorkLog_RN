@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { RepeatOption } from "../models/WorkSession";
+import { RepeatOption, WorkSession } from "../models/WorkSession";
 
 interface ShiftStore {
   jobName: string;
@@ -54,4 +54,14 @@ export const useShiftStore = create<ShiftStore>((set) => ({
       selectedWeekDays: new Set(),
       description: "",
     }),
+}));
+
+interface ScheduleStore {
+  schedule: WorkSession[];
+  setSchedule: (schedule: WorkSession[]) => void;
+}
+
+export const useScheduleStore = create<ScheduleStore>((set) => ({
+  schedule: [],
+  setSchedule: (schedule) => set({ schedule }),
 }));
