@@ -5,7 +5,33 @@ import {
   isBefore,
   parseISO,
 } from "date-fns";
-import { WorkSession } from "../models/WorkSession";
+import { ScheduleByDate, WorkSession } from "../models/WorkSession";
+import { useDateScheduleStore } from "../store/shiftStore";
+
+export function generateScheduleByDate(dates: string[], sessionId: string) {
+  const { addDateSchedule } = useDateScheduleStore();
+  const scheduleByDate: ScheduleByDate = {};
+  dates.forEach((date) => {
+    if (!scheduleByDate[date]) scheduleByDate[date] = [];
+    scheduleByDate[date].push(sessionId);
+  });
+  addDateSchedule(scheduleByDate);
+}
+
+// repeatOption is daily
+export function getMarkedDatesFromDailySchedule({
+  schedule,
+  viewMonth,
+}: {
+  schedule: WorkSession;
+  viewMonth: Date;
+}) {
+  const markedDates = {};
+  const startDate = parseISO(schedule.startDate.toISOString());
+  const endDate = schedule.endDate
+    ? parseISO(schedule.endDate.toISOString())
+    : null;
+}
 
 function groupDatesByConsecutiveChunks(dates: string[]) {
   const sorted = [...dates].sort();
@@ -31,7 +57,7 @@ function groupDatesByConsecutiveChunks(dates: string[]) {
 }
 
 // schedule's repeatOption is weekly
-function getMarkedDatesFromWeeklySchedule({
+export function getMarkedDatesFromWeeklySchedule({
   schedule,
   viewMonth,
 }: {
@@ -43,7 +69,7 @@ function getMarkedDatesFromWeeklySchedule({
   const endDate = schedule.endDate
     ? parseISO(schedule.endDate.toISOString())
     : null;
-  const selectedDays = [...schedule.selectedWeekDays];
+  const selectedWeekDays = [...schedule.selectedWeekDays];
   const monthStart = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
   const monthEnd = new Date(
     viewMonth.getFullYear(),
@@ -56,12 +82,14 @@ function getMarkedDatesFromWeeklySchedule({
     .filter((day) => {
       const dayOfWeek = getDay(day);
       return (
-        selectedDays.includes(dayOfWeek) &&
+        selectedWeekDays.includes(dayOfWeek) &&
         !isBefore(day, startDate) &&
         (!endDate || isBefore(day, endDate))
       );
     })
     .map((d) => format(d, "yyyy-MM-dd"));
+
+  generateScheduleByDate(matchedDates, schedule.id);
 
   const dateChunks: string[][] =
     groupDatesByConsecutiveChunks(matchedDates) ?? [];
@@ -84,7 +112,7 @@ function getMarkedDatesFromWeeklySchedule({
 }
 
 // schedule's repeatOption is monthly
-function getMarkedDatesFromMonthlySchedule({
+export function getMarkedDatesFromMonthlySchedule({
   schedule,
   viewMonth,
 }: {
@@ -106,19 +134,21 @@ function getMarkedDatesFromMonthlySchedule({
 
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  const matchedDates = days.filter((day) => {
-    const dayOfMonth = day.getDate();
-    return (
-      selectedDays.includes(dayOfMonth) &&
-      !isBefore(day, startDate) &&
-      (!endDate || isBefore(day, endDate))
-    );
-  });
+  const matchedDates = days
+    .filter((day) => {
+      const dayOfMonth = day.getDate();
+      return (
+        selectedDays.includes(dayOfMonth) &&
+        !isBefore(day, startDate) &&
+        (!endDate || isBefore(day, endDate))
+      );
+    })
+    .map((d) => format(d, "yyyy-MM-dd"));
+
+  generateScheduleByDate(matchedDates, schedule.id);
 
   const dateChunks: string[][] =
-    groupDatesByConsecutiveChunks(
-      matchedDates.map((d) => format(d, "yyyy-MM-dd"))
-    ) ?? [];
+    groupDatesByConsecutiveChunks(matchedDates) ?? [];
 
   dateChunks.forEach((chunk: string[]) => {
     chunk.forEach((dateStr: string, idx: number) => {
@@ -136,5 +166,3 @@ function getMarkedDatesFromMonthlySchedule({
 
   return markedDates;
 }
-
-export { getMarkedDatesFromWeeklySchedule, getMarkedDatesFromMonthlySchedule };

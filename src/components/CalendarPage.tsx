@@ -7,12 +7,12 @@ import { repeatOptions } from "../utils/repeatOptions";
 import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 
 interface CalendarPageProps {
-  eventsMap: Record<string, MarkingProps>;
+  markedDates: Record<string, MarkingProps>;
   onDaySelected: (date: string) => void;
 }
 
 export const CalendarPage = ({
-  eventsMap,
+  markedDates,
   onDaySelected,
 }: CalendarPageProps) => {
   const [selectedDay, setSelectedDay] = useState(dayjs().format("YYYY-MM-DD"));
@@ -28,7 +28,7 @@ export const CalendarPage = ({
       onMonthChange={(month) => {
         setMonth(month.month);
       }}
-      markedDates={eventsMap}
+      markedDates={markedDates}
       markingType="multi-period"
       firstDay={1}
       theme={{

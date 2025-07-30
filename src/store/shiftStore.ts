@@ -1,5 +1,9 @@
 import { create } from "zustand";
-import { RepeatOption, WorkSession } from "../models/WorkSession";
+import {
+  RepeatOption,
+  ScheduleByDate,
+  WorkSession,
+} from "../models/WorkSession";
 
 interface ShiftStore {
   jobName: string;
@@ -36,7 +40,7 @@ export const useShiftStore = create<ShiftStore>((set) => ({
   setStartTime: (startTime) => set({ startTime }),
   endTime: new Date(),
   setEndTime: (endTime) => set({ endTime }),
-  repeatOption: "none",
+  repeatOption: "daily",
   setRepeatOption: (repeatOption) => set({ repeatOption }),
   selectedWeekDays: new Set(),
   setSelectedWeekDays: (selectedWeekDays) => set({ selectedWeekDays }),
@@ -50,18 +54,39 @@ export const useShiftStore = create<ShiftStore>((set) => ({
       endDate: new Date(),
       startTime: new Date(),
       endTime: new Date(),
-      repeatOption: "none",
+      repeatOption: "daily",
       selectedWeekDays: new Set(),
       description: "",
     }),
 }));
 
+// 전체 스케줄 저장
 interface ScheduleStore {
   schedule: WorkSession[];
-  setSchedule: (schedule: WorkSession[]) => void;
+  addSchedule: (schedule: WorkSession) => void;
 }
 
 export const useScheduleStore = create<ScheduleStore>((set) => ({
   schedule: [],
-  setSchedule: (schedule) => set({ schedule }),
+  addSchedule: (schedule) =>
+    set((state) => ({
+      schedule: [...state.schedule, schedule],
+    })),
+}));
+
+// 일별 스케줄 저장
+interface DateScheduleStore {
+  dateSchedule: ScheduleByDate;
+  addDateSchedule: (schedule: ScheduleByDate) => void;
+}
+
+export const useDateScheduleStore = create<DateScheduleStore>((set) => ({
+  dateSchedule: {},
+  addDateSchedule: (schedule) =>
+    set((state) => ({
+      dateSchedule: {
+        ...state.dateSchedule,
+        ...schedule,
+      },
+    })),
 }));

@@ -1,5 +1,5 @@
 export type RepeatOption =
-  | "none"
+  | "daily"
   | "weekly"
   | "biweekly"
   | "triweekly"
@@ -7,6 +7,7 @@ export type RepeatOption =
 
 // 데이터 저장 형식
 export interface WorkSession {
+  id: string;
   jobName: string;
   wage: number;
   startTime: Date;
@@ -18,3 +19,7 @@ export interface WorkSession {
   isCurrentlyWorking: boolean;
   description: string;
 }
+
+export type ScheduleByDate = {
+  [date: string]: string[];
+};

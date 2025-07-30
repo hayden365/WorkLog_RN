@@ -12,47 +12,51 @@ import { NewSessionModal } from "../components/NewSessionModal";
 import { WorkSession } from "../models/WorkSession";
 import { CalendarPage } from "../components/CalendarPage";
 import { useDateStore } from "../store/dateStore";
-import { useScheduleStore } from "../store/shiftStore";
+import { useDateScheduleStore, useScheduleStore } from "../store/shiftStore";
+
+import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 import {
   getMarkedDatesFromMonthlySchedule,
   getMarkedDatesFromWeeklySchedule,
-} from "../utils/calendarfns";
-import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
+} from "../utils/calendarFns";
 
 const HomeScreen = () => {
-  const { schedule, setSchedule } = useScheduleStore();
-  const [scheduleMap, setScheduleMap] = useState<Record<string, MarkingProps>>(
+  const { schedule, addSchedule } = useScheduleStore();
+  const { dateSchedule } = useDateScheduleStore();
+  const [markedDates, setMarkedDates] = useState<Record<string, MarkingProps>>(
     {}
   );
-  const [eventsMap, setEventsMap] = useState<Record<string, WorkSession[]>>({});
+  const [dailyScheduleMap, setDailyScheduleMap] = useState<
+    Record<string, WorkSession[]>
+  >({});
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().slice(0, 10)
   );
   const [modalVisible, setModalVisible] = useState(false);
   const { month } = useDateStore();
-  // updatemap과 schedulemap 연동하는방법
+  // eventmap schedulemap 연동하는방법
+  // updatemap은 추가된 세션.
+  // markedDates는 일별로, 특정 달의 일정이 calendar형식에 맞게 가공한 결과.
   const handleSave = (newSession: WorkSession) => {
-    const updatedSchedule = [...schedule, newSession];
-    setSchedule(updatedSchedule);
+    addSchedule(newSession);
   };
 
-  const updateEventsMap = (sessions: WorkSession[]) => {
+  const updateDailyScheduleMap = (schedule: WorkSession[]) => {
     const newMap: Record<string, WorkSession[]> = {};
 
-    sessions.forEach((session) => {
+    schedule.forEach((session) => {
       const dateKey = session.startDate.toISOString().slice(0, 10);
       if (!newMap[dateKey]) newMap[dateKey] = [];
       newMap[dateKey].push(session);
     });
-
-    setEventsMap(newMap);
     console.log("newMap", newMap);
+    setDailyScheduleMap(newMap);
   };
 
   useEffect(() => {
     schedule.forEach((session) => {
-      if (session.repeatOption === "none") {
-        setScheduleMap((prev) => ({
+      if (session.repeatOption === "daily") {
+        setMarkedDates((prev) => ({
           ...prev,
           [session.startDate.toISOString().slice(0, 10)]: {
             periods: [
@@ -65,7 +69,7 @@ const HomeScreen = () => {
           },
         }));
       } else if (session.repeatOption === "weekly") {
-        setScheduleMap((prev) => ({
+        setMarkedDates((prev) => ({
           ...prev,
           ...getMarkedDatesFromWeeklySchedule({
             schedule: session,
@@ -73,7 +77,7 @@ const HomeScreen = () => {
           }),
         }));
       } else if (session.repeatOption === "monthly") {
-        setScheduleMap((prev) => ({
+        setMarkedDates((prev) => ({
           ...prev,
           ...getMarkedDatesFromMonthlySchedule({
             schedule: session,
@@ -82,19 +86,24 @@ const HomeScreen = () => {
         }));
       }
     });
-    updateEventsMap(schedule);
-  }, [schedule]);
+    updateDailyScheduleMap(schedule);
+  }, [schedule, month]);
 
-  const selectedDayEvents = eventsMap[selectedDate] || [];
+  console.log("markedDates", markedDates);
 
+  const selectedDateSchedule = dateSchedule[selectedDate] || [];
+  console.log("selectedDateSchedule", selectedDateSchedule);
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <HeaderSection />
         <EarningsCard totalEarnings={calculateMonthlyEarnings(schedule)} />
-        <CalendarPage eventsMap={scheduleMap} onDaySelected={setSelectedDate} />
+        <CalendarPage
+          markedDates={markedDates}
+          onDaySelected={setSelectedDate}
+        />
         <Text style={styles.dateText}>{selectedDate} 일정</Text>
-        {selectedDayEvents.length === 0 ? (
+        {/* {selectedDayEvents.length === 0 ? (
           <Text>일정 없음</Text>
         ) : (
           selectedDayEvents.map((session, index) => (
@@ -107,7 +116,7 @@ const HomeScreen = () => {
               </Text>
             </View>
           ))
-        )}
+        )} */}
       </ScrollView>
 
       <TouchableOpacity

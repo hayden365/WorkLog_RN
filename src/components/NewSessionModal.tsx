@@ -22,6 +22,8 @@ import { repeatOptions } from "../utils/repeatOptions";
 import TimePicker from "./TimePicker";
 import DatePicker from "./DatePicker";
 import SlideInView from "./SlideInView";
+import "react-native-get-random-values";
+import { v4 as uuidv4 } from "uuid";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -87,6 +89,7 @@ export const NewSessionModal = ({
     // 콤마 제거 후 숫자로 변환
 
     const newSession: WorkSession = {
+      id: uuidv4(),
       jobName,
       wage: wage || 0,
       startTime,
@@ -238,7 +241,7 @@ export const NewSessionModal = ({
                     useNativeDriver: true,
                   }).start();
                 }}
-                placeholder="반복 주기 선택"
+                placeholder="매일 반복"
               />
             </View>
           </View>
