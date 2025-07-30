@@ -27,3 +27,5 @@ markedDates={{
       ]
     }
   }}
+
+[{"description": "", "endDate": null, "endTime": 2025-07-30T13:10:57.364Z, "id": "7fed0280-3e2d-4c43-afc3-4c52e9f7f4c1", "isCurrentlyWorking": true, "jobName": "1st", "repeatOption": "weekly", "selectedWeekDays": Set {6, 0, 3, 2}, "startDate": 2025-02-28T13:10:57.000Z, "startTime": 2025-07-30T12:10:57.000Z, "wage": 0}]

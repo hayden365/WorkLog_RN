@@ -40,7 +40,7 @@ const DatePicker = ({
       // 같은 picker를 다시 클릭하면 닫기
       Animated.timing(anim, {
         toValue: 0,
-        duration: 250,
+        duration: 200,
         useNativeDriver: true,
       }).start(() => {
         setOpenPicker(null);
@@ -50,12 +50,12 @@ const DatePicker = ({
       setOpenPicker({ index, type });
       Animated.timing(anim, {
         toValue: 0,
-        duration: 250,
+        duration: 200,
         useNativeDriver: true,
       }).start();
       Animated.timing(anim, {
         toValue: 1,
-        duration: 250,
+        duration: 200,
         useNativeDriver: true,
       }).start();
     } else if (openPicker == null) {
@@ -63,7 +63,7 @@ const DatePicker = ({
       setOpenPicker({ index, type });
       Animated.timing(anim, {
         toValue: 1,
-        duration: 250,
+        duration: 200,
         useNativeDriver: true,
       }).start();
     }

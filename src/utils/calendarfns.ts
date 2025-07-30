@@ -6,17 +6,21 @@ import {
   parseISO,
 } from "date-fns";
 import { ScheduleByDate, WorkSession } from "../models/WorkSession";
-import { useDateScheduleStore } from "../store/shiftStore";
 
-export function generateScheduleByDate(dates: string[], sessionId: string) {
-  const { addDateSchedule } = useDateScheduleStore.getState();
-  const scheduleByDate: ScheduleByDate = {};
+export function calculateScheduleByDate(
+  dates: string[],
+  sessionId: string,
+  existingSchedule: ScheduleByDate
+): ScheduleByDate {
+  const scheduleByDate: ScheduleByDate = { ...existingSchedule };
   dates.forEach((date) => {
-    if (!scheduleByDate[date]) scheduleByDate[date] = [];
-    scheduleByDate[date].push(sessionId);
+    if (scheduleByDate[date] && !scheduleByDate[date].includes(sessionId)) {
+      scheduleByDate[date] = [...scheduleByDate[date], sessionId];
+    } else {
+      scheduleByDate[date] = [sessionId];
+    }
   });
-  addDateSchedule(scheduleByDate);
-  console.log("scheduleByDate", scheduleByDate);
+  return scheduleByDate;
 }
 
 // repeatOption is daily
@@ -90,8 +94,6 @@ export function getMarkedDatesFromWeeklySchedule({
     })
     .map((d) => format(d, "yyyy-MM-dd"));
 
-  generateScheduleByDate(matchedDates, schedule.id);
-
   const dateChunks: string[][] =
     groupDatesByConsecutiveChunks(matchedDates) ?? [];
 
@@ -145,8 +147,6 @@ export function getMarkedDatesFromMonthlySchedule({
       );
     })
     .map((d) => format(d, "yyyy-MM-dd"));
-
-  generateScheduleByDate(matchedDates, schedule.id);
 
   const dateChunks: string[][] =
     groupDatesByConsecutiveChunks(matchedDates) ?? [];

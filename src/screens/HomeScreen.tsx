@@ -18,11 +18,13 @@ import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 import {
   getMarkedDatesFromMonthlySchedule,
   getMarkedDatesFromWeeklySchedule,
+  calculateScheduleByDate,
 } from "../utils/calendarFns";
+import ScheduleCard from "../components/ScheduleCard";
 
 const HomeScreen = () => {
   const { schedule, addSchedule } = useScheduleStore();
-  const { dateSchedule } = useDateScheduleStore();
+  const { dateSchedule, addDateSchedule } = useDateScheduleStore();
   const [markedDates, setMarkedDates] = useState<Record<string, MarkingProps>>(
     {}
   );
@@ -41,48 +43,74 @@ const HomeScreen = () => {
     addSchedule(newSession);
   };
 
+  // schedule이 변경될 때 dateSchedule 업데이트
   useEffect(() => {
+    let newDateSchedule = { ...dateSchedule };
+    const newMarkedDates: Record<string, MarkingProps> = {};
+
     schedule.forEach((session) => {
       if (session.repeatOption === "daily") {
-        setMarkedDates((prev) => ({
-          ...prev,
-          [session.startDate.toISOString().slice(0, 10)]: {
-            periods: [
-              {
-                startingDay: true,
-                endingDay: true,
-                color: "#f0e68c",
-              },
-            ],
-          },
-        }));
+        newMarkedDates[session.startDate.toISOString().slice(0, 10)] = {
+          periods: [
+            {
+              startingDay: true,
+              endingDay: true,
+              color: "#f0e68c",
+            },
+          ],
+        };
+        newDateSchedule = calculateScheduleByDate(
+          [session.startDate.toISOString().slice(0, 10)],
+          session.id,
+          newDateSchedule
+        );
+        Object.assign(newMarkedDates, newMarkedDates);
       } else if (session.repeatOption === "weekly") {
-        setMarkedDates((prev) => ({
-          ...prev,
-          ...getMarkedDatesFromWeeklySchedule({
-            schedule: session,
-            viewMonth: new Date(new Date().setMonth(month)),
-          }),
-        }));
+        const weeklyDates = getMarkedDatesFromWeeklySchedule({
+          schedule: session,
+          viewMonth: new Date(new Date().setMonth(month)),
+        });
+        // weeklyDates에서 날짜 추출
+        const dates = Object.keys(weeklyDates);
+        newDateSchedule = calculateScheduleByDate(
+          dates,
+          session.id,
+          newDateSchedule
+        );
+
+        Object.assign(newMarkedDates, weeklyDates);
       } else if (session.repeatOption === "monthly") {
-        setMarkedDates((prev) => ({
-          ...prev,
-          ...getMarkedDatesFromMonthlySchedule({
-            schedule: session,
-            viewMonth: new Date(new Date().setMonth(month)),
-          }),
-        }));
+        const monthlyDates = getMarkedDatesFromMonthlySchedule({
+          schedule: session,
+          viewMonth: new Date(new Date().setMonth(month)),
+        });
+        // monthlyDates에서 날짜 추출
+        const dates = Object.keys(monthlyDates);
+        newDateSchedule = calculateScheduleByDate(
+          dates,
+          session.id,
+          newDateSchedule
+        );
+
+        Object.assign(newMarkedDates, monthlyDates);
       }
     });
+
+    addDateSchedule(newDateSchedule);
+    setMarkedDates(newMarkedDates);
   }, [schedule, month]);
 
+  // selectedDateSchedule 계산을 위한 별도 useEffect
   useEffect(() => {
     const selectedDateScheduleIds = dateSchedule[selectedDate] || [];
-    const selectedDateSchedule = schedule.filter((session) =>
-      selectedDateScheduleIds.includes(session.id)
-    );
+    const selectedDateSchedule: WorkSession[] = [];
+
+    for (const id of selectedDateScheduleIds) {
+      const session = schedule.find((session) => session.id === id);
+      if (session) selectedDateSchedule.push(session);
+    }
     setSelectedDateSchedule(selectedDateSchedule);
-  }, [dateSchedule, selectedDate]);
+  }, [dateSchedule, selectedDate, schedule]);
 
   return (
     <View style={styles.container}>
@@ -91,6 +119,7 @@ const HomeScreen = () => {
         <EarningsCard totalEarnings={calculateMonthlyEarnings(schedule)} />
         <CalendarPage
           markedDates={markedDates}
+          selectedDate={selectedDate}
           onDaySelected={setSelectedDate}
         />
         <Text style={styles.dateText}>{selectedDate} 일정</Text>
@@ -98,14 +127,7 @@ const HomeScreen = () => {
           <Text>일정 없음</Text>
         ) : (
           selectedDateSchedule.map((session, index) => (
-            <View key={index} style={styles.sessionCard}>
-              <Text style={styles.sessionTitle}>{session.jobName}</Text>
-              <Text>
-                시간: {session.startDate.getHours()}:
-                {session.startDate.getMinutes()}~ {session.endDate?.getHours()}:
-                {session.endDate?.getMinutes()}
-              </Text>
-            </View>
+            <ScheduleCard key={index} session={session} />
           ))
         )}
       </ScrollView>
@@ -148,13 +170,6 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff", padding: 16 },
   dateText: { fontSize: 18, fontWeight: "bold", marginTop: 16 },
-  sessionCard: {
-    marginTop: 8,
-    padding: 12,
-    backgroundColor: "#f2f2f2",
-    borderRadius: 8,
-  },
-  sessionTitle: { fontSize: 16, fontWeight: "bold" },
   fab: {
     position: "absolute",
     bottom: 24,
