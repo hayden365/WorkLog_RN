@@ -9,13 +9,14 @@ import { ScheduleByDate, WorkSession } from "../models/WorkSession";
 import { useDateScheduleStore } from "../store/shiftStore";
 
 export function generateScheduleByDate(dates: string[], sessionId: string) {
-  const { addDateSchedule } = useDateScheduleStore();
+  const { addDateSchedule } = useDateScheduleStore.getState();
   const scheduleByDate: ScheduleByDate = {};
   dates.forEach((date) => {
     if (!scheduleByDate[date]) scheduleByDate[date] = [];
     scheduleByDate[date].push(sessionId);
   });
   addDateSchedule(scheduleByDate);
+  console.log("scheduleByDate", scheduleByDate);
 }
 
 // repeatOption is daily
