@@ -67,7 +67,7 @@ export function getMarkedDatesFromWeeklySchedule({
   viewMonth,
 }: {
   schedule: WorkSession;
-  viewMonth: Date;
+  viewMonth: number;
 }) {
   const markedDates = {};
   const startDate = parseISO(schedule.startDate.toISOString());
@@ -75,12 +75,8 @@ export function getMarkedDatesFromWeeklySchedule({
     ? parseISO(schedule.endDate.toISOString())
     : null;
   const selectedWeekDays = [...schedule.selectedWeekDays];
-  const monthStart = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
-  const monthEnd = new Date(
-    viewMonth.getFullYear(),
-    viewMonth.getMonth() + 1,
-    0
-  );
+  const monthStart = new Date(new Date().getFullYear(), viewMonth, 1);
+  const monthEnd = new Date(new Date().getFullYear(), viewMonth + 1, 0);
 
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const matchedDates = days
@@ -120,7 +116,7 @@ export function getMarkedDatesFromMonthlySchedule({
   viewMonth,
 }: {
   schedule: WorkSession;
-  viewMonth: Date;
+  viewMonth: number;
 }) {
   const markedDates = {};
   const startDate = parseISO(schedule.startDate.toISOString());
@@ -128,12 +124,8 @@ export function getMarkedDatesFromMonthlySchedule({
     ? parseISO(schedule.endDate.toISOString())
     : null;
   const selectedDays = [...schedule.selectedWeekDays];
-  const monthStart = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
-  const monthEnd = new Date(
-    viewMonth.getFullYear(),
-    viewMonth.getMonth() + 1,
-    0
-  );
+  const monthStart = new Date(new Date().getFullYear(), viewMonth, 1);
+  const monthEnd = new Date(new Date().getFullYear(), viewMonth + 1, 0);
 
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 

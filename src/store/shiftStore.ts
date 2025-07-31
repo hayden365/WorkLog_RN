@@ -84,9 +84,6 @@ export const useDateScheduleStore = create<DateScheduleStore>((set) => ({
   dateSchedule: {},
   addDateSchedule: (schedule) =>
     set((state) => ({
-      dateSchedule: {
-        ...state.dateSchedule,
-        ...schedule,
-      },
+      dateSchedule: schedule,
     })),
 }));

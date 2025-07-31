@@ -44,11 +44,9 @@ class CustomDayComponent extends PureComponent<{
             height: 30,
             borderRadius: 15,
             backgroundColor: isSelected ? "#007AFF" : "transparent",
-            borderWidth: 1,
-            borderColor: isToday ? "#007AFF" : "transparent",
             justifyContent: "center",
             alignItems: "center",
-            marginBottom: 25,
+            marginBottom: 10,
           }}
         >
           <Text
@@ -67,7 +65,13 @@ class CustomDayComponent extends PureComponent<{
             {date?.day}
           </Text>
         </View>
-        <View style={{ width: "100%", height: 8 }}>
+        <View
+          style={{
+            width: "100%",
+            height: 6,
+            marginBottom: 10,
+          }}
+        >
           {marking?.periods?.map((period: any, index: number) => (
             <View
               key={`${period.color}-${index}-${date?.dateString}`}
@@ -102,22 +106,11 @@ export const CalendarPage = ({
 }: CalendarPageProps) => {
   const { setMonth } = useDateStore();
 
-  const memoizedMarkedDates = useMemo(() => {
-    return markedDates;
-  }, [markedDates]);
-
   const handleDayPress = useCallback(
     (day: any) => {
       onDaySelected(day.dateString);
     },
     [onDaySelected]
-  );
-
-  const handleMonthChange = useCallback(
-    (month: any) => {
-      setMonth(month.month);
-    },
-    [setMonth]
   );
 
   // dayComponent를 메모이제이션된 함수로 생성
@@ -136,8 +129,10 @@ export const CalendarPage = ({
     <Calendar
       current={selectedDate}
       onDayPress={handleDayPress}
-      onMonthChange={handleMonthChange}
-      markedDates={memoizedMarkedDates}
+      onMonthChange={(month) => {
+        setMonth(month.month - 1);
+      }}
+      markedDates={markedDates}
       markingType="multi-period"
       firstDay={1}
       theme={{

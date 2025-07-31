@@ -64,11 +64,10 @@ const HomeScreen = () => {
           session.id,
           newDateSchedule
         );
-        Object.assign(newMarkedDates, newMarkedDates);
       } else if (session.repeatOption === "weekly") {
         const weeklyDates = getMarkedDatesFromWeeklySchedule({
           schedule: session,
-          viewMonth: new Date(new Date().setMonth(month)),
+          viewMonth: month,
         });
         // weeklyDates에서 날짜 추출
         const dates = Object.keys(weeklyDates);
@@ -78,11 +77,11 @@ const HomeScreen = () => {
           newDateSchedule
         );
 
-        Object.assign(newMarkedDates, weeklyDates);
+        Object.assign(newMarkedDates, weeklyDates); // 올바른 할당
       } else if (session.repeatOption === "monthly") {
         const monthlyDates = getMarkedDatesFromMonthlySchedule({
           schedule: session,
-          viewMonth: new Date(new Date().setMonth(month)),
+          viewMonth: month,
         });
         // monthlyDates에서 날짜 추출
         const dates = Object.keys(monthlyDates);
@@ -92,7 +91,7 @@ const HomeScreen = () => {
           newDateSchedule
         );
 
-        Object.assign(newMarkedDates, monthlyDates);
+        Object.assign(newMarkedDates, monthlyDates); // 올바른 할당
       }
     });
 
@@ -111,7 +110,9 @@ const HomeScreen = () => {
     }
     setSelectedDateSchedule(selectedDateSchedule);
   }, [dateSchedule, selectedDate, schedule]);
-
+  console.log("markedDates", markedDates);
+  console.log("schedule", schedule);
+  console.log("dateSchedule", dateSchedule);
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
