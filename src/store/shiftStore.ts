@@ -64,13 +64,16 @@ export const useShiftStore = create<ShiftStore>((set) => ({
 interface ScheduleStore {
   schedule: WorkSession[];
   addSchedule: (schedule: WorkSession) => void;
+  nextIndex: number; // 다음 인덱스 번호
 }
 
-export const useScheduleStore = create<ScheduleStore>((set) => ({
+export const useScheduleStore = create<ScheduleStore>((set, get) => ({
   schedule: [],
+  nextIndex: 0, // 인덱스는 0부터 시작
   addSchedule: (schedule) =>
     set((state) => ({
-      schedule: [...state.schedule, schedule],
+      schedule: [...state.schedule, { ...schedule, index: state.nextIndex }],
+      nextIndex: state.nextIndex + 1,
     })),
 }));
 

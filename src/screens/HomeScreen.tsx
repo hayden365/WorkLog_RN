@@ -14,7 +14,6 @@ import { CalendarPage } from "../components/CalendarPage";
 import { useDateStore } from "../store/dateStore";
 import { useDateScheduleStore, useScheduleStore } from "../store/shiftStore";
 
-import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 import {
   getMarkedDatesFromMonthlySchedule,
   getMarkedDatesFromWeeklySchedule,
@@ -22,10 +21,21 @@ import {
 } from "../utils/calendarFns";
 import ScheduleCard from "../components/ScheduleCard";
 
+// 타입 정의 추가
+interface Period {
+  startingDay: boolean;
+  endingDay: boolean;
+  color: string;
+}
+
+interface MarkedDate {
+  periods: Period[];
+}
+
 const HomeScreen = () => {
   const { schedule, addSchedule } = useScheduleStore();
   const { dateSchedule, addDateSchedule } = useDateScheduleStore();
-  const [markedDates, setMarkedDates] = useState<Record<string, MarkingProps>>(
+  const [markedDates, setMarkedDates] = useState<Record<string, MarkedDate>>(
     {}
   );
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -46,7 +56,7 @@ const HomeScreen = () => {
   // schedule이 변경될 때 dateSchedule 업데이트
   useEffect(() => {
     let newDateSchedule = { ...dateSchedule };
-    const newMarkedDates: Record<string, MarkingProps> = {};
+    const newMarkedDates: Record<string, MarkedDate> = {};
 
     schedule.forEach((session) => {
       if (session.repeatOption === "daily") {
@@ -77,7 +87,16 @@ const HomeScreen = () => {
           newDateSchedule
         );
 
-        Object.assign(newMarkedDates, weeklyDates); // 올바른 할당
+        Object.keys(weeklyDates).forEach((date) => {
+          if (newMarkedDates[date]) {
+            newMarkedDates[date].periods = [
+              ...newMarkedDates[date].periods,
+              ...weeklyDates[date].periods,
+            ];
+          } else {
+            newMarkedDates[date] = weeklyDates[date];
+          }
+        });
       } else if (session.repeatOption === "monthly") {
         const monthlyDates = getMarkedDatesFromMonthlySchedule({
           schedule: session,
@@ -91,12 +110,21 @@ const HomeScreen = () => {
           newDateSchedule
         );
 
-        Object.assign(newMarkedDates, monthlyDates); // 올바른 할당
+        Object.keys(monthlyDates).forEach((date) => {
+          if (newMarkedDates[date]) {
+            newMarkedDates[date].periods = [
+              ...newMarkedDates[date].periods,
+              ...monthlyDates[date].periods,
+            ];
+          } else {
+            newMarkedDates[date] = monthlyDates[date];
+          }
+        });
       }
     });
-
+    console.log("newMarkedDates-6-last", newMarkedDates["2025-08-06"]);
     addDateSchedule(newDateSchedule);
-    setMarkedDates(newMarkedDates);
+    setMarkedDates(newMarkedDates as Record<string, MarkedDate>);
   }, [schedule, month]);
 
   // selectedDateSchedule 계산을 위한 별도 useEffect
@@ -110,9 +138,7 @@ const HomeScreen = () => {
     }
     setSelectedDateSchedule(selectedDateSchedule);
   }, [dateSchedule, selectedDate, schedule]);
-  console.log("markedDates", markedDates);
-  console.log("schedule", schedule);
-  console.log("dateSchedule", dateSchedule);
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>

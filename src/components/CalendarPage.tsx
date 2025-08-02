@@ -17,7 +17,6 @@ class CustomDayComponent extends PureComponent<{
 }> {
   // PureComponent는 자동으로 shouldComponentUpdate를 구현합니다
   // props가 변경되지 않으면 리렌더링하지 않습니다
-
   render() {
     const { date, state, marking, onDaySelected, selectedDate } = this.props;
     const today = dayjs().format("YYYY-MM-DD");
@@ -33,7 +32,6 @@ class CustomDayComponent extends PureComponent<{
         style={{
           minHeight: 50,
           width: "100%",
-          borderRadius: 25,
           justifyContent: "center",
           alignItems: "center",
         }}
@@ -133,7 +131,6 @@ export const CalendarPage = ({
         setMonth(month.month - 1);
       }}
       markedDates={markedDates}
-      markingType="multi-period"
       firstDay={1}
       theme={{
         selectedDayTextColor: "#ffffff",
@@ -148,6 +145,10 @@ export const CalendarPage = ({
         arrowColor: "#000",
       }}
       dayComponent={dayComponent}
+      style={{
+        outlineWidth: 1,
+        outlineColor: "#e1e1e1",
+      }}
     />
   );
 };

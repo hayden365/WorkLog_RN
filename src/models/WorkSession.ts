@@ -18,6 +18,7 @@ export interface WorkSession {
   selectedWeekDays: Set<number>; // 0 = 월 ~ 6 = 일
   isCurrentlyWorking: boolean;
   description: string;
+  index: number; // 캘린더에서의 위치 인덱스
 }
 
 export type ScheduleByDate = {
