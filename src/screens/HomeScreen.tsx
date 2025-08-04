@@ -12,14 +12,18 @@ import { NewSessionModal } from "../components/NewSessionModal";
 import { WorkSession } from "../models/WorkSession";
 import { CalendarPage } from "../components/CalendarPage";
 import { useDateStore } from "../store/dateStore";
-import { useDateScheduleStore, useScheduleStore } from "../store/shiftStore";
+import {
+  useDateScheduleStore,
+  useScheduleStore,
+  useCalendarDisplayStore,
+} from "../store/shiftStore";
 
 import {
-  getMarkedDatesFromMonthlySchedule,
-  getMarkedDatesFromWeeklySchedule,
-  calculateScheduleByDate,
+  generateCalendarDisplayMap,
+  generateViewMonthScheduleData,
 } from "../utils/calendarFns";
 import ScheduleCard from "../components/ScheduleCard";
+import { initializeMockData } from "../data/mockSchedules";
 
 // 타입 정의 추가
 interface Period {
@@ -33,11 +37,12 @@ interface MarkedDate {
 }
 
 const HomeScreen = () => {
-  const { schedule, addSchedule } = useScheduleStore();
-  const { dateSchedule, addDateSchedule } = useDateScheduleStore();
-  const [markedDates, setMarkedDates] = useState<Record<string, MarkedDate>>(
-    {}
-  );
+  const { allSchedulesById, addSchedule, getAllSchedules } = useScheduleStore();
+  const { dateSchedule, addDateSchedule, updateDateSchedule } =
+    useDateScheduleStore();
+  const { calendarDisplayMap, updateCalendarDisplay } =
+    useCalendarDisplayStore();
+
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().slice(0, 10)
   );
@@ -45,116 +50,100 @@ const HomeScreen = () => {
   const [selectedDateSchedule, setSelectedDateSchedule] = useState<
     WorkSession[]
   >([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+
   const { month } = useDateStore();
-  // eventmap schedulemap 연동하는방법
-  // updatemap은 추가된 세션.
-  // markedDates는 일별로, 특정 달의 일정이 calendar형식에 맞게 가공한 결과.
+
+  // 앱 초기화 시 목데이터 로드
+  useEffect(() => {
+    if (!isInitialized && Object.keys(allSchedulesById).length === 0) {
+      const mockData = initializeMockData();
+      mockData.forEach((schedule) => {
+        addSchedule(schedule);
+      });
+      setIsInitialized(true);
+      console.log("목데이터 로드 완료");
+    }
+  }, [isInitialized, allSchedulesById, addSchedule]);
+
   const handleSave = (newSession: WorkSession) => {
     addSchedule(newSession);
   };
 
-  // schedule이 변경될 때 dateSchedule 업데이트
+  // 스케줄이 변경될 때 달력 데이터 업데이트
   useEffect(() => {
-    let newDateSchedule = { ...dateSchedule };
-    const newMarkedDates: Record<string, MarkedDate> = {};
+    const allSchedules = getAllSchedules(); // 전체 스케줄 자체의 데이터 객체의 배열
+    const now = new Date();
+    const viewMonth = new Date(now.getFullYear(), month, 1);
 
-    schedule.forEach((session) => {
-      if (session.repeatOption === "daily") {
-        newMarkedDates[session.startDate.toISOString().slice(0, 10)] = {
-          periods: [
-            {
-              startingDay: true,
-              endingDay: true,
-              color: "#f0e68c",
-            },
-          ],
-        };
-        newDateSchedule = calculateScheduleByDate(
-          [session.startDate.toISOString().slice(0, 10)],
-          session.id,
-          newDateSchedule
-        );
-      } else if (session.repeatOption === "weekly") {
-        const weeklyDates = getMarkedDatesFromWeeklySchedule({
-          schedule: session,
-          viewMonth: month,
-        });
-        // weeklyDates에서 날짜 추출
-        const dates = Object.keys(weeklyDates);
-        newDateSchedule = calculateScheduleByDate(
-          dates,
-          session.id,
-          newDateSchedule
-        );
+    // 월별 스케줄 데이터 생성
+    const { markedDates: newUIMarkedDates, dateSchedule: newDateScheduleById } =
+      generateViewMonthScheduleData(allSchedules, viewMonth);
+    console.log("newUIMarkedDates", newUIMarkedDates);
+    console.log("newDateScheduleById", newDateScheduleById["2025-08-05"]);
+    // 달력 표시 데이터 생성
+    const newCalendarDisplayMap = generateCalendarDisplayMap(
+      newDateScheduleById,
+      allSchedulesById
+    );
+    // console.log("newCalendarDisplayMap", newCalendarDisplayMap["2025-08-06"]);
 
-        Object.keys(weeklyDates).forEach((date) => {
-          if (newMarkedDates[date]) {
-            newMarkedDates[date].periods = [
-              ...newMarkedDates[date].periods,
-              ...weeklyDates[date].periods,
-            ];
-          } else {
-            newMarkedDates[date] = weeklyDates[date];
-          }
-        });
-      } else if (session.repeatOption === "monthly") {
-        const monthlyDates = getMarkedDatesFromMonthlySchedule({
-          schedule: session,
-          viewMonth: month,
-        });
-        // monthlyDates에서 날짜 추출
-        const dates = Object.keys(monthlyDates);
-        newDateSchedule = calculateScheduleByDate(
-          dates,
-          session.id,
-          newDateSchedule
-        );
+    // 스토어 업데이트
+    addDateSchedule(newDateScheduleById);
 
-        Object.keys(monthlyDates).forEach((date) => {
-          if (newMarkedDates[date]) {
-            newMarkedDates[date].periods = [
-              ...newMarkedDates[date].periods,
-              ...monthlyDates[date].periods,
-            ];
-          } else {
-            newMarkedDates[date] = monthlyDates[date];
-          }
-        });
-      }
+    // 달력 표시 데이터 업데이트
+    Object.entries(newCalendarDisplayMap).forEach(([date, items]) => {
+      updateCalendarDisplay(date, items);
     });
-    console.log("newMarkedDates-6-last", newMarkedDates["2025-08-06"]);
-    addDateSchedule(newDateSchedule);
-    setMarkedDates(newMarkedDates as Record<string, MarkedDate>);
-  }, [schedule, month]);
+  }, [allSchedulesById, month]);
 
-  // selectedDateSchedule 계산을 위한 별도 useEffect
+  // 선택된 날짜의 스케줄 계산
   useEffect(() => {
     const selectedDateScheduleIds = dateSchedule[selectedDate] || [];
     const selectedDateSchedule: WorkSession[] = [];
 
     for (const id of selectedDateScheduleIds) {
-      const session = schedule.find((session) => session.id === id);
+      const session = allSchedulesById[id];
       if (session) selectedDateSchedule.push(session);
     }
     setSelectedDateSchedule(selectedDateSchedule);
-  }, [dateSchedule, selectedDate, schedule]);
+  }, [dateSchedule, selectedDate, allSchedulesById]);
+
+  // 월 수익 계산
+  const calculateMonthlyEarnings = (sessions: WorkSession[]) => {
+    let total = 0;
+    sessions.forEach((session) => {
+      const startMinutes =
+        session.startTime.getHours() * 60 + session.startTime.getMinutes();
+      let endMinutes = 0;
+      if (session.endTime) {
+        endMinutes =
+          session.endTime.getHours() * 60 + session.endTime.getMinutes();
+      }
+      const workMinutes = endMinutes - startMinutes;
+      const workHours = workMinutes / 60;
+      total += workHours * session.wage;
+    });
+    return Math.round(total);
+  };
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <HeaderSection />
-        <EarningsCard totalEarnings={calculateMonthlyEarnings(schedule)} />
+        <EarningsCard
+          totalEarnings={calculateMonthlyEarnings(getAllSchedules())}
+        />
         <CalendarPage
-          markedDates={markedDates}
           selectedDate={selectedDate}
           onDaySelected={setSelectedDate}
         />
         <Text style={styles.dateText}>{selectedDate} 일정</Text>
         {selectedDateSchedule.length === 0 ? (
-          <Text>일정 없음</Text>
+          <Text style={styles.noScheduleText}>일정이 없습니다</Text>
         ) : (
           selectedDateSchedule.map((session, index) => (
-            <ScheduleCard key={index} session={session} />
+            <ScheduleCard key={session.id} session={session} />
           ))
         )}
       </ScrollView>
@@ -175,28 +164,28 @@ const HomeScreen = () => {
   );
 };
 
-const calculateMonthlyEarnings = (sessions: WorkSession[]) => {
-  let total = 0;
-  sessions.forEach((session) => {
-    const startMinutes =
-      session.startTime.getHours() * 60 + session.startTime.getMinutes();
-    let endMinutes = 0;
-    if (session.endTime) {
-      endMinutes =
-        session.endTime.getHours() * 60 + session.endTime.getMinutes();
-    }
-    const workMinutes = endMinutes - startMinutes;
-    const workHours = workMinutes / 60;
-    total += workHours * session.wage;
-  });
-  return Math.round(total);
-};
-
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff", padding: 16 },
-  dateText: { fontSize: 18, fontWeight: "bold", marginTop: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 16,
+  },
+  dateText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 16,
+    marginBottom: 8,
+    color: "#333",
+  },
+  noScheduleText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginTop: 20,
+    fontStyle: "italic",
+  },
   fab: {
     position: "absolute",
     bottom: 24,
@@ -207,6 +196,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#007aff",
     justifyContent: "center",
     alignItems: "center",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
-  fabIcon: { color: "#fff", fontSize: 28 },
+  fabIcon: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "bold",
+  },
 });

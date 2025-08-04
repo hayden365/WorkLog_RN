@@ -3,7 +3,11 @@ import {
   RepeatOption,
   ScheduleByDate,
   WorkSession,
+  SchedulesById,
+  CalendarDisplayMap,
+  CalendarDisplayItem,
 } from "../models/WorkSession";
+import { getSessionColor } from "../utils/calendarFns";
 
 interface ShiftStore {
   jobName: string;
@@ -60,33 +64,88 @@ export const useShiftStore = create<ShiftStore>((set) => ({
     }),
 }));
 
-// 전체 스케줄 저장
+// 전체 스케줄 저장 (ID 기반)
 interface ScheduleStore {
-  schedule: WorkSession[];
+  allSchedulesById: SchedulesById;
   addSchedule: (schedule: WorkSession) => void;
-  nextIndex: number; // 다음 인덱스 번호
+  updateSchedule: (id: string, updates: Partial<WorkSession>) => void;
+  deleteSchedule: (id: string) => void;
+  getScheduleById: (id: string) => WorkSession | undefined;
+  getAllSchedules: () => WorkSession[];
 }
 
 export const useScheduleStore = create<ScheduleStore>((set, get) => ({
-  schedule: [],
-  nextIndex: 0, // 인덱스는 0부터 시작
+  allSchedulesById: {},
   addSchedule: (schedule) =>
+    set((state) => {
+      const newSchedule = {
+        ...schedule,
+        color: schedule.color || getSessionColor(schedule.id),
+      };
+      return {
+        allSchedulesById: {
+          ...state.allSchedulesById,
+          [schedule.id]: newSchedule,
+        },
+      };
+    }),
+  updateSchedule: (id, updates) =>
     set((state) => ({
-      schedule: [...state.schedule, { ...schedule, index: state.nextIndex }],
-      nextIndex: state.nextIndex + 1,
+      allSchedulesById: {
+        ...state.allSchedulesById,
+        [id]: { ...state.allSchedulesById[id], ...updates },
+      },
     })),
+  deleteSchedule: (id) =>
+    set((state) => {
+      const { [id]: deleted, ...remaining } = state.allSchedulesById;
+      return { allSchedulesById: remaining };
+    }),
+  getScheduleById: (id) => get().allSchedulesById[id],
+  getAllSchedules: () => Object.values(get().allSchedulesById),
 }));
 
 // 일별 스케줄 저장
 interface DateScheduleStore {
   dateSchedule: ScheduleByDate;
   addDateSchedule: (schedule: ScheduleByDate) => void;
+  updateDateSchedule: (date: string, sessionIds: string[]) => void;
+  removeDateSchedule: (date: string) => void;
 }
 
 export const useDateScheduleStore = create<DateScheduleStore>((set) => ({
   dateSchedule: {},
   addDateSchedule: (schedule) =>
     set((state) => ({
-      dateSchedule: schedule,
+      dateSchedule: { ...state.dateSchedule, ...schedule },
     })),
+  updateDateSchedule: (date, sessionIds) =>
+    set((state) => ({
+      dateSchedule: { ...state.dateSchedule, [date]: sessionIds },
+    })),
+  removeDateSchedule: (date) =>
+    set((state) => {
+      const { [date]: removed, ...remaining } = state.dateSchedule;
+      return { dateSchedule: remaining };
+    }),
 }));
+
+// 달력 표시 데이터 스토어
+interface CalendarDisplayStore {
+  calendarDisplayMap: CalendarDisplayMap;
+  updateCalendarDisplay: (date: string, items: CalendarDisplayItem[]) => void;
+  clearCalendarDisplay: () => void;
+  getCalendarDisplayForDate: (date: string) => CalendarDisplayItem[];
+}
+
+export const useCalendarDisplayStore = create<CalendarDisplayStore>(
+  (set, get) => ({
+    calendarDisplayMap: {},
+    updateCalendarDisplay: (date, items) =>
+      set((state) => ({
+        calendarDisplayMap: { ...state.calendarDisplayMap, [date]: items },
+      })),
+    clearCalendarDisplay: () => set({ calendarDisplayMap: {} }),
+    getCalendarDisplayForDate: (date) => get().calendarDisplayMap[date] || [],
+  })
+);

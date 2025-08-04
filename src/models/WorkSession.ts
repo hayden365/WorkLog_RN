@@ -18,9 +18,26 @@ export interface WorkSession {
   selectedWeekDays: Set<number>; // 0 = 월 ~ 6 = 일
   isCurrentlyWorking: boolean;
   description: string;
-  index: number; // 캘린더에서의 위치 인덱스
+  color: string; // 스케줄 색상
 }
 
 export type ScheduleByDate = {
   [date: string]: string[];
+};
+
+// 달력 UI용 표시 데이터
+export interface CalendarDisplayItem {
+  color: string;
+  selected: boolean;
+  sessionId: string;
+  jobName: string;
+}
+
+export type CalendarDisplayMap = {
+  [date: string]: CalendarDisplayItem[];
+};
+
+// 스케줄 원본 데이터 (by ID)
+export type SchedulesById = {
+  [id: string]: WorkSession;
 };
