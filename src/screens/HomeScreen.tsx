@@ -18,10 +18,7 @@ import {
   useCalendarDisplayStore,
 } from "../store/shiftStore";
 
-import {
-  generateCalendarDisplayMap,
-  generateViewMonthScheduleData,
-} from "../utils/calendarFns";
+import { generateViewMonthScheduleData } from "../utils/calendarFns";
 import ScheduleCard from "../components/ScheduleCard";
 import { initializeMockData } from "../data/mockSchedules";
 
@@ -76,23 +73,15 @@ const HomeScreen = () => {
     const now = new Date();
     const viewMonth = new Date(now.getFullYear(), month, 1);
 
-    // 월별 스케줄 데이터 생성
+    // 월별 스케줄 데이터: dateSchedule 업데이트, 달력 표시 데이터: markedDates 생성
     const { markedDates: newUIMarkedDates, dateSchedule: newDateScheduleById } =
       generateViewMonthScheduleData(allSchedules, viewMonth);
-    console.log("newUIMarkedDates", newUIMarkedDates);
-    console.log("newDateScheduleById", newDateScheduleById["2025-08-05"]);
-    // 달력 표시 데이터 생성
-    const newCalendarDisplayMap = generateCalendarDisplayMap(
-      newDateScheduleById,
-      allSchedulesById
-    );
-    // console.log("newCalendarDisplayMap", newCalendarDisplayMap["2025-08-06"]);
 
     // 스토어 업데이트
     addDateSchedule(newDateScheduleById);
 
     // 달력 표시 데이터 업데이트
-    Object.entries(newCalendarDisplayMap).forEach(([date, items]) => {
+    Object.entries(newUIMarkedDates).forEach(([date, items]) => {
       updateCalendarDisplay(date, items);
     });
   }, [allSchedulesById, month]);

@@ -1,5 +1,5 @@
 import { WorkSession } from "../models/WorkSession";
-import { getSessionColor } from "../utils/calendarFns";
+import { getSessionColor } from "../utils/colorManager";
 
 // UUID 생성을 위한 간단한 함수
 const generateId = () => {
@@ -40,68 +40,68 @@ export const mockSchedules: WorkSession[] = [
   },
 
   // 주간 반복 스케줄 (월, 수, 금)
-  // {
-  //   id: generateId(),
-  //   jobName: "튜터링",
-  //   wage: 25000,
-  //   startTime: createTime(19, 0),
-  //   endTime: createTime(21, 0),
-  //   startDate: getCurrentDate(),
-  //   endDate: getDateFromNow(60), // 60일 후까지
-  //   repeatOption: "weekly",
-  //   selectedWeekDays: new Set([1, 3, 5]), // 월, 수, 금
-  //   isCurrentlyWorking: false,
-  //   description: "고등학생 수학 과외",
-  //   color: getSessionColor("tutoring"),
-  // },
+  {
+    id: generateId(),
+    jobName: "튜터링",
+    wage: 25000,
+    startTime: createTime(19, 0),
+    endTime: createTime(21, 0),
+    startDate: getCurrentDate(),
+    endDate: getDateFromNow(60), // 60일 후까지
+    repeatOption: "weekly",
+    selectedWeekDays: new Set([1, 3, 5]), // 월, 수, 금
+    isCurrentlyWorking: false,
+    description: "고등학생 수학 과외",
+    color: getSessionColor("tutoring"),
+  },
 
   // 격주 반복 스케줄 (화, 목)
-  // {
-  //   id: generateId(),
-  //   jobName: "배달 알바",
-  //   wage: 15000,
-  //   startTime: createTime(18, 0),
-  //   endTime: createTime(22, 0),
-  //   startDate: getCurrentDate(),
-  //   endDate: getDateFromNow(45), // 45일 후까지
-  //   repeatOption: "biweekly",
-  //   selectedWeekDays: new Set([2, 4]), // 화, 목
-  //   isCurrentlyWorking: false,
-  //   description: "음식 배달 서비스",
-  //   color: getSessionColor("delivery"),
-  // },
+  {
+    id: generateId(),
+    jobName: "배달 알바",
+    wage: 15000,
+    startTime: createTime(18, 0),
+    endTime: createTime(22, 0),
+    startDate: getCurrentDate(),
+    endDate: getDateFromNow(45), // 45일 후까지
+    repeatOption: "biweekly",
+    selectedWeekDays: new Set([2, 4]), // 화, 목
+    isCurrentlyWorking: false,
+    description: "음식 배달 서비스",
+    color: getSessionColor("delivery"),
+  },
 
   // 월간 반복 스케줄 (매월 1일, 15일)
-  // {
-  //   id: generateId(),
-  //   jobName: "청소 알바",
-  //   wage: 20000,
-  //   startTime: createTime(10, 0),
-  //   endTime: createTime(16, 0),
-  //   startDate: getCurrentDate(),
-  //   endDate: getDateFromNow(90), // 90일 후까지
-  //   repeatOption: "monthly",
-  //   selectedWeekDays: new Set([1, 15]), // 1일, 15일
-  //   isCurrentlyWorking: false,
-  //   description: "사무실 청소 및 정리",
-  //   color: getSessionColor("cleaning"),
-  // },
+  {
+    id: generateId(),
+    jobName: "청소 알바",
+    wage: 20000,
+    startTime: createTime(10, 0),
+    endTime: createTime(16, 0),
+    startDate: getCurrentDate(),
+    endDate: getDateFromNow(90), // 90일 후까지
+    repeatOption: "monthly",
+    selectedWeekDays: new Set([1, 15]), // 1일, 15일
+    isCurrentlyWorking: false,
+    description: "사무실 청소 및 정리",
+    color: getSessionColor("cleaning"),
+  },
 
   // 3주마다 반복 스케줄 (토, 일)
-  // {
-  //   id: generateId(),
-  //   jobName: "이벤트 스태프",
-  //   wage: 18000,
-  //   startTime: createTime(12, 0),
-  //   endTime: createTime(20, 0),
-  //   startDate: getCurrentDate(),
-  //   endDate: getDateFromNow(75), // 75일 후까지
-  //   repeatOption: "triweekly",
-  //   selectedWeekDays: new Set([6, 0]), // 토, 일
-  //   isCurrentlyWorking: false,
-  //   description: "전시회 및 이벤트 현장 스태프",
-  //   color: getSessionColor("event"),
-  // },
+  {
+    id: generateId(),
+    jobName: "이벤트 스태프",
+    wage: 18000,
+    startTime: createTime(12, 0),
+    endTime: createTime(20, 0),
+    startDate: getCurrentDate(),
+    endDate: getDateFromNow(75), // 75일 후까지
+    repeatOption: "triweekly",
+    selectedWeekDays: new Set([6, 0]), // 토, 일
+    isCurrentlyWorking: false,
+    description: "전시회 및 이벤트 현장 스태프",
+    color: getSessionColor("event"),
+  },
 
   // 단일 스케줄 (내일)
   {
@@ -120,36 +120,36 @@ export const mockSchedules: WorkSession[] = [
   },
 
   // 주말 반복 스케줄
-  // {
-  //   id: generateId(),
-  //   jobName: "주말 아르바이트",
-  //   wage: 13000,
-  //   startTime: createTime(9, 30),
-  //   endTime: createTime(18, 30),
-  //   startDate: getCurrentDate(),
-  //   endDate: getDateFromNow(50), // 50일 후까지
-  //   repeatOption: "weekly",
-  //   selectedWeekDays: new Set([6, 0]), // 토, 일
-  //   isCurrentlyWorking: false,
-  //   description: "주말 전용 매장 판매원",
-  //   color: getSessionColor("weekend"),
-  // },
+  {
+    id: generateId(),
+    jobName: "주말 아르바이트",
+    wage: 13000,
+    startTime: createTime(9, 30),
+    endTime: createTime(18, 30),
+    startDate: getCurrentDate(),
+    endDate: getDateFromNow(50), // 50일 후까지
+    repeatOption: "weekly",
+    selectedWeekDays: new Set([6, 0]), // 토, 일
+    isCurrentlyWorking: false,
+    description: "주말 전용 매장 판매원",
+    color: getSessionColor("weekend"),
+  },
 
   // 평일 반복 스케줄
-  // {
-  //   id: generateId(),
-  //   jobName: "사무 보조",
-  //   wage: 16000,
-  //   startTime: createTime(9, 0),
-  //   endTime: createTime(18, 0),
-  //   startDate: getCurrentDate(),
-  //   endDate: getDateFromNow(40), // 40일 후까지
-  //   repeatOption: "weekly",
-  //   selectedWeekDays: new Set([1, 2, 3, 4, 5]), // 월~금
-  //   isCurrentlyWorking: false,
-  //   description: "사무실 문서 정리 및 데이터 입력",
-  //   color: getSessionColor("office"),
-  // },
+  {
+    id: generateId(),
+    jobName: "사무 보조",
+    wage: 16000,
+    startTime: createTime(9, 0),
+    endTime: createTime(18, 0),
+    startDate: getCurrentDate(),
+    endDate: getDateFromNow(40), // 40일 후까지
+    repeatOption: "weekly",
+    selectedWeekDays: new Set([1, 2, 3, 4, 5]), // 월~금
+    isCurrentlyWorking: false,
+    description: "사무실 문서 정리 및 데이터 입력",
+    color: getSessionColor("office"),
+  },
 
   // 특별한 이벤트 (다음 주)
   {
@@ -168,20 +168,20 @@ export const mockSchedules: WorkSession[] = [
   },
 
   // 야간 알바
-  // {
-  //   id: generateId(),
-  //   jobName: "야간 편의점",
-  //   wage: 14000,
-  //   startTime: createTime(22, 0),
-  //   endTime: createTime(6, 0),
-  //   startDate: getCurrentDate(),
-  //   endDate: getDateFromNow(35), // 35일 후까지
-  //   repeatOption: "weekly",
-  //   selectedWeekDays: new Set([2, 4, 6]), // 화, 목, 토
-  //   isCurrentlyWorking: false,
-  //   description: "편의점 야간 근무",
-  //   color: getSessionColor("night"),
-  // },
+  {
+    id: generateId(),
+    jobName: "야간 편의점",
+    wage: 14000,
+    startTime: createTime(22, 0),
+    endTime: createTime(6, 0),
+    startDate: getCurrentDate(),
+    endDate: getDateFromNow(35), // 35일 후까지
+    repeatOption: "weekly",
+    selectedWeekDays: new Set([2, 4, 6]), // 화, 목, 토
+    isCurrentlyWorking: false,
+    description: "편의점 야간 근무",
+    color: getSessionColor("night"),
+  },
 ];
 
 // 특정 날짜에 스케줄이 있는지 확인하는 헬퍼 함수

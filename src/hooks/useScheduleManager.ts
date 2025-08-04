@@ -5,14 +5,11 @@ import {
   useCalendarDisplayStore,
 } from "../store/shiftStore";
 import { WorkSession } from "../models/WorkSession";
-import {
-  generateMonthlyScheduleData,
-  generateCalendarDisplayMap,
-} from "../utils/calendarFns";
+import { generateViewMonthScheduleData } from "../utils/calendarFns";
 
 export const useScheduleManager = () => {
   const {
-    schedulesById,
+    allSchedulesById,
     addSchedule,
     updateSchedule,
     deleteSchedule,
@@ -59,10 +56,10 @@ export const useScheduleManager = () => {
     (date: string): WorkSession[] => {
       const sessionIds = dateSchedule[date] || [];
       return sessionIds
-        .map((id) => schedulesById[id])
+        .map((id) => allSchedulesById[id])
         .filter(Boolean) as WorkSession[];
     },
-    [dateSchedule, schedulesById]
+    [dateSchedule, allSchedulesById]
   );
 
   // 월별 스케줄 데이터 생성
@@ -70,20 +67,15 @@ export const useScheduleManager = () => {
     (viewMonth: Date) => {
       const allSchedules = getAllSchedules();
       const { markedDates, dateSchedule: newDateSchedule } =
-        generateMonthlyScheduleData(allSchedules, viewMonth);
-
-      const newCalendarDisplayMap = generateCalendarDisplayMap(
-        newDateSchedule,
-        schedulesById
-      );
+        generateViewMonthScheduleData(allSchedules, viewMonth);
 
       return {
         markedDates,
         dateSchedule: newDateSchedule,
-        calendarDisplayMap: newCalendarDisplayMap,
+        calendarDisplayMap: markedDates,
       };
     },
-    [getAllSchedules, schedulesById]
+    [getAllSchedules]
   );
 
   // 스케줄 통계 계산
@@ -177,7 +169,7 @@ export const useScheduleManager = () => {
 
   return {
     // 데이터
-    schedulesById,
+    allSchedulesById,
     dateSchedule,
     calendarDisplayMap,
 

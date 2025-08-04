@@ -7,7 +7,7 @@ import {
   CalendarDisplayMap,
   CalendarDisplayItem,
 } from "../models/WorkSession";
-import { getSessionColor } from "../utils/calendarFns";
+import { getSessionColor } from "../utils/colorManager";
 
 interface ShiftStore {
   jobName: string;
