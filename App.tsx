@@ -3,7 +3,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "./src/screens/HomeScreen";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { StyleSheet } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { MenuProvider } from "react-native-popup-menu";
 
 const Stack = createNativeStackNavigator();
@@ -17,7 +17,14 @@ export default function App() {
             <Stack.Screen
               name="Home"
               component={HomeScreen}
-              options={{ title: "WorkLog" }}
+              options={{
+                headerTitle: "WorkLog",
+                headerTitleAlign: "left",
+                headerStyle: {
+                  backgroundColor: "#fff",
+                },
+                headerTintColor: "#000",
+              }}
             />
           </Stack.Navigator>
         </NavigationContainer>

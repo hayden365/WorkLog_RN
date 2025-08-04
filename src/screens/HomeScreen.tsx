@@ -7,7 +7,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { EarningsCard } from "../components/EarningsCard";
-import { HeaderSection } from "../components/HeaderSection";
 import { NewSessionModal } from "../components/NewSessionModal";
 import { WorkSession } from "../models/WorkSession";
 import { CalendarPage } from "../components/CalendarPage";
@@ -37,8 +36,7 @@ const HomeScreen = () => {
   const { allSchedulesById, addSchedule, getAllSchedules } = useScheduleStore();
   const { dateSchedule, addDateSchedule, updateDateSchedule } =
     useDateScheduleStore();
-  const { calendarDisplayMap, updateCalendarDisplay } =
-    useCalendarDisplayStore();
+  const { updateCalendarDisplay } = useCalendarDisplayStore();
 
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().slice(0, 10)
@@ -50,6 +48,8 @@ const HomeScreen = () => {
   const [isInitialized, setIsInitialized] = useState(false);
 
   const { month } = useDateStore();
+
+  const [earnings, setEarnings] = useState<number>(0);
 
   // 앱 초기화 시 목데이터 로드
   useEffect(() => {
@@ -84,6 +84,11 @@ const HomeScreen = () => {
     Object.entries(newUIMarkedDates).forEach(([date, items]) => {
       updateCalendarDisplay(date, items);
     });
+
+    // allSchedulesById[session.id]
+    // 월 수익 계산
+    // const monthlyEarnings = calculateMonthlyEarnings();
+    // setEarnings(monthlyEarnings);
   }, [allSchedulesById, month]);
 
   // 선택된 날짜의 스케줄 계산
@@ -118,23 +123,29 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        <HeaderSection />
-        <EarningsCard
-          totalEarnings={calculateMonthlyEarnings(getAllSchedules())}
-        />
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* <HeaderSection /> */}
         <CalendarPage
           selectedDate={selectedDate}
           onDaySelected={setSelectedDate}
         />
-        <Text style={styles.dateText}>{selectedDate} 일정</Text>
-        {selectedDateSchedule.length === 0 ? (
-          <Text style={styles.noScheduleText}>일정이 없습니다</Text>
-        ) : (
-          selectedDateSchedule.map((session, index) => (
-            <ScheduleCard key={session.id} session={session} />
-          ))
-        )}
+        <EarningsCard totalEarnings={earnings} />
+        <View style={styles.card}>
+          <Text style={styles.dateText}>
+            {new Date(selectedDate).getMonth() + 1}월{" "}
+            {new Date(selectedDate).getDate()}일 일정
+          </Text>
+          {selectedDateSchedule.length === 0 ? (
+            <Text style={styles.noScheduleText}>일정이 없습니다</Text>
+          ) : (
+            selectedDateSchedule.map((session, index) => (
+              <ScheduleCard key={session.id} session={session} />
+            ))
+          )}
+        </View>
       </ScrollView>
 
       <TouchableOpacity
@@ -159,12 +170,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    padding: 16,
+    paddingHorizontal: 16,
+  },
+  scrollViewContent: {
+    paddingBottom: 100,
+    gap: 24,
+  },
+  card: {
+    width: "100%",
+    padding: 20,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 12,
+    marginBottom: 8,
   },
   dateText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 16,
+    fontSize: 16,
+    fontWeight: "500",
     marginBottom: 8,
     color: "#333",
   },

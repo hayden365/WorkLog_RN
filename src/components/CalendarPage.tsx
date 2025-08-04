@@ -2,10 +2,10 @@ import React, { useCallback, PureComponent } from "react";
 import { Calendar } from "react-native-calendars";
 import dayjs from "dayjs";
 import { useDateStore } from "../store/dateStore";
-import { MarkingProps } from "react-native-calendars/src/calendar/day/marking";
 import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useCalendarDisplayStore } from "../store/shiftStore";
 import { CalendarDisplayItem } from "../models/WorkSession";
+import "../utils/calendarOptions";
 
 class CustomDayComponent extends PureComponent<{
   date?: any;
@@ -123,6 +123,18 @@ export const CalendarPage = ({
           setMonth(month.month - 1);
         }}
         firstDay={1}
+        renderHeader={(date) => {
+          const month = date?.getMonth() + 1;
+          const year = date?.getFullYear();
+          return (
+            <View style={styles.header}>
+              <Text style={styles.headerText}>{year}년</Text>
+              <Text style={styles.headerText}>{month}월</Text>
+            </View>
+          );
+        }}
+        dayComponent={dayComponent}
+        style={styles.calendar}
         theme={{
           selectedDayTextColor: "#ffffff",
           todayTextColor: "#007aff",
@@ -148,8 +160,6 @@ export const CalendarPage = ({
           textDayHeaderFontFamily: "System",
           textDayHeaderFontSize: 13,
         }}
-        dayComponent={dayComponent}
-        style={styles.calendar}
       />
     </View>
   );
@@ -159,16 +169,21 @@ const styles = StyleSheet.create({
   calendarContainer: {
     backgroundColor: "#fff",
     borderRadius: 12,
-    marginVertical: 8,
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   calendar: {
     borderRadius: 12,
-    padding: 8,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    gap: 6,
+  },
+  headerText: {
+    fontSize: 16,
+    fontWeight: "500",
   },
   dayContainer: {
     width: "100%",

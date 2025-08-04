@@ -24,6 +24,7 @@ import DatePicker from "./DatePicker";
 import SlideInView from "./SlideInView";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
+import { getRandomSessionColor } from "../utils/colorManager";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -60,9 +61,7 @@ export const NewSessionModal = ({
   const anim = useRef(new Animated.Value(0)).current;
   // 숫자에 콤마 추가하는 함수
   const formatNumberWithComma = (value: string) => {
-    // 숫자가 아닌 문자 제거
     const numericValue = value.replace(/[^0-9]/g, "");
-    // 세자리마다 콤마 추가
     return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
@@ -100,6 +99,7 @@ export const NewSessionModal = ({
       selectedWeekDays,
       isCurrentlyWorking,
       description,
+      color: getRandomSessionColor(),
     };
     onSave(newSession);
     setWageValue("");
