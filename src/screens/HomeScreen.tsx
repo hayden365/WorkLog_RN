@@ -21,6 +21,7 @@ import { generateViewMonthScheduleData } from "../utils/calendarFns";
 import { displayMonthlyWage } from "../utils/wageFns";
 import ScheduleCard from "../components/ScheduleCard";
 import { initializeMockData } from "../data/mockSchedules";
+import { StorageTestComponent } from "../components/StorageTestComponent";
 
 // 타입 정의 추가
 interface Period {
@@ -133,6 +134,9 @@ const HomeScreen = () => {
             ))
           )}
         </View>
+
+        {/* 스케줄 저장 테스트 컴포넌트 */}
+        <StorageTestComponent />
       </ScrollView>
 
       <TouchableOpacity

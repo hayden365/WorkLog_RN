@@ -22,9 +22,6 @@ import { repeatOptions } from "../utils/repeatOptions";
 import TimePicker from "./TimePicker";
 import DatePicker from "./DatePicker";
 import SlideInView from "./SlideInView";
-import "react-native-get-random-values";
-import { v4 as uuidv4 } from "uuid";
-import { getRandomSessionColor } from "../utils/colorManager";
 
 interface NewSessionModalProps {
   visible: boolean;
