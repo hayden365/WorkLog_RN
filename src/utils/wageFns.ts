@@ -38,7 +38,8 @@ export const displayMonthlyWage = (
     ) {
       for (const id of sessionIds) {
         const session = allSchedulesById[id];
-        if (session.calculatedDailyWage !== null) {
+        // session이 존재하고 calculatedDailyWage가 null이 아닌 경우에만 더하기
+        if (session && session.calculatedDailyWage !== null) {
           total += session.calculatedDailyWage;
         }
       }
