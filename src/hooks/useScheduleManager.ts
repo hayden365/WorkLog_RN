@@ -1,12 +1,10 @@
-import { useCallback } from "react";
-import {
-  useScheduleStore,
-  useDateScheduleStore,
-  useCalendarDisplayStore,
-} from "../store/shiftStore";
+import { useScheduleStore } from "../store/shiftStore";
 import { WorkSession } from "../models/WorkSession";
-import { generateViewMonthScheduleData } from "../utils/calendarFns";
+import { calculateDailyWage } from "../utils/wageFns";
+import { getSessionColor } from "../utils/colorManager";
+import { v4 as uuidv4 } from "uuid";
 
+// 비즈니스 로직 관리 훅
 export const useScheduleManager = () => {
   const {
     allSchedulesById,
@@ -17,180 +15,38 @@ export const useScheduleManager = () => {
     getAllSchedules,
   } = useScheduleStore();
 
-  const {
-    dateSchedule,
-    addDateSchedule,
-    updateDateSchedule,
-    removeDateSchedule,
-  } = useDateScheduleStore();
+  // 시급이 계산된 세션 추가
+  const addScheduleWithCalculatedWage = (schedule: Partial<WorkSession>) => {
+    const wage = calculateDailyWage(schedule as WorkSession);
 
-  const { calendarDisplayMap, updateCalendarDisplay, clearCalendarDisplay } =
-    useCalendarDisplayStore();
+    const id = uuidv4();
+    addSchedule({
+      ...schedule,
+      id,
+      calculatedDailyWage: wage,
+      color: getSessionColor(id),
+    } as WorkSession);
+  };
 
-  // 스케줄 추가
-  const addNewSchedule = useCallback(
-    (schedule: WorkSession) => {
-      addSchedule(schedule);
-    },
-    [addSchedule]
-  );
-
-  // 스케줄 수정
-  const editSchedule = useCallback(
-    (id: string, updates: Partial<WorkSession>) => {
-      updateSchedule(id, updates);
-    },
-    [updateSchedule]
-  );
-
-  // 스케줄 삭제
-  const removeSchedule = useCallback(
-    (id: string) => {
-      deleteSchedule(id);
-    },
-    [deleteSchedule]
-  );
-
-  // 특정 날짜의 스케줄 조회
-  const getSchedulesForDate = useCallback(
-    (date: string): WorkSession[] => {
-      const sessionIds = dateSchedule[date] || [];
-      return sessionIds
-        .map((id) => allSchedulesById[id])
-        .filter(Boolean) as WorkSession[];
-    },
-    [dateSchedule, allSchedulesById]
-  );
-
-  // 월별 스케줄 데이터 생성
-  const generateMonthData = useCallback(
-    (viewMonth: Date) => {
-      const allSchedules = getAllSchedules();
-      const { markedDates, dateSchedule: newDateSchedule } =
-        generateViewMonthScheduleData(allSchedules, viewMonth);
-
-      return {
-        markedDates,
-        dateSchedule: newDateSchedule,
-        calendarDisplayMap: markedDates,
-      };
-    },
-    [getAllSchedules]
-  );
-
-  // 스케줄 통계 계산
-  const calculateScheduleStats = useCallback(() => {
-    const allSchedules = getAllSchedules();
-
-    const totalSchedules = allSchedules.length;
-    const totalEarnings = allSchedules.reduce((total, session) => {
-      const startMinutes =
-        session.startTime.getHours() * 60 + session.startTime.getMinutes();
-      const endMinutes =
-        session.endTime.getHours() * 60 + session.endTime.getMinutes();
-      const workHours = (endMinutes - startMinutes) / 60;
-      return total + workHours * session.wage;
-    }, 0);
-
-    const totalWorkHours = allSchedules.reduce((total, session) => {
-      const startMinutes =
-        session.startTime.getHours() * 60 + session.startTime.getMinutes();
-      const endMinutes =
-        session.endTime.getHours() * 60 + session.endTime.getMinutes();
-      return total + (endMinutes - startMinutes) / 60;
-    }, 0);
-
-    return {
-      totalSchedules,
-      totalEarnings: Math.round(totalEarnings),
-      totalWorkHours: Math.round(totalWorkHours * 10) / 10,
-    };
-  }, [getAllSchedules]);
-
-  // 스케줄 검색
-  const searchSchedules = useCallback(
-    (query: string): WorkSession[] => {
-      const allSchedules = getAllSchedules();
-      const lowerQuery = query.toLowerCase();
-
-      return allSchedules.filter(
-        (schedule) =>
-          schedule.jobName.toLowerCase().includes(lowerQuery) ||
-          schedule.description.toLowerCase().includes(lowerQuery)
-      );
-    },
-    [getAllSchedules]
-  );
-
-  // 반복 스케줄 생성
-  const createRecurringSchedules = useCallback(
-    (
-      baseSchedule: WorkSession,
-      startDate: Date,
-      endDate: Date
-    ): WorkSession[] => {
-      const schedules: WorkSession[] = [];
-      const currentDate = new Date(startDate);
-
-      while (currentDate <= endDate) {
-        const newSchedule: WorkSession = {
-          ...baseSchedule,
-          id: `${baseSchedule.id}_${currentDate.getTime()}`,
-          startDate: new Date(currentDate),
-          endDate: new Date(currentDate),
-        };
-
-        schedules.push(newSchedule);
-
-        // 다음 날짜 계산
-        switch (baseSchedule.repeatOption) {
-          case "daily":
-            currentDate.setDate(currentDate.getDate() + 1);
-            break;
-          case "weekly":
-            currentDate.setDate(currentDate.getDate() + 7);
-            break;
-          case "biweekly":
-            currentDate.setDate(currentDate.getDate() + 14);
-            break;
-          case "triweekly":
-            currentDate.setDate(currentDate.getDate() + 21);
-            break;
-          case "monthly":
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            break;
-        }
-      }
-
-      return schedules;
-    },
-    []
-  );
+  // 시급이 계산된 세션 업데이트
+  const updateScheduleWithCalculatedWage = (
+    id: string,
+    updates: Partial<WorkSession>
+  ) => {
+    const currentSession = allSchedulesById[id];
+    if (currentSession) {
+      const updatedSession = { ...currentSession, ...updates };
+      const wage = calculateDailyWage(updatedSession);
+      updateSchedule(id, { ...updatedSession, calculatedDailyWage: wage });
+    }
+  };
 
   return {
-    // 데이터
     allSchedulesById,
-    dateSchedule,
-    calendarDisplayMap,
-
-    // 기본 CRUD
-    addNewSchedule,
-    editSchedule,
-    removeSchedule,
+    addSchedule: addScheduleWithCalculatedWage,
+    updateSchedule: updateScheduleWithCalculatedWage,
+    deleteSchedule,
     getScheduleById,
     getAllSchedules,
-
-    // 조회 함수
-    getSchedulesForDate,
-    searchSchedules,
-
-    // 데이터 생성
-    generateMonthData,
-
-    // 통계
-    calculateScheduleStats,
-
-    // 유틸리티
-    createRecurringSchedules,
   };
 };

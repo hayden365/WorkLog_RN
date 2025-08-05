@@ -13,11 +13,12 @@ import { CalendarPage } from "../components/CalendarPage";
 import { useDateStore } from "../store/dateStore";
 import {
   useDateScheduleStore,
-  useScheduleStore,
   useCalendarDisplayStore,
 } from "../store/shiftStore";
+import { useScheduleManager } from "../hooks/useScheduleManager";
 
 import { generateViewMonthScheduleData } from "../utils/calendarFns";
+import { displayMonthlyWage } from "../utils/wageFns";
 import ScheduleCard from "../components/ScheduleCard";
 import { initializeMockData } from "../data/mockSchedules";
 
@@ -33,7 +34,8 @@ interface MarkedDate {
 }
 
 const HomeScreen = () => {
-  const { allSchedulesById, addSchedule, getAllSchedules } = useScheduleStore();
+  const { allSchedulesById, addSchedule, getAllSchedules } =
+    useScheduleManager();
   const { dateSchedule, addDateSchedule, updateDateSchedule } =
     useDateScheduleStore();
   const { updateCalendarDisplay } = useCalendarDisplayStore();
@@ -63,8 +65,8 @@ const HomeScreen = () => {
     }
   }, [isInitialized, allSchedulesById, addSchedule]);
 
-  const handleSave = (newSession: WorkSession) => {
-    addSchedule(newSession);
+  const handleSave = (newSession: Partial<WorkSession>) => {
+    addSchedule(newSession as WorkSession);
   };
 
   // 스케줄이 변경될 때 달력 데이터 업데이트
@@ -77,7 +79,7 @@ const HomeScreen = () => {
     const { markedDates: newUIMarkedDates, dateSchedule: newDateScheduleById } =
       generateViewMonthScheduleData(allSchedules, viewMonth);
 
-    // 스토어 업데이트
+    // 스토어 업데이트x
     addDateSchedule(newDateScheduleById);
 
     // 달력 표시 데이터 업데이트
@@ -85,10 +87,13 @@ const HomeScreen = () => {
       updateCalendarDisplay(date, items);
     });
 
-    // allSchedulesById[session.id]
     // 월 수익 계산
-    // const monthlyEarnings = calculateMonthlyEarnings();
-    // setEarnings(monthlyEarnings);
+    const monthlyEarnings = displayMonthlyWage(
+      newDateScheduleById,
+      allSchedulesById,
+      viewMonth
+    );
+    setEarnings(monthlyEarnings);
   }, [allSchedulesById, month]);
 
   // 선택된 날짜의 스케줄 계산
@@ -102,24 +107,6 @@ const HomeScreen = () => {
     }
     setSelectedDateSchedule(selectedDateSchedule);
   }, [dateSchedule, selectedDate, allSchedulesById]);
-
-  // 월 수익 계산
-  const calculateMonthlyEarnings = (sessions: WorkSession[]) => {
-    let total = 0;
-    sessions.forEach((session) => {
-      const startMinutes =
-        session.startTime.getHours() * 60 + session.startTime.getMinutes();
-      let endMinutes = 0;
-      if (session.endTime) {
-        endMinutes =
-          session.endTime.getHours() * 60 + session.endTime.getMinutes();
-      }
-      const workMinutes = endMinutes - startMinutes;
-      const workHours = workMinutes / 60;
-      total += workHours * session.wage;
-    });
-    return Math.round(total);
-  };
 
   return (
     <View style={styles.container}>

@@ -12,8 +12,8 @@ import { getSessionColor } from "../utils/colorManager";
 interface ShiftStore {
   jobName: string;
   setJobName: (jobName: string) => void;
-  wage: number | null;
-  setWage: (wage: number | null) => void;
+  wage: number;
+  setWage: (wage: number) => void;
   startDate: Date;
   setStartDate: (date: Date) => void;
   endDate: Date;
@@ -34,7 +34,7 @@ interface ShiftStore {
 export const useShiftStore = create<ShiftStore>((set) => ({
   jobName: "",
   setJobName: (jobName) => set({ jobName }),
-  wage: null,
+  wage: 0,
   setWage: (wage) => set({ wage }),
   startDate: new Date(),
   setStartDate: (startDate) => set({ startDate }),
@@ -53,7 +53,7 @@ export const useShiftStore = create<ShiftStore>((set) => ({
   reset: () =>
     set({
       jobName: "",
-      wage: null,
+      wage: 0,
       startDate: new Date(),
       endDate: new Date(),
       startTime: new Date(),

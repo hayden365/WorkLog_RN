@@ -54,7 +54,9 @@ export const NewSessionModal = ({
   } = useShiftStore();
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(true);
   const [description, setDescription] = useState("");
-  const [wageType, setWageType] = useState<"hourly" | "daily">("hourly");
+  const [wageType, setWageType] = useState<"hourly" | "daily" | "monthly">(
+    "hourly"
+  );
   const [wageValue, setWageValue] = useState<string>("");
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -69,7 +71,7 @@ export const NewSessionModal = ({
   const handleWageChange = (value: string) => {
     const formattedValue = formatNumberWithComma(value);
     setWageValue(formattedValue);
-    setWage(Number(formattedValue));
+    setWage(Number(formattedValue.replace(/,/g, "")));
   };
 
   const toggleWeekDay = (index: number) => {
@@ -87,10 +89,10 @@ export const NewSessionModal = ({
     const endDateValue = isCurrentlyWorking ? null : endDate;
     // 콤마 제거 후 숫자로 변환
 
-    const newSession: WorkSession = {
-      id: uuidv4(),
+    const newSession = {
       jobName,
-      wage: wage || 0,
+      wage,
+      wageType,
       startTime,
       endTime,
       startDate,
@@ -99,9 +101,8 @@ export const NewSessionModal = ({
       selectedWeekDays,
       isCurrentlyWorking,
       description,
-      color: getRandomSessionColor(),
     };
-    onSave(newSession);
+    onSave(newSession as WorkSession);
     setWageValue("");
     setIsCurrentlyWorking(true);
     setDescription("");
@@ -150,13 +151,17 @@ export const NewSessionModal = ({
           <View style={{ gap: 12 }}>
             <SegmentedControl
               tintColor="#fff"
-              values={["시급", "일급"]}
-              selectedIndex={wageType === "hourly" ? 0 : 1}
+              values={["시급", "일급", "월급"]}
+              selectedIndex={
+                wageType === "hourly" ? 0 : wageType === "daily" ? 1 : 2
+              }
               onChange={(event) => {
                 setWageType(
                   event.nativeEvent.selectedSegmentIndex === 0
                     ? "hourly"
-                    : "daily"
+                    : event.nativeEvent.selectedSegmentIndex === 1
+                    ? "daily"
+                    : "monthly"
                 );
               }}
             />
@@ -175,10 +180,18 @@ export const NewSessionModal = ({
                 <FontAwesome name="won" size={16} color="black" />
                 <TextInput
                   style={styles.input}
-                  placeholder={wageType === "hourly" ? "시급" : "일급"}
+                  placeholder={
+                    wageType === "hourly"
+                      ? "시급"
+                      : wageType === "daily"
+                      ? "일급"
+                      : "월급"
+                  }
                   value={wageValue}
                   keyboardType="number-pad"
-                  onChangeText={handleWageChange}
+                  onChangeText={(value) => {
+                    handleWageChange(value);
+                  }}
                 />
               </View>
             </View>

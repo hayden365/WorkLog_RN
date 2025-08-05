@@ -9,7 +9,9 @@ export type RepeatOption =
 export interface WorkSession {
   id: string;
   jobName: string;
+  wageType: "hourly" | "daily" | "monthly";
   wage: number;
+  calculatedDailyWage: number | null; // 미리 계산된 일급 (시급인 경우)
   startTime: Date;
   endTime: Date;
   startDate: Date;

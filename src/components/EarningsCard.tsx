@@ -2,11 +2,8 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useDateStore } from "../store/dateStore";
 import Feather from "@expo/vector-icons/Feather";
-interface EarningsCardProps {
-  totalEarnings: number;
-}
 
-export const EarningsCard = ({ totalEarnings }: EarningsCardProps) => {
+export const EarningsCard = ({ totalEarnings }: { totalEarnings: number }) => {
   const { month } = useDateStore();
   const [isVisible, setIsVisible] = useState(false);
 
@@ -22,11 +19,11 @@ export const EarningsCard = ({ totalEarnings }: EarningsCardProps) => {
           <Text style={styles.label}>{month + 1}월 예상 급여</Text>
           {isVisible ? (
             <TouchableOpacity onPress={() => setIsVisible(false)}>
-              <Feather name="eye-off" size={24} color="black" />
+              <Feather name="eye-off" size={18} color="black" />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity onPress={() => setIsVisible(true)}>
-              <Feather name="eye" size={24} color="black" />
+              <Feather name="eye" size={18} color="black" />
             </TouchableOpacity>
           )}
         </View>
@@ -37,7 +34,6 @@ export const EarningsCard = ({ totalEarnings }: EarningsCardProps) => {
         ) : (
           <View style={styles.hiddenAmount}>
             <Text style={styles.hiddenAmountText}>금액숨김</Text>
-            {/* <Feather name="chevron-right" size={24} color="#8e8e93" /> */}
           </View>
         )}
       </View>
@@ -85,5 +81,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#8e8e93",
+  },
+  selectedDateSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#e5e5e5",
+  },
+  selectedDateLabel: {
+    fontSize: 13,
+    color: "#666",
+    marginBottom: 4,
+  },
+  selectedDateAmount: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#007aff",
   },
 });
