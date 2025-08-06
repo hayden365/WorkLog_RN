@@ -78,8 +78,8 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({
       <View style={styles.dateContainer}>
         <Text style={styles.dateLabel}>기간:</Text>
         <Text style={styles.date}>
-          {formatDate(session.startDate)}
-          {session.endDate && ` ~ ${formatDate(session.endDate)}`}
+          {`${formatDate(session.startDate)} ~`}
+          {session.endDate && ` ${formatDate(session.endDate)}`}
         </Text>
       </View>
 

@@ -7,7 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { EarningsCard } from "../components/EarningsCard";
-import { NewSessionModal } from "../components/NewSessionModal";
+import { NewSessionModal } from "../components/modals/NewSessionModal";
 import { WorkSession } from "../models/WorkSession";
 import { CalendarPage } from "../components/CalendarPage";
 import { useDateStore } from "../store/dateStore";
@@ -22,6 +22,7 @@ import { displayMonthlyWage } from "../utils/wageFns";
 import ScheduleCard from "../components/ScheduleCard";
 import { initializeMockData } from "../data/mockSchedules";
 import { StorageTestComponent } from "../components/StorageTestComponent";
+import ScheduleModal from "../components/modals/ScheduleModal";
 
 // 타입 정의 추가
 interface Period {
@@ -35,7 +36,7 @@ interface MarkedDate {
 }
 
 const HomeScreen = () => {
-  const { allSchedulesById, addSchedule, getAllSchedules } =
+  const { allSchedulesById, addSchedule, updateSchedule, getAllSchedules } =
     useScheduleManager();
   const { dateSchedule, addDateSchedule, updateDateSchedule } =
     useDateScheduleStore();
@@ -45,9 +46,13 @@ const HomeScreen = () => {
     new Date().toISOString().slice(0, 10)
   );
   const [modalVisible, setModalVisible] = useState(false);
+  const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
   const [selectedDateSchedule, setSelectedDateSchedule] = useState<
     WorkSession[]
   >([]);
+  const [selectedSessionId, setSelectedSessionId] = useState<
+    string | undefined
+  >(undefined);
   const [isInitialized, setIsInitialized] = useState(false);
 
   const { month } = useDateStore();
@@ -68,6 +73,10 @@ const HomeScreen = () => {
 
   const handleSave = (newSession: Partial<WorkSession>) => {
     addSchedule(newSession as WorkSession);
+  };
+
+  const handleUpdate = (updatedSession: WorkSession) => {
+    updateSchedule(updatedSession.id, updatedSession);
   };
 
   // 스케줄이 변경될 때 달력 데이터 업데이트
@@ -130,7 +139,14 @@ const HomeScreen = () => {
             <Text style={styles.noScheduleText}>일정이 없습니다</Text>
           ) : (
             selectedDateSchedule.map((session, index) => (
-              <ScheduleCard key={session.id} session={session} />
+              <ScheduleCard
+                key={session.id}
+                session={session}
+                onPress={() => {
+                  setSelectedSessionId(session.id);
+                  setScheduleModalVisible(true);
+                }}
+              />
             ))
           )}
         </View>
@@ -150,6 +166,16 @@ const HomeScreen = () => {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onSave={handleSave}
+      />
+
+      <ScheduleModal
+        visible={scheduleModalVisible}
+        onClose={() => {
+          setScheduleModalVisible(false);
+          setSelectedSessionId(undefined);
+        }}
+        onSave={handleUpdate}
+        sessionId={selectedSessionId}
       />
     </View>
   );

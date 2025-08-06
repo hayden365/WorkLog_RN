@@ -12,16 +12,16 @@ import {
   Dimensions,
   Animated,
 } from "react-native";
-import { WorkSession, RepeatOption } from "../models/WorkSession";
+import { WorkSession, RepeatOption } from "../../models/WorkSession";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
-import { useShiftStore } from "../store/shiftStore";
-import Dropdown from "./Dropdown";
-import { repeatOptions } from "../utils/repeatOptions";
-import TimePicker from "./TimePicker";
-import DatePicker from "./DatePicker";
-import SlideInView from "./SlideInView";
+import { useShiftStore } from "../../store/shiftStore";
+import Dropdown from "../Dropdown";
+import { repeatOptions } from "../../utils/repeatOptions";
+import TimePicker from "../TimePicker";
+import DatePicker from "../DatePicker";
+import SlideInView from "../SlideInView";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -257,16 +257,12 @@ export const NewSessionModal = ({
           </View>
           {/* 요일 선택 */}
           <SlideInView
-            visible={
-              repeatOption === "weekly" ||
-              repeatOption === "biweekly"
-            }
+            visible={repeatOption === "weekly" || repeatOption === "biweekly"}
             direction="down"
           >
             <View
               style={
-                repeatOption === "weekly" ||
-                repeatOption === "biweekly"
+                repeatOption === "weekly" || repeatOption === "biweekly"
                   ? {
                       height: 50,
                       paddingTop: 12,
@@ -328,6 +324,17 @@ export const NewSessionModal = ({
 
 const styles = StyleSheet.create({
   areaContainer: { flex: 1 },
+  headerContainer: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+    paddingBottom: 16,
+  },
   container: {
     padding: 16,
     paddingBottom: 60,
@@ -403,17 +410,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
-  headerContainer: {
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    borderColor: "#ddd",
-    paddingBottom: 16,
-  },
+
   saveButton: {
     alignItems: "center",
     borderRadius: 8,
