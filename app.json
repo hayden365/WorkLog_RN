@@ -14,17 +14,30 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.WorkLogApp"
+      "bundleIdentifier": "com.anonymous.WorkLogApp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.WorkLogApp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "63eca05e-3d48-437d-bf15-f8946eb39f19"
+      }
+    },
+    "scheme": "worklogapp",
+    "plugins": [
+      "expo-dev-client"
+    ]
   }
 }

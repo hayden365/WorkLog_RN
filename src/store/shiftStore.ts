@@ -192,6 +192,7 @@ interface ScheduleStore {
   deleteSchedule: (id: string) => void;
   getScheduleById: (id: string) => WorkSession | undefined;
   getAllSchedules: () => WorkSession[];
+  clear: () => void; // 추가
 }
 
 export const useScheduleStore = create<ScheduleStore>()(
@@ -225,6 +226,7 @@ export const useScheduleStore = create<ScheduleStore>()(
         }),
       getScheduleById: (id: string) => get().allSchedulesById[id],
       getAllSchedules: () => Object.values(get().allSchedulesById),
+      clear: () => set({ allSchedulesById: {} }), // 추가
     }),
     createPersistConfig(STORE_NAMES.SCHEDULE)
   )
@@ -237,6 +239,7 @@ interface DateScheduleStore {
   addDateSchedule: (schedule: ScheduleByDate) => void;
   updateDateSchedule: (date: string, sessionIds: string[]) => void;
   removeDateSchedule: (date: string) => void;
+  clear: () => void; // 추가
 }
 
 export const useDateScheduleStore = create<DateScheduleStore>()(
@@ -257,6 +260,7 @@ export const useDateScheduleStore = create<DateScheduleStore>()(
           const { [date]: removed, ...remaining } = state.dateSchedule;
           return { dateSchedule: remaining };
         }),
+      clear: () => set({ dateSchedule: {} }), // 추가
     }),
     createPersistConfig(STORE_NAMES.DATE_SCHEDULE)
   )
@@ -292,9 +296,19 @@ export const useCalendarDisplayStore = create<CalendarDisplayStore>()(
 export const scheduleStoreUtils = {
   // 모든 스케줄 데이터 초기화
   clearAllScheduleData: () => {
+    // MMKV 스토리지에서 삭제
     Object.values(STORE_NAMES).forEach((name) => {
       storage.delete(name);
     });
+
+    // Zustand 스토어 상태도 초기화
+    const scheduleStore = useScheduleStore.getState();
+    const dateScheduleStore = useDateScheduleStore.getState();
+    const calendarDisplayStore = useCalendarDisplayStore.getState();
+
+    scheduleStore.clear();
+    dateScheduleStore.clear();
+    calendarDisplayStore.clearCalendarDisplay();
   },
 
   // 저장된 데이터 확인

@@ -8,11 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		2BAE40D3F6F0DE33EFA3FFB5 /* libPods-WorkLogApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DD5FD47B0C379A4707DB32D8 /* libPods-WorkLogApp.a */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		41DA0F249A8EC4C5C5FFDD06 /* libPods-WorkLogApp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 613033A4F428A687A09A75F4 /* libPods-WorkLogApp.a */; };
+		58BFE6B8E3CD32AB3BE01934 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1950D3C9BA6649A595AE23BF /* ExpoModulesProvider.swift */; };
+		B86EA2AD20F935093DB8373F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2B8F009C849563888690AEDE /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		E6EAF5FFCE73BCECE9427D81 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 9B98D7B2881103C279435C80 /* PrivacyInfo.xcprivacy */; };
-		EC200788785D069C172AEA2A /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2C2A5B59E0235FBA0044826 /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -20,13 +20,13 @@
 		13B07F961A680F5B00A75B9A /* WorkLogApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WorkLogApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = WorkLogApp/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = WorkLogApp/Info.plist; sourceTree = "<group>"; };
-		15EDB446E73C1FEB04507407 /* Pods-WorkLogApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WorkLogApp.release.xcconfig"; path = "Target Support Files/Pods-WorkLogApp/Pods-WorkLogApp.release.xcconfig"; sourceTree = "<group>"; };
-		33A7676D0DA4ADF38F6F1FA7 /* Pods-WorkLogApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WorkLogApp.debug.xcconfig"; path = "Target Support Files/Pods-WorkLogApp/Pods-WorkLogApp.debug.xcconfig"; sourceTree = "<group>"; };
-		613033A4F428A687A09A75F4 /* libPods-WorkLogApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-WorkLogApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		9B98D7B2881103C279435C80 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = WorkLogApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		A2C2A5B59E0235FBA0044826 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-WorkLogApp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		1950D3C9BA6649A595AE23BF /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-WorkLogApp/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		2B8F009C849563888690AEDE /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = WorkLogApp/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		610FF6B6F93AB8899821969B /* Pods-WorkLogApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WorkLogApp.debug.xcconfig"; path = "Target Support Files/Pods-WorkLogApp/Pods-WorkLogApp.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = WorkLogApp/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		C20619472EA5ABB824E1ACE0 /* Pods-WorkLogApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WorkLogApp.release.xcconfig"; path = "Target Support Files/Pods-WorkLogApp/Pods-WorkLogApp.release.xcconfig"; sourceTree = "<group>"; };
+		DD5FD47B0C379A4707DB32D8 /* libPods-WorkLogApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-WorkLogApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = WorkLogApp/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* WorkLogApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "WorkLogApp-Bridging-Header.h"; path = "WorkLogApp/WorkLogApp-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -37,21 +37,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				41DA0F249A8EC4C5C5FFDD06 /* libPods-WorkLogApp.a in Frameworks */,
+				2BAE40D3F6F0DE33EFA3FFB5 /* libPods-WorkLogApp.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		03E71CDC57F0278E9EAB7445 /* WorkLogApp */ = {
-			isa = PBXGroup;
-			children = (
-				A2C2A5B59E0235FBA0044826 /* ExpoModulesProvider.swift */,
-			);
-			name = WorkLogApp;
-			sourceTree = "<group>";
-		};
 		13B07FAE1A68108700A75B9A /* WorkLogApp */ = {
 			isa = PBXGroup;
 			children = (
@@ -61,7 +53,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				9B98D7B2881103C279435C80 /* PrivacyInfo.xcprivacy */,
+				2B8F009C849563888690AEDE /* PrivacyInfo.xcprivacy */,
 			);
 			name = WorkLogApp;
 			sourceTree = "<group>";
@@ -70,25 +62,25 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				613033A4F428A687A09A75F4 /* libPods-WorkLogApp.a */,
+				DD5FD47B0C379A4707DB32D8 /* libPods-WorkLogApp.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		35EC108C0CEEDC82D51E136B /* Pods */ = {
+		6E13B45A483C4AA6B37664F9 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				33A7676D0DA4ADF38F6F1FA7 /* Pods-WorkLogApp.debug.xcconfig */,
-				15EDB446E73C1FEB04507407 /* Pods-WorkLogApp.release.xcconfig */,
+				610FF6B6F93AB8899821969B /* Pods-WorkLogApp.debug.xcconfig */,
+				C20619472EA5ABB824E1ACE0 /* Pods-WorkLogApp.release.xcconfig */,
 			);
 			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
-		706152A1B9CF3F8F58BCD597 /* ExpoModulesProviders */ = {
+		6ECC14D5300F4F76B2F2B902 /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				03E71CDC57F0278E9EAB7445 /* WorkLogApp */,
+				959FA040C0571CCBF3E85429 /* WorkLogApp */,
 			);
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
@@ -107,8 +99,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				35EC108C0CEEDC82D51E136B /* Pods */,
-				706152A1B9CF3F8F58BCD597 /* ExpoModulesProviders */,
+				6E13B45A483C4AA6B37664F9 /* Pods */,
+				6ECC14D5300F4F76B2F2B902 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -121,6 +113,14 @@
 				13B07F961A680F5B00A75B9A /* WorkLogApp.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		959FA040C0571CCBF3E85429 /* WorkLogApp */ = {
+			isa = PBXGroup;
+			children = (
+				1950D3C9BA6649A595AE23BF /* ExpoModulesProvider.swift */,
+			);
+			name = WorkLogApp;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
@@ -140,13 +140,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "WorkLogApp" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				E16F36AC1C6A60D7C8C7982E /* [Expo] Configure project */,
+				07F56B3A25A9D03260EFF8A2 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				8BCF112A7C10083D5C2A5611 /* [CP] Embed Pods Frameworks */,
+				910FF008B43CDA426A361967 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -196,7 +196,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				E6EAF5FFCE73BCECE9427D81 /* PrivacyInfo.xcprivacy in Resources */,
+				B86EA2AD20F935093DB8373F /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,6 +217,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [[ -f \"$PODS_ROOT/../.xcode.env\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env\"\nfi\nif [[ -f \"$PODS_ROOT/../.xcode.env.local\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.local\"\nfi\n\n# The project root by default is one level up from the ios directory\nexport PROJECT_ROOT=\"$PROJECT_DIR\"/..\n\nif [[ \"$CONFIGURATION\" = *Debug* ]]; then\n  export SKIP_BUNDLING=1\nfi\nif [[ -z \"$ENTRY_FILE\" ]]; then\n  # Set the entry JS file using the bundler's entry resolution.\n  export ENTRY_FILE=\"$(\"$NODE_BINARY\" -e \"require('expo/scripts/resolveAppEntry')\" \"$PROJECT_ROOT\" ios absolute | tail -n 1)\"\nfi\n\nif [[ -z \"$CLI_PATH\" ]]; then\n  # Use Expo CLI\n  export CLI_PATH=\"$(\"$NODE_BINARY\" --print \"require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })\")\"\nfi\nif [[ -z \"$BUNDLE_COMMAND\" ]]; then\n  # Default Expo CLI command for bundling\n  export BUNDLE_COMMAND=\"export:embed\"\nfi\n\n# Source .xcode.env.updates if it exists to allow\n# SKIP_BUNDLING to be unset if needed\nif [[ -f \"$PODS_ROOT/../.xcode.env.updates\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.updates\"\nfi\n# Source local changes to allow overrides\n# if needed\nif [[ -f \"$PODS_ROOT/../.xcode.env.local\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.local\"\nfi\n\n`\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\"`\n\n";
+		};
+		07F56B3A25A9D03260EFF8A2 /* [Expo] Configure project */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo] Configure project";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-WorkLogApp/expo-configure-project.sh\"\n";
 		};
 		08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -254,6 +273,8 @@
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/React-Core_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-cxxreact/React-cxxreact_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/boost/boost_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/expo-dev-launcher/EXDevLauncher.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/expo-dev-menu/EXDevMenu.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/glog/glog_privacy.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
@@ -265,6 +286,8 @@
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-Core_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/React-cxxreact_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/boost_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXDevLauncher.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXDevMenu.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/glog_privacy.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -272,7 +295,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-WorkLogApp/Pods-WorkLogApp-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		8BCF112A7C10083D5C2A5611 /* [CP] Embed Pods Frameworks */ = {
+		910FF008B43CDA426A361967 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -290,25 +313,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-WorkLogApp/Pods-WorkLogApp-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		E16F36AC1C6A60D7C8C7982E /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-WorkLogApp/expo-configure-project.sh\"\n";
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -317,7 +321,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				EC200788785D069C172AEA2A /* ExpoModulesProvider.swift in Sources */,
+				58BFE6B8E3CD32AB3BE01934 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -326,7 +330,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 33A7676D0DA4ADF38F6F1FA7 /* Pods-WorkLogApp.debug.xcconfig */;
+			baseConfigurationReference = 610FF6B6F93AB8899821969B /* Pods-WorkLogApp.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -362,7 +366,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 15EDB446E73C1FEB04507407 /* Pods-WorkLogApp.release.xcconfig */;
+			baseConfigurationReference = C20619472EA5ABB824E1ACE0 /* Pods-WorkLogApp.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

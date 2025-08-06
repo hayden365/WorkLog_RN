@@ -137,7 +137,7 @@ export function getMarkedDatesFromWeeklySchedule({
   const startDate = schedule.startDate;
   const endDate = schedule.endDate ?? endOfMonth(addMonths(viewMonth, 2));
 
-  const selectedWeekDays = [...schedule.selectedWeekDays];
+  const selectedWeekDays = Array.from(schedule.selectedWeekDays);
 
   const monthStart = startOfMonth(viewMonth);
   const monthEnd = endOfMonth(viewMonth);
@@ -181,7 +181,7 @@ export function getMarkedDatesFromBiweeklySchedule({
   const startDate = schedule.startDate;
   const endDate = schedule.endDate ?? endOfMonth(addMonths(viewMonth, 2));
   const sessionColor = schedule.color || getSessionColor(schedule.id);
-  const selectedWeekDays = schedule.selectedWeekDays ?? [];
+  const selectedWeekDays = Array.from(schedule.selectedWeekDays);
 
   const monthStart = startOfMonth(viewMonth);
   const monthEnd = endOfMonth(viewMonth);
