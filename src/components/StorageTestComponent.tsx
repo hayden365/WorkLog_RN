@@ -106,11 +106,6 @@ export const StorageTestComponent: React.FC = () => {
           <Text style={styles.buttonText}>모든 데이터 삭제</Text>
         </TouchableOpacity>
       </View>
-
-      <Text style={styles.instruction}>
-        앱을 종료하고 다시 실행해보세요. 데이터가 그대로 유지되는지 확인할 수
-        있습니다.
-      </Text>
     </View>
   );
 };
@@ -148,12 +143,5 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
-  },
-  instruction: {
-    marginTop: 20,
-    fontSize: 14,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 20,
   },
 });

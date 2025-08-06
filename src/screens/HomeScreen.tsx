@@ -55,16 +55,16 @@ const HomeScreen = () => {
   const [earnings, setEarnings] = useState<number>(0);
 
   // 앱 초기화 시 목데이터 로드
-  useEffect(() => {
-    if (!isInitialized && Object.keys(allSchedulesById).length === 0) {
-      const mockData = initializeMockData();
-      mockData.forEach((schedule) => {
-        addSchedule(schedule);
-      });
-      setIsInitialized(true);
-      console.log("목데이터 로드 완료");
-    }
-  }, [isInitialized, allSchedulesById, addSchedule]);
+  // useEffect(() => {
+  //   if (!isInitialized && Object.keys(allSchedulesById).length === 0) {
+  //     const mockData = initializeMockData();
+  //     mockData.forEach((schedule) => {
+  //       addSchedule(schedule);
+  //     });
+  //     setIsInitialized(true);
+  //     console.log("목데이터 로드 완료");
+  //   }
+  // }, [isInitialized, allSchedulesById, addSchedule]);
 
   const handleSave = (newSession: Partial<WorkSession>) => {
     addSchedule(newSession as WorkSession);
