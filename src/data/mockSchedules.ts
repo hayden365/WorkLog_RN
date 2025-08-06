@@ -106,7 +106,7 @@ export const mockSchedules: WorkSession[] = [
     endTime: createTime(20, 0),
     startDate: getCurrentDate(),
     endDate: getDateFromNow(75), // 75일 후까지
-    repeatOption: "triweekly",
+    repeatOption: "biweekly",
     selectedWeekDays: new Set([6, 0]), // 토, 일
     isCurrentlyWorking: false,
     description: "전시회 및 이벤트 현장 스태프",
@@ -232,16 +232,6 @@ export const hasScheduleOnDate = (
 
     // 격주 반복 (간단한 구현)
     if (schedule.repeatOption === "biweekly") {
-      const dayOfWeek = date.getDay();
-      return (
-        schedule.selectedWeekDays.has(dayOfWeek) &&
-        dateString >= startDate &&
-        (!endDate || dateString <= endDate)
-      );
-    }
-
-    // 3주마다 반복 (간단한 구현)
-    if (schedule.repeatOption === "triweekly") {
       const dayOfWeek = date.getDay();
       return (
         schedule.selectedWeekDays.has(dayOfWeek) &&

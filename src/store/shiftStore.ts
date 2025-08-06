@@ -11,10 +11,19 @@ import {
 } from "../models/WorkSession";
 import { getSessionColor } from "../utils/colorManager";
 
+const SCHEDULE_STORE_VERSION = 1;
+const STORE_NAMES = {
+  SCHEDULE: "schedule-store",
+  DATE_SCHEDULE: "date-schedule-store",
+  CALENDAR_DISPLAY: "calendar-display-store",
+};
+
+type StoreName = (typeof STORE_NAMES)[keyof typeof STORE_NAMES];
+
 // MMKV 스토리지 인스턴스 생성
 const storage = new MMKV();
 
-// MMKV 어댑터 생성
+// MMKV 어댑터 생성: zustand persist middleware와 호환
 const mmkvStorage = createJSONStorage(() => ({
   getItem: (name: string) => {
     const value = storage.getString(name);
@@ -23,7 +32,7 @@ const mmkvStorage = createJSONStorage(() => ({
     const parsed = JSON.parse(value);
 
     // 스케줄 스토어의 경우 Date 객체와 Set 객체 복원
-    if (name === "schedule-store" && parsed.allSchedulesById) {
+    if (name === STORE_NAMES.SCHEDULE && parsed.allSchedulesById) {
       Object.keys(parsed.allSchedulesById).forEach((id) => {
         const schedule = parsed.allSchedulesById[id];
 
@@ -50,12 +59,13 @@ const mmkvStorage = createJSONStorage(() => ({
 
     return parsed;
   },
+
   setItem: (name: string, value: unknown) => {
     let serializedValue = value;
 
     // 스케줄 스토어의 경우 Date 객체와 Set 객체 직렬화
     if (
-      name === "schedule-store" &&
+      name === STORE_NAMES.SCHEDULE &&
       typeof value === "object" &&
       value !== null
     ) {
@@ -94,67 +104,89 @@ const mmkvStorage = createJSONStorage(() => ({
   },
 }));
 
-// 스케줄 데이터 버전 관리
-const SCHEDULE_STORE_VERSION = 1;
+const createPersistConfig = (name: StoreName) => ({
+  name: name,
+  storage: mmkvStorage,
+  version: SCHEDULE_STORE_VERSION,
+  merge: (persistedState: any, currentState: any) => {
+    if (persistedState && Object.keys(persistedState).length > 0) {
+      return {
+        ...currentState,
+        ...persistedState,
+      };
+    }
+    return currentState;
+  },
+});
 
+// 임시 저장 스토어
 interface ShiftStore {
   jobName: string;
-  setJobName: (jobName: string) => void;
   wage: number;
-  setWage: (wage: number) => void;
   startDate: Date;
-  setStartDate: (date: Date) => void;
   endDate: Date;
-  setEndDate: (date: Date) => void;
   startTime: Date;
-  setStartTime: (startTime: Date) => void;
   endTime: Date;
-  setEndTime: (endTime: Date) => void;
   repeatOption: RepeatOption;
-  setRepeatOption: (repeatOption: RepeatOption) => void;
   selectedWeekDays: Set<number>;
-  setSelectedWeekDays: (weekDays: Set<number>) => void;
   description: string;
+
+  setJobName: (jobName: string) => void;
+  setWage: (wage: number) => void;
+  setStartDate: (date: Date) => void;
+  setEndDate: (date: Date) => void;
+  setStartTime: (startTime: Date) => void;
+  setEndTime: (endTime: Date) => void;
+  setRepeatOption: (repeatOption: RepeatOption) => void;
+  setSelectedWeekDays: (weekDays: Set<number>) => void;
   setDescription: (description: string) => void;
   reset: () => void;
 }
 
-export const useShiftStore = create<ShiftStore>((set) => ({
+const createInitialShiftState = (): Omit<
+  ShiftStore,
+  keyof {
+    setJobName: never;
+    setWage: never;
+    setStartDate: never;
+    setEndDate: never;
+    setStartTime: never;
+    setEndTime: never;
+    setRepeatOption: never;
+    setSelectedWeekDays: never;
+    setDescription: never;
+    reset: never;
+  }
+> => ({
   jobName: "",
-  setJobName: (jobName) => set({ jobName }),
   wage: 0,
-  setWage: (wage) => set({ wage }),
   startDate: new Date(),
-  setStartDate: (startDate) => set({ startDate }),
   endDate: new Date(),
-  setEndDate: (endDate) => set({ endDate }),
   startTime: new Date(),
-  setStartTime: (startTime) => set({ startTime }),
   endTime: new Date(),
-  setEndTime: (endTime) => set({ endTime }),
   repeatOption: "daily",
-  setRepeatOption: (repeatOption) => set({ repeatOption }),
   selectedWeekDays: new Set(),
-  setSelectedWeekDays: (selectedWeekDays) => set({ selectedWeekDays }),
   description: "",
+});
+
+export const useShiftStore = create<ShiftStore>((set) => ({
+  ...createInitialShiftState(),
+  setJobName: (jobName) => set({ jobName }),
+  setWage: (wage) => set({ wage }),
+  setStartDate: (startDate) => set({ startDate }),
+  setEndDate: (endDate) => set({ endDate }),
+  setStartTime: (startTime) => set({ startTime }),
+  setEndTime: (endTime) => set({ endTime }),
+  setRepeatOption: (repeatOption) => set({ repeatOption }),
+  setSelectedWeekDays: (selectedWeekDays) => set({ selectedWeekDays }),
   setDescription: (description) => set({ description }),
-  reset: () =>
-    set({
-      jobName: "",
-      wage: 0,
-      startDate: new Date(),
-      endDate: new Date(),
-      startTime: new Date(),
-      endTime: new Date(),
-      repeatOption: "daily",
-      selectedWeekDays: new Set(),
-      description: "",
-    }),
+  reset: () => set(createInitialShiftState()),
 }));
 
 // 전체 스케줄 저장 (ID 기반) - 영구 저장 적용
 interface ScheduleStore {
   allSchedulesById: SchedulesById;
+
   addSchedule: (schedule: WorkSession) => void;
   updateSchedule: (id: string, updates: Partial<WorkSession>) => void;
   deleteSchedule: (id: string) => void;
@@ -166,59 +198,42 @@ export const useScheduleStore = create<ScheduleStore>()(
   persist(
     (set, get) => ({
       allSchedulesById: {},
-      addSchedule: (schedule) =>
-        set((state) => {
-          const newSchedule = {
-            ...schedule,
-            color: schedule.color || getSessionColor(schedule.id),
-          };
-          return {
-            allSchedulesById: {
-              ...state.allSchedulesById,
-              [schedule.id]: newSchedule,
+
+      addSchedule: (schedule: WorkSession) =>
+        set((state: ScheduleStore) => ({
+          allSchedulesById: {
+            ...state.allSchedulesById,
+            [schedule.id]: {
+              ...schedule,
+              color: schedule.color || getSessionColor(schedule.id),
             },
-          };
-        }),
-      updateSchedule: (id, updates) =>
-        set((state) => ({
+          },
+        })),
+
+      updateSchedule: (id: string, updates: Partial<WorkSession>) =>
+        set((state: ScheduleStore) => ({
           allSchedulesById: {
             ...state.allSchedulesById,
             [id]: { ...state.allSchedulesById[id], ...updates },
           },
         })),
-      deleteSchedule: (id) =>
-        set((state) => {
+
+      deleteSchedule: (id: string) =>
+        set((state: ScheduleStore) => {
           const { [id]: deleted, ...remaining } = state.allSchedulesById;
           return { allSchedulesById: remaining };
         }),
-      getScheduleById: (id) => get().allSchedulesById[id],
+      getScheduleById: (id: string) => get().allSchedulesById[id],
       getAllSchedules: () => Object.values(get().allSchedulesById),
     }),
-    {
-      name: "schedule-store",
-      storage: mmkvStorage,
-      version: SCHEDULE_STORE_VERSION,
-      // 버전 충돌 시 데이터 병합 로직
-      merge: (persistedState: any, currentState) => {
-        // 저장된 데이터가 있고 버전이 다르면 병합
-        if (persistedState && persistedState.allSchedulesById) {
-          return {
-            ...currentState,
-            allSchedulesById: {
-              ...currentState.allSchedulesById,
-              ...persistedState.allSchedulesById,
-            },
-          };
-        }
-        return currentState;
-      },
-    }
+    createPersistConfig(STORE_NAMES.SCHEDULE)
   )
 );
 
-// 일별 스케줄 저장 - 영구 저장 적용
+// 일별 스케줄 저장 - 영구 저장 적용 "날짜":["세션ID1","세션ID2"]
 interface DateScheduleStore {
   dateSchedule: ScheduleByDate;
+
   addDateSchedule: (schedule: ScheduleByDate) => void;
   updateDateSchedule: (date: string, sessionIds: string[]) => void;
   removeDateSchedule: (date: string) => void;
@@ -228,43 +243,29 @@ export const useDateScheduleStore = create<DateScheduleStore>()(
   persist(
     (set) => ({
       dateSchedule: {},
-      addDateSchedule: (schedule) =>
-        set((state) => ({
+
+      addDateSchedule: (schedule: ScheduleByDate) =>
+        set((state: DateScheduleStore) => ({
           dateSchedule: { ...state.dateSchedule, ...schedule },
         })),
-      updateDateSchedule: (date, sessionIds) =>
-        set((state) => ({
+      updateDateSchedule: (date: string, sessionIds: string[]) =>
+        set((state: DateScheduleStore) => ({
           dateSchedule: { ...state.dateSchedule, [date]: sessionIds },
         })),
-      removeDateSchedule: (date) =>
-        set((state) => {
+      removeDateSchedule: (date: string) =>
+        set((state: DateScheduleStore) => {
           const { [date]: removed, ...remaining } = state.dateSchedule;
           return { dateSchedule: remaining };
         }),
     }),
-    {
-      name: "date-schedule-store",
-      storage: mmkvStorage,
-      version: SCHEDULE_STORE_VERSION,
-      merge: (persistedState: any, currentState) => {
-        if (persistedState && persistedState.dateSchedule) {
-          return {
-            ...currentState,
-            dateSchedule: {
-              ...currentState.dateSchedule,
-              ...persistedState.dateSchedule,
-            },
-          };
-        }
-        return currentState;
-      },
-    }
+    createPersistConfig(STORE_NAMES.DATE_SCHEDULE)
   )
 );
 
-// 달력 표시 데이터 스토어 - 영구 저장 적용
+// 달력 표시 데이터 스토어
 interface CalendarDisplayStore {
   calendarDisplayMap: CalendarDisplayMap;
+
   updateCalendarDisplay: (date: string, items: CalendarDisplayItem[]) => void;
   clearCalendarDisplay: () => void;
   getCalendarDisplayForDate: (date: string) => CalendarDisplayItem[];
@@ -274,30 +275,16 @@ export const useCalendarDisplayStore = create<CalendarDisplayStore>()(
   persist(
     (set, get) => ({
       calendarDisplayMap: {},
-      updateCalendarDisplay: (date, items) =>
-        set((state) => ({
+
+      updateCalendarDisplay: (date: string, items: CalendarDisplayItem[]) =>
+        set((state: CalendarDisplayStore) => ({
           calendarDisplayMap: { ...state.calendarDisplayMap, [date]: items },
         })),
       clearCalendarDisplay: () => set({ calendarDisplayMap: {} }),
-      getCalendarDisplayForDate: (date) => get().calendarDisplayMap[date] || [],
+      getCalendarDisplayForDate: (date: string) =>
+        get().calendarDisplayMap[date] || [],
     }),
-    {
-      name: "calendar-display-store",
-      storage: mmkvStorage,
-      version: SCHEDULE_STORE_VERSION,
-      merge: (persistedState: any, currentState) => {
-        if (persistedState && persistedState.calendarDisplayMap) {
-          return {
-            ...currentState,
-            calendarDisplayMap: {
-              ...currentState.calendarDisplayMap,
-              ...persistedState.calendarDisplayMap,
-            },
-          };
-        }
-        return currentState;
-      },
-    }
+    createPersistConfig(STORE_NAMES.CALENDAR_DISPLAY)
   )
 );
 
@@ -305,52 +292,42 @@ export const useCalendarDisplayStore = create<CalendarDisplayStore>()(
 export const scheduleStoreUtils = {
   // 모든 스케줄 데이터 초기화
   clearAllScheduleData: () => {
-    storage.delete("schedule-store");
-    storage.delete("date-schedule-store");
-    storage.delete("calendar-display-store");
+    Object.values(STORE_NAMES).forEach((name) => {
+      storage.delete(name);
+    });
   },
 
   // 저장된 데이터 확인
   getStoredData: () => {
-    return {
-      scheduleStore: storage.getString("schedule-store"),
-      dateScheduleStore: storage.getString("date-schedule-store"),
-      calendarDisplayStore: storage.getString("calendar-display-store"),
-    };
+    return Object.fromEntries(
+      Object.entries(STORE_NAMES).map(([key, value]) => [
+        key,
+        storage.getString(value),
+      ])
+    );
   },
 
   // 스케줄 데이터 백업 (JSON 형태로)
   exportScheduleData: () => {
-    const scheduleData = storage.getString("schedule-store");
-    const dateScheduleData = storage.getString("date-schedule-store");
-    const calendarDisplayData = storage.getString("calendar-display-store");
+    const data = Object.fromEntries(
+      Object.entries(STORE_NAMES).map(([key, value]) => [
+        key,
+        storage.getString(value) ? JSON.parse(storage.getString(value)!) : null,
+      ])
+    );
 
     return {
-      scheduleStore: scheduleData ? JSON.parse(scheduleData) : null,
-      dateScheduleStore: dateScheduleData ? JSON.parse(dateScheduleData) : null,
-      calendarDisplayStore: calendarDisplayData
-        ? JSON.parse(calendarDisplayData)
-        : null,
+      ...data,
       exportDate: new Date().toISOString(),
     };
   },
 
   // 스케줄 데이터 복원
-  importScheduleData: (data: any) => {
-    if (data.scheduleStore) {
-      storage.set("schedule-store", JSON.stringify(data.scheduleStore));
-    }
-    if (data.dateScheduleStore) {
-      storage.set(
-        "date-schedule-store",
-        JSON.stringify(data.dateScheduleStore)
-      );
-    }
-    if (data.calendarDisplayStore) {
-      storage.set(
-        "calendar-display-store",
-        JSON.stringify(data.calendarDisplayStore)
-      );
-    }
+  importScheduleData: (data: Record<string, any>) => {
+    Object.entries(STORE_NAMES).forEach(([key, value]) => {
+      if (data[key]) {
+        storage.set(value, JSON.stringify(data[key]));
+      }
+    });
   },
 };

@@ -1,9 +1,4 @@
-export type RepeatOption =
-  | "daily"
-  | "weekly"
-  | "biweekly"
-  | "triweekly"
-  | "monthly";
+export type RepeatOption = "none" | "daily" | "weekly" | "biweekly" | "monthly";
 
 // 데이터 저장 형식
 export interface WorkSession {

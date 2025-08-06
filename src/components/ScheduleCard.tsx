@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import React from "react";
 import { WorkSession } from "../models/WorkSession";
 import { format } from "date-fns";
+import { repeatOptions } from "../utils/repeatOptions";
 
 interface ScheduleCardProps {
   session: WorkSession;
@@ -20,23 +21,6 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({
 
   const formatDate = (date: Date) => {
     return format(date, "MM월 dd일");
-  };
-
-  const getRepeatText = () => {
-    switch (session.repeatOption) {
-      case "daily":
-        return "매일";
-      case "weekly":
-        return "매주";
-      case "biweekly":
-        return "격주";
-      case "triweekly":
-        return "3주마다";
-      case "monthly":
-        return "매월";
-      default:
-        return "";
-    }
   };
 
   const handlePress = () => {
@@ -63,7 +47,13 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({
           {/* check */}
           {session.repeatOption !== "daily" && (
             <View style={styles.repeatBadge}>
-              <Text style={styles.repeatText}>{getRepeatText()}</Text>
+              <Text style={styles.repeatText}>
+                {
+                  repeatOptions.find(
+                    (option) => option.value === session.repeatOption
+                  )?.label
+                }
+              </Text>
             </View>
           )}
         </View>

@@ -251,7 +251,7 @@ export const NewSessionModal = ({
                     useNativeDriver: true,
                   }).start();
                 }}
-                placeholder="매일 반복"
+                placeholder="반복 없음"
               />
             </View>
           </View>
@@ -259,16 +259,14 @@ export const NewSessionModal = ({
           <SlideInView
             visible={
               repeatOption === "weekly" ||
-              repeatOption === "biweekly" ||
-              repeatOption === "triweekly"
+              repeatOption === "biweekly"
             }
             direction="down"
           >
             <View
               style={
                 repeatOption === "weekly" ||
-                repeatOption === "biweekly" ||
-                repeatOption === "triweekly"
+                repeatOption === "biweekly"
                   ? {
                       height: 50,
                       paddingTop: 12,

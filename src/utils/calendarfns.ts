@@ -9,6 +9,11 @@ import {
   isAfter,
   addMonths,
   isSameDay,
+  getDate,
+  addDays,
+  isWithinInterval,
+  getDaysInMonth,
+  lastDayOfMonth,
 } from "date-fns";
 import {
   ScheduleByDate,
@@ -45,6 +50,41 @@ interface MarkedDate {
   periods: Period[];
 }
 
+export function getMarkedDatesFromNoneSchedule({
+  schedule,
+  viewMonth,
+}: {
+  schedule: WorkSession;
+  viewMonth: Date;
+}): Record<string, CalendarDisplayItem> {
+  const markedDates: Record<string, CalendarDisplayItem> = {};
+  const sessionColor = schedule.color || getSessionColor(schedule.id);
+  const startDate = schedule.startDate;
+  const endDate = schedule.endDate ?? schedule.startDate;
+
+  const monthStart = startOfMonth(viewMonth);
+  const monthEnd = endOfMonth(viewMonth);
+
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  const matchedDates = days
+    .filter((day) => {
+      return isWithinInterval(day, { start: startDate, end: endDate });
+    })
+    .map((d) => format(d, "yyyy-MM-dd"));
+
+  matchedDates.forEach((dateStr: string) => {
+    markedDates[dateStr] = {
+      color: sessionColor,
+      selected: true,
+      sessionId: schedule.id,
+      jobName: schedule.jobName,
+    };
+  });
+
+  return markedDates;
+}
+
 // repeatOption is daily
 export function getMarkedDatesFromDailySchedule({
   schedule,
@@ -54,10 +94,8 @@ export function getMarkedDatesFromDailySchedule({
   viewMonth: Date;
 }): Record<string, CalendarDisplayItem> {
   const markedDates: Record<string, CalendarDisplayItem> = {};
-  const startDate = parseISO(schedule.startDate.toISOString());
-  const endDate = schedule.endDate
-    ? parseISO(schedule.endDate.toISOString())
-    : endOfMonth(addMonths(viewMonth, 2));
+  const startDate = schedule.startDate;
+  const endDate = schedule.endDate ?? endOfMonth(addMonths(viewMonth, 2));
 
   const monthStart = startOfMonth(viewMonth);
   const monthEnd = endOfMonth(viewMonth);
@@ -96,13 +134,13 @@ export function getMarkedDatesFromWeeklySchedule({
   viewMonth: Date;
 }): Record<string, CalendarDisplayItem> {
   const markedDates: Record<string, CalendarDisplayItem> = {};
-  const startDate = parseISO(schedule.startDate.toISOString());
-  const endDate = schedule.endDate
-    ? parseISO(schedule.endDate.toISOString())
-    : null;
+  const startDate = schedule.startDate;
+  const endDate = schedule.endDate ?? endOfMonth(addMonths(viewMonth, 2));
+
   const selectedWeekDays = [...schedule.selectedWeekDays];
-  const monthStart = startOfMonth(new Date(viewMonth));
-  const monthEnd = endOfMonth(new Date(viewMonth));
+
+  const monthStart = startOfMonth(viewMonth);
+  const monthEnd = endOfMonth(viewMonth);
 
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const matchedDates = days
@@ -110,8 +148,10 @@ export function getMarkedDatesFromWeeklySchedule({
       const dayOfWeek = getDay(day);
       return (
         selectedWeekDays.includes(dayOfWeek) &&
-        !isBefore(day, startDate) &&
-        (!endDate || !isBefore(day, endDate))
+        isWithinInterval(day, {
+          start: startDate,
+          end: endDate,
+        })
       );
     })
     .map((d) => format(d, "yyyy-MM-dd"));
@@ -130,7 +170,49 @@ export function getMarkedDatesFromWeeklySchedule({
   return markedDates;
 }
 
-// // schedule's repeatOption is monthly
+export function getMarkedDatesFromBiweeklySchedule({
+  schedule,
+  viewMonth,
+}: {
+  schedule: WorkSession;
+  viewMonth: Date;
+}): Record<string, CalendarDisplayItem> {
+  const markedDates: Record<string, CalendarDisplayItem> = {};
+  const startDate = schedule.startDate;
+  const endDate = schedule.endDate ?? endOfMonth(addMonths(viewMonth, 2));
+  const sessionColor = schedule.color || getSessionColor(schedule.id);
+  const selectedWeekDays = schedule.selectedWeekDays ?? [];
+
+  const monthStart = startOfMonth(viewMonth);
+  const monthEnd = endOfMonth(viewMonth);
+
+  for (
+    let baseDate = new Date(startDate);
+    isBefore(baseDate, endDate) || isSameDay(baseDate, endDate);
+    baseDate = addDays(baseDate, 14)
+  ) {
+    selectedWeekDays.forEach((dayOfWeek) => {
+      const date = addDays(baseDate, dayOfWeek - getDay(baseDate));
+
+      if (
+        isWithinInterval(date, { start: monthStart, end: monthEnd }) &&
+        isWithinInterval(date, { start: startDate, end: endDate })
+      ) {
+        const dateStr = format(date, "yyyy-MM-dd");
+        markedDates[dateStr] = {
+          color: sessionColor,
+          selected: true,
+          sessionId: schedule.id,
+          jobName: schedule.jobName,
+        };
+      }
+    });
+  }
+
+  return markedDates;
+}
+
+//  schedule's repeatOption is monthly
 export function getMarkedDatesFromMonthlySchedule({
   schedule,
   viewMonth,
@@ -139,37 +221,58 @@ export function getMarkedDatesFromMonthlySchedule({
   viewMonth: Date;
 }): Record<string, CalendarDisplayItem> {
   const markedDates: Record<string, CalendarDisplayItem> = {};
-  const startDate = parseISO(schedule.startDate.toISOString());
-  const endDate = schedule.endDate
-    ? parseISO(schedule.endDate.toISOString())
-    : null;
-  const selectedDays = [...schedule.selectedWeekDays];
-  const monthStart = startOfMonth(new Date(viewMonth));
-  const monthEnd = endOfMonth(new Date(viewMonth));
-
-  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  const matchedDates = days
-    .filter((day) => {
-      const dayOfMonth = day.getDate();
-      return (
-        selectedDays.includes(dayOfMonth) &&
-        !isBefore(day, startDate) &&
-        (!endDate || !isBefore(day, endDate))
-      );
-    })
-    .map((d) => format(d, "yyyy-MM-dd"));
-
   const sessionColor = schedule.color || getSessionColor(schedule.id);
 
-  matchedDates.forEach((dateStr: string) => {
-    markedDates[dateStr] = {
-      color: sessionColor,
-      selected: true,
-      sessionId: schedule.id,
-      jobName: schedule.jobName,
-    };
-  });
+  const startDate = schedule.startDate;
+  const endDate = schedule.endDate;
+
+  const monthStart = startOfMonth(viewMonth);
+  const monthEnd = endOfMonth(viewMonth);
+
+  const monthStartDate = getDate(startDate);
+  const monthEndDate = endDate ? getDate(endDate) : null;
+
+  const lastDayOfThisMonth = getDate(lastDayOfMonth(viewMonth));
+
+  const intervalStart = new Date(
+    viewMonth.getFullYear(),
+    viewMonth.getMonth(),
+    Math.min(monthStartDate, lastDayOfThisMonth)
+  );
+
+  const intervalEnd =
+    monthEndDate !== null
+      ? new Date(
+          viewMonth.getFullYear(),
+          viewMonth.getMonth(),
+          Math.min(monthEndDate, lastDayOfThisMonth)
+        )
+      : intervalStart;
+
+  if (
+    isAfter(intervalEnd, schedule.startDate) ||
+    isSameDay(intervalEnd, schedule.startDate)
+  ) {
+    const days = eachDayOfInterval({ start: intervalStart, end: intervalEnd });
+
+    days.forEach((day) => {
+      const formatted = format(day, "yyyy-MM-dd");
+
+      if (
+        isWithinInterval(day, {
+          start: schedule.startDate,
+          end: schedule.endDate ?? new Date("9999-12-31"), // 무제한
+        })
+      ) {
+        markedDates[formatted] = {
+          color: sessionColor,
+          selected: true,
+          sessionId: schedule.id,
+          jobName: schedule.jobName,
+        };
+      }
+    });
+  }
 
   return markedDates;
 }
@@ -190,6 +293,13 @@ export function generateViewMonthScheduleData(
     let sessionDates: string[] = [];
 
     switch (session.repeatOption) {
+      case "none":
+        sessionMarkedDates = getMarkedDatesFromNoneSchedule({
+          schedule: session,
+          viewMonth,
+        });
+        sessionDates = Object.keys(sessionMarkedDates);
+        break;
       case "daily":
         sessionMarkedDates = getMarkedDatesFromDailySchedule({
           schedule: session,
@@ -199,6 +309,13 @@ export function generateViewMonthScheduleData(
         break;
       case "weekly":
         sessionMarkedDates = getMarkedDatesFromWeeklySchedule({
+          schedule: session,
+          viewMonth,
+        });
+        sessionDates = Object.keys(sessionMarkedDates);
+        break;
+      case "biweekly":
+        sessionMarkedDates = getMarkedDatesFromBiweeklySchedule({
           schedule: session,
           viewMonth,
         });
