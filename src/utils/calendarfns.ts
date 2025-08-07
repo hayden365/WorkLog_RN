@@ -60,7 +60,7 @@ export function getMarkedDatesFromNoneSchedule({
   const markedDates: Record<string, CalendarDisplayItem> = {};
   const sessionColor = schedule.color || getSessionColor(schedule.id);
   const startDate = schedule.startDate;
-  const endDate = schedule.endDate ?? schedule.startDate;
+  const endDate = schedule.endDate;
 
   const monthStart = startOfMonth(viewMonth);
   const monthEnd = endOfMonth(viewMonth);
@@ -69,6 +69,11 @@ export function getMarkedDatesFromNoneSchedule({
 
   const matchedDates = days
     .filter((day) => {
+      // endDate가 null이면 startDate와 정확히 같은 날짜만 포함
+      if (endDate === null) {
+        return isSameDay(day, startDate);
+      }
+      // endDate가 있으면 해당 구간 내의 모든 날짜 포함
       return isWithinInterval(day, { start: startDate, end: endDate });
     })
     .map((d) => format(d, "yyyy-MM-dd"));

@@ -164,7 +164,7 @@ const createInitialShiftState = (): Omit<
   endDate: new Date(),
   startTime: new Date(),
   endTime: new Date(),
-  repeatOption: "daily",
+  repeatOption: "none",
   selectedWeekDays: new Set(),
   description: "",
 });

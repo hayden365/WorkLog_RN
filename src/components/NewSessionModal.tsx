@@ -82,6 +82,7 @@ export const NewSessionModal = ({
       setWageValue("");
       setIsCurrentlyWorking(true);
       setDescription("");
+      setRepeatOption("none");
     }
   }, [existingSession, mode, visible]);
 
