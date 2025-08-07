@@ -12,6 +12,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useEffect, useRef, useState } from "react";
 import { useShiftStore } from "../store/shiftStore";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { WorkSession } from "../models/WorkSession";
 
 // Android에서 LayoutAnimation 활성화
 if (
@@ -21,8 +22,16 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const TimePicker = () => {
+const TimePicker = ({ session }: { session?: WorkSession }) => {
   const { startTime, setStartTime, endTime, setEndTime } = useShiftStore();
+
+  useEffect(() => {
+    if (session) {
+      setStartTime(session.startTime || new Date());
+      setEndTime(session.endTime || new Date());
+    }
+  }, [session]);
+
   const [openPicker, setOpenPicker] = useState<null | {
     index: number;
     type: "time";

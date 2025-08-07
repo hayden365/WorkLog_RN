@@ -2,8 +2,8 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import HomeScreen from "./src/screens/HomeScreen";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { StyleSheet, Text } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { StyleSheet } from "react-native";
 import { MenuProvider } from "react-native-popup-menu";
 
 const Stack = createNativeStackNavigator();

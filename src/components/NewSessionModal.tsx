@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Modal,
   View,
@@ -12,27 +12,33 @@ import {
   Dimensions,
   Animated,
 } from "react-native";
-import { WorkSession, RepeatOption } from "../../models/WorkSession";
+import { WorkSession, RepeatOption } from "../models/WorkSession";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
-import { useShiftStore } from "../../store/shiftStore";
-import Dropdown from "../Dropdown";
-import { repeatOptions } from "../../utils/repeatOptions";
-import TimePicker from "../TimePicker";
-import DatePicker from "../DatePicker";
-import SlideInView from "../SlideInView";
+import { useShiftStore } from "../store/shiftStore";
+import Dropdown from "./Dropdown";
+import { repeatOptions } from "../utils/repeatOptions";
+import TimePicker from "./TimePicker";
+import DatePicker from "./DatePicker";
+import SlideInView from "./SlideInView";
 
 interface NewSessionModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: (session: WorkSession) => void;
+  // 업데이트를 위한 기존 세션 데이터
+  existingSession?: WorkSession;
+  // 모달 모드 (새로 생성 또는 업데이트)
+  mode?: "create" | "update";
 }
 
 export const NewSessionModal = ({
   visible,
   onClose,
   onSave,
+  existingSession,
+  mode = "create",
 }: NewSessionModalProps) => {
   const {
     jobName,
@@ -58,6 +64,27 @@ export const NewSessionModal = ({
 
   const scrollViewRef = useRef<ScrollView>(null);
   const anim = useRef(new Animated.Value(0)).current;
+
+  // 기존 세션 데이터가 있으면 초기값 설정
+  useEffect(() => {
+    if (existingSession && mode === "update") {
+      setJobName(existingSession.jobName || "");
+      setWage(existingSession.wage || 0);
+      setWageType(existingSession.wageType || "hourly");
+      setWageValue(formatNumberWithComma(String(existingSession.wage || "")));
+      setIsCurrentlyWorking(existingSession.isCurrentlyWorking ?? true);
+      setDescription(existingSession.description || "");
+      setRepeatOption(existingSession.repeatOption || "none");
+      setSelectedWeekDays(existingSession.selectedWeekDays || new Set());
+    } else if (mode === "create") {
+      // 새로 생성할 때는 초기화
+      reset();
+      setWageValue("");
+      setIsCurrentlyWorking(true);
+      setDescription("");
+    }
+  }, [existingSession, mode, visible]);
+
   // 숫자에 콤마 추가하는 함수
   const formatNumberWithComma = (value: string) => {
     const numericValue = value.replace(/[^0-9]/g, "");
@@ -87,6 +114,7 @@ export const NewSessionModal = ({
     // 콤마 제거 후 숫자로 변환
 
     const newSession = {
+      id: existingSession?.id, // 업데이트 시 기존 ID 유지
       jobName,
       wage,
       wageType,
@@ -107,6 +135,10 @@ export const NewSessionModal = ({
     onClose();
   };
 
+  const getHeaderTitle = () => {
+    return mode === "update" ? "근무 일정 수정" : "근무 일정 추가";
+  };
+
   return (
     <Modal
       visible={visible}
@@ -121,7 +153,7 @@ export const NewSessionModal = ({
               <Feather name="x" size={20} color="black" />
             </Text>
           </TouchableOpacity>
-          <Text style={styles.header}>근무 일정 추가</Text>
+          <Text style={styles.header}>{getHeaderTitle()}</Text>
           {/* 저장 버튼 */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>저장</Text>
@@ -200,7 +232,7 @@ export const NewSessionModal = ({
               <Ionicons name="time-outline" size={24} color="black" />
             </Text>
             <View style={{ flex: 1 }}>
-              <TimePicker />
+              <TimePicker session={existingSession} />
             </View>
           </View>
           <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
@@ -210,7 +242,10 @@ export const NewSessionModal = ({
               <Ionicons name="calendar-outline" size={24} color="black" />
             </Text>
             <View style={{ flex: 1, gap: 8 }}>
-              <DatePicker isCurrentlyWorking={isCurrentlyWorking} />
+              <DatePicker
+                isCurrentlyWorking={isCurrentlyWorking}
+                session={existingSession}
+              />
               <View
                 style={{
                   flexDirection: "row",

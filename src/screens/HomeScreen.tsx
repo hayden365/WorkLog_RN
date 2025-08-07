@@ -7,7 +7,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { EarningsCard } from "../components/EarningsCard";
-import { NewSessionModal } from "../components/modals/NewSessionModal";
+import { NewSessionModal } from "../components/NewSessionModal";
 import { WorkSession } from "../models/WorkSession";
 import { CalendarPage } from "../components/CalendarPage";
 import { useDateStore } from "../store/dateStore";
@@ -22,7 +22,7 @@ import { displayMonthlyWage } from "../utils/wageFns";
 import ScheduleCard from "../components/ScheduleCard";
 import { initializeMockData } from "../data/mockSchedules";
 import { StorageTestComponent } from "../components/StorageTestComponent";
-import ScheduleModal from "../components/modals/ScheduleModal";
+import ScheduleModal from "../components/ScheduleModal";
 
 // 타입 정의 추가
 interface Period {

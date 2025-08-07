@@ -11,6 +11,7 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useEffect, useRef, useState } from "react";
 import { useShiftStore } from "../store/shiftStore";
+import { WorkSession } from "../models/WorkSession";
 
 // Android에서 LayoutAnimation 활성화
 if (
@@ -22,10 +23,20 @@ if (
 
 const DatePicker = ({
   isCurrentlyWorking,
+  session,
 }: {
   isCurrentlyWorking: boolean;
+  session?: WorkSession;
 }) => {
   const { startDate, setStartDate, endDate, setEndDate } = useShiftStore();
+
+  useEffect(() => {
+    if (session) {
+      setStartDate(session.startDate || new Date());
+      setEndDate(session.endDate || new Date());
+    }
+  }, [session]);
+
   const [openPicker, setOpenPicker] = useState<null | {
     index: number;
     type: "date";
