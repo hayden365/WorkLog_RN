@@ -66,22 +66,23 @@ const ScheduleModal = ({
           contentContainerStyle={styles.container}
         >
           {/* 근무지 */}
-          <View style={styles.inputGroup}>
-            <View
-              style={[
-                styles.inputLabel,
-                {
-                  width: 24,
-                  height: 24,
-                  backgroundColor: session.color,
-                  borderRadius: 10,
-                },
-              ]}
-            />
-            <Text style={styles.readOnlyText}>{session.jobName}</Text>
+          <View style={{ gap: 12 }}>
+            <View style={styles.inputGroup}>
+              <View
+                style={[
+                  styles.inputLabel,
+                  {
+                    width: 24,
+                    height: 24,
+                    backgroundColor: session.color,
+                    borderRadius: 10,
+                  },
+                ]}
+              />
+              <Text style={styles.readOnlyText}>{session.jobName}</Text>
+            </View>
           </View>
           <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
-
           {/* 시급 */}
           <View style={{ gap: 12 }}>
             <View style={styles.inputGroup}>
@@ -97,7 +98,6 @@ const ScheduleModal = ({
                 }}
               >
                 <FontAwesome name="won" size={16} color="black" />
-
                 <Text style={styles.readOnlyText}>{session.wage} (시급)</Text>
               </View>
             </View>
@@ -195,7 +195,8 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 18,
   },
   container: {
     paddingHorizontal: 16,
@@ -210,16 +211,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     minHeight: 48,
     alignItems: "center",
+    gap: 24,
   },
   inputLabel: {
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
-    width: 50,
-    height: 48,
-    textAlignVertical: "top",
+    textAlignVertical: "center",
     lineHeight: 48,
-    alignSelf: "flex-start",
+    alignSelf: "center",
   },
   input: {
     flex: 1,

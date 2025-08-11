@@ -152,7 +152,7 @@ const HomeScreen = () => {
         </View>
 
         {/* 스케줄 저장 테스트 컴포넌트 */}
-        <StorageTestComponent />
+        {/* <StorageTestComponent /> */}
       </ScrollView>
 
       <TouchableOpacity
