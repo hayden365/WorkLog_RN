@@ -7,6 +7,8 @@ import {
 import { WorkSession } from "../models/WorkSession";
 import { calculateDailyWage } from "../utils/wageFns";
 import { getSessionColor } from "../utils/colorManager";
+import { generateViewMonthScheduleData } from "../utils/calendarFns";
+import { useDateStore } from "../store/dateStore";
 import uuid from "react-native-uuid";
 
 // 비즈니스 로직 관리 훅
@@ -25,6 +27,7 @@ export const useScheduleManager = () => {
     addDateSchedule,
     updateDateSchedule,
     removeDateSchedule,
+    clear: clearDateSchedule, // clear 함수 추가
   } = useDateScheduleStore();
 
   const {
@@ -33,6 +36,8 @@ export const useScheduleManager = () => {
     clearCalendarDisplay,
     getCalendarDisplayForDate,
   } = useCalendarDisplayStore();
+
+  const { month } = useDateStore();
 
   // 시급이 계산된 세션 추가
   const addScheduleWithCalculatedWage = (schedule: Partial<WorkSession>) => {
@@ -65,37 +70,8 @@ export const useScheduleManager = () => {
     // 스케줄 삭제
     deleteSchedule(id);
 
-    // 해당 스케줄이 포함된 날짜 스케줄에서도 제거
-    Object.keys(dateSchedule).forEach((date) => {
-      const sessionIds = dateSchedule[date];
-      if (sessionIds.includes(id)) {
-        const updatedSessionIds = sessionIds.filter(
-          (sessionId) => sessionId !== id
-        );
-        if (updatedSessionIds.length === 0) {
-          removeDateSchedule(date);
-        } else {
-          updateDateSchedule(date, updatedSessionIds);
-        }
-      }
-    });
-
-    // 달력 표시 데이터에서도 제거
-    Object.keys(calendarDisplayMap).forEach((date) => {
-      const items = calendarDisplayMap[date];
-      const updatedItems = items.filter((item) => item.sessionId !== id);
-      if (updatedItems.length === 0) {
-        // 해당 날짜의 모든 아이템이 삭제되면 날짜 자체를 제거
-        const { [date]: removed, ...remaining } = calendarDisplayMap;
-        // clearCalendarDisplay()를 호출하고 다시 설정하는 방식으로 처리
-        clearCalendarDisplay();
-        Object.keys(remaining).forEach((remainingDate) => {
-          updateCalendarDisplay(remainingDate, remaining[remainingDate]);
-        });
-      } else {
-        updateCalendarDisplay(date, updatedItems);
-      }
-    });
+    clearDateSchedule();
+    clearCalendarDisplay();
   };
 
   // 모든 스케줄 데이터 초기화

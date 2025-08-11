@@ -28,7 +28,6 @@ const ScheduleModal = ({
 }: ScheduleModalProps) => {
   const { getScheduleById } = useScheduleManager();
   const session = sessionId ? getScheduleById(sessionId) : undefined;
-  console.log(session);
 
   const scrollViewRef = useRef<ScrollView>(null);
 

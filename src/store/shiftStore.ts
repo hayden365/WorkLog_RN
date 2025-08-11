@@ -239,7 +239,7 @@ interface DateScheduleStore {
   addDateSchedule: (schedule: ScheduleByDate) => void;
   updateDateSchedule: (date: string, sessionIds: string[]) => void;
   removeDateSchedule: (date: string) => void;
-  clear: () => void; // 추가
+  clear: () => void;
 }
 
 export const useDateScheduleStore = create<DateScheduleStore>()(
@@ -260,7 +260,7 @@ export const useDateScheduleStore = create<DateScheduleStore>()(
           const { [date]: removed, ...remaining } = state.dateSchedule;
           return { dateSchedule: remaining };
         }),
-      clear: () => set({ dateSchedule: {} }), // 추가
+      clear: () => set({ dateSchedule: {} }),
     }),
     createPersistConfig(STORE_NAMES.DATE_SCHEDULE)
   )
