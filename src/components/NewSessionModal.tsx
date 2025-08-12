@@ -16,10 +16,11 @@ import SegmentedControl from "@react-native-segmented-control/segmented-control"
 import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
 import { useShiftStore } from "../store/shiftStore";
 import Dropdown from "./Dropdown";
-import { repeatOptions } from "../utils/repeatOptions";
+import { dayNames, repeatOptions } from "../utils/repeatOptions";
 import TimePicker from "./TimePicker";
 import DatePicker from "./DatePicker";
 import SlideInView from "./SlideInView";
+import { formatNumberWithComma } from "../utils/formatNumbs";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -93,10 +94,6 @@ export const NewSessionModal = ({
   }, [existingSession, mode, visible]);
 
   // 숫자에 콤마 추가하는 함수
-  const formatNumberWithComma = (value: string) => {
-    const numericValue = value.replace(/[^0-9]/g, "");
-    return numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  };
 
   // 시급/일급 입력 처리
   const handleWageChange = (value: string) => {
@@ -327,15 +324,7 @@ export const NewSessionModal = ({
               }
             >
               <View style={styles.rowWrap}>
-                {[
-                  { label: "월", value: 1 },
-                  { label: "화", value: 2 },
-                  { label: "수", value: 3 },
-                  { label: "목", value: 4 },
-                  { label: "금", value: 5 },
-                  { label: "토", value: 6 },
-                  { label: "일", value: 0 },
-                ].map((day) => (
+                {dayNames.map((day) => (
                   <TouchableOpacity
                     key={day.value}
                     style={[

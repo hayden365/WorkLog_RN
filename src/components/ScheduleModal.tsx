@@ -15,6 +15,8 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useScheduleManager } from "../hooks/useScheduleManager";
 import { NewSessionModal } from "./NewSessionModal";
 import { useShiftStore } from "../store/shiftStore";
+import { formatNumberWithComma } from "../utils/formatNumbs";
+import { dayNames, repeatOptions } from "../utils/repeatOptions";
 
 interface ScheduleModalProps {
   visible: boolean;
@@ -154,7 +156,15 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
                 }}
               >
                 <FontAwesome name="won" size={16} color="black" />
-                <Text style={styles.readOnlyText}>{session.wage} (시급)</Text>
+                <Text style={styles.readOnlyText}>
+                  {formatNumberWithComma(session.wage.toString())} (
+                  {session.wageType === "hourly"
+                    ? "시급"
+                    : session.wageType === "daily"
+                    ? "일급"
+                    : "월급"}
+                  )
+                </Text>
               </View>
             </View>
           </View>
@@ -209,18 +219,44 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
             <Text style={styles.inputLabel}>
               <Ionicons name="repeat-outline" size={24} color="black" />
             </Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.readOnlyText}>
-                {session.repeatOption === "none"
-                  ? "반복 없음"
-                  : session.repeatOption === "daily"
-                  ? "매일"
-                  : session.repeatOption === "weekly"
-                  ? "매주"
-                  : session.repeatOption === "biweekly"
-                  ? "격주"
-                  : "매월"}
-              </Text>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                gap: 10,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <View
+                style={[
+                  {
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 10,
+                  },
+                  styles.readOnlyText,
+                ]}
+              >
+                <Text style={{ fontSize: 16, color: "#333" }}>
+                  {
+                    repeatOptions.find((r) => r.value === session.repeatOption)
+                      ?.label
+                  }
+                </Text>
+                <Text style={[styles.readOnlyText, { fontSize: 14 }]}>
+                  (
+                  {session.selectedWeekDays.size > 0
+                    ? Array.from(session.selectedWeekDays)
+                        .map((day) => {
+                          return dayNames.find((d) => d.value === day)?.label;
+                        })
+                        .join(", ")
+                    : "요일 없음"}
+                  )
+                </Text>
+              </View>
             </View>
           </View>
           {/* 요일 선택 */}
@@ -274,6 +310,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     minHeight: 48,
     alignItems: "center",
+    alignSelf: "center",
     gap: 24,
   },
   inputLabel: {
