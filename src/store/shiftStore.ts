@@ -282,7 +282,7 @@ export const useCalendarDisplayStore = create<CalendarDisplayStore>()(
 
       updateCalendarDisplay: (date: string, items: CalendarDisplayItem[]) =>
         set((state: CalendarDisplayStore) => ({
-          calendarDisplayMap: { ...state.calendarDisplayMap, [date]: items },
+          calendarDisplayMap: { [date]: items },
         })),
       clearCalendarDisplay: () => set({ calendarDisplayMap: {} }),
       getCalendarDisplayForDate: (date: string) =>

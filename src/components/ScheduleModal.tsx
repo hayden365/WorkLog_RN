@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   Modal,
   View,
@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { WorkSession } from "../models/WorkSession";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useScheduleManager } from "../hooks/useScheduleManager";
+import { NewSessionModal } from "./NewSessionModal";
 
 interface ScheduleModalProps {
   visible: boolean;
@@ -26,14 +28,40 @@ const ScheduleModal = ({
   onSave,
   sessionId,
 }: ScheduleModalProps) => {
-  const { getScheduleById } = useScheduleManager();
+  const { getScheduleById, deleteSchedule } = useScheduleManager();
   const session = sessionId ? getScheduleById(sessionId) : undefined;
 
   const scrollViewRef = useRef<ScrollView>(null);
 
   const insets = useSafeAreaInsets();
 
+  const [editModalVisible, setEditModalVisible] = useState(false);
+
   if (!session) return null;
+
+  const handleDelete = () => {
+    Alert.alert("확인", "스케줄을 삭제하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
+        style: "destructive",
+        onPress: () => {
+          if (sessionId) {
+            deleteSchedule(sessionId);
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleEdit = () => {
+    setEditModalVisible(true);
+  };
+
+  const handleUpdate = (session: WorkSession) => {
+    onSave(session);
+    setEditModalVisible(false);
+  };
 
   return (
     <Modal
@@ -54,9 +82,14 @@ const ScheduleModal = ({
 
           <View style={{ flexDirection: "row", gap: 22 }}>
             <TouchableOpacity style={styles.saveButton}>
-              <MaterialCommunityIcons name="pencil" size={22} color="black" />
+              <MaterialCommunityIcons
+                name="pencil"
+                size={22}
+                color="black"
+                onPress={handleEdit}
+              />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.saveButton}>
+            <TouchableOpacity style={styles.saveButton} onPress={handleDelete}>
               <Ionicons name="trash-outline" size={22} color="black" />
             </TouchableOpacity>
           </View>
@@ -182,6 +215,13 @@ const ScheduleModal = ({
           </View>
         </ScrollView>
       </View>
+      <NewSessionModal
+        visible={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        onSave={handleUpdate}
+        mode="update"
+        existingSession={session}
+      />
     </Modal>
   );
 };

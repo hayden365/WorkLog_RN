@@ -7,7 +7,6 @@ import {
 import { WorkSession } from "../models/WorkSession";
 import { calculateDailyWage } from "../utils/wageFns";
 import { getSessionColor } from "../utils/colorManager";
-import { generateViewMonthScheduleData } from "../utils/calendarFns";
 import { useDateStore } from "../store/dateStore";
 import uuid from "react-native-uuid";
 
@@ -36,8 +35,6 @@ export const useScheduleManager = () => {
     clearCalendarDisplay,
     getCalendarDisplayForDate,
   } = useCalendarDisplayStore();
-
-  const { month } = useDateStore();
 
   // 시급이 계산된 세션 추가
   const addScheduleWithCalculatedWage = (schedule: Partial<WorkSession>) => {

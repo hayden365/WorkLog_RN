@@ -38,8 +38,7 @@ interface MarkedDate {
 const HomeScreen = () => {
   const { allSchedulesById, addSchedule, updateSchedule, getAllSchedules } =
     useScheduleManager();
-  const { dateSchedule, addDateSchedule, updateDateSchedule } =
-    useDateScheduleStore();
+  const { dateSchedule, addDateSchedule } = useDateScheduleStore();
   const { updateCalendarDisplay } = useCalendarDisplayStore();
 
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -84,19 +83,16 @@ const HomeScreen = () => {
     const allSchedules = getAllSchedules(); // 전체 스케줄 자체의 데이터 객체의 배열
     const now = new Date();
     const viewMonth = new Date(now.getFullYear(), month, 1);
-
     // 월별 스케줄 데이터: dateSchedule 업데이트, 달력 표시 데이터: markedDates 생성
     const { markedDates: newUIMarkedDates, dateSchedule: newDateScheduleById } =
       generateViewMonthScheduleData(allSchedules, viewMonth);
 
-    // 스토어 업데이트x
     addDateSchedule(newDateScheduleById);
 
     // 달력 표시 데이터 업데이트
     Object.entries(newUIMarkedDates).forEach(([date, items]) => {
       updateCalendarDisplay(date, items);
     });
-
     // 월 수익 계산
     const monthlyEarnings = displayMonthlyWage(
       newDateScheduleById,
@@ -152,7 +148,7 @@ const HomeScreen = () => {
         </View>
 
         {/* 스케줄 저장 테스트 컴포넌트 */}
-        {/* <StorageTestComponent /> */}
+        <StorageTestComponent />
       </ScrollView>
 
       <TouchableOpacity

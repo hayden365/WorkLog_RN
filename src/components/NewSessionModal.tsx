@@ -49,6 +49,10 @@ export const NewSessionModal = ({
     endDate,
     startTime,
     endTime,
+    setStartTime,
+    setEndTime,
+    setStartDate,
+    setEndDate,
     selectedWeekDays,
     setSelectedWeekDays,
     repeatOption,
@@ -74,6 +78,10 @@ export const NewSessionModal = ({
       setWageValue(formatNumberWithComma(String(existingSession.wage || "")));
       setIsCurrentlyWorking(existingSession.isCurrentlyWorking ?? true);
       setDescription(existingSession.description || "");
+      setStartTime(existingSession.startTime || new Date());
+      setEndTime(existingSession.endTime || new Date());
+      setStartDate(existingSession.startDate || new Date());
+      setEndDate(existingSession.endDate || new Date());
       setRepeatOption(existingSession.repeatOption || "none");
       setSelectedWeekDays(existingSession.selectedWeekDays || new Set());
     } else if (mode === "create") {
@@ -99,14 +107,35 @@ export const NewSessionModal = ({
     setWage(Number(formattedValue.replace(/,/g, "")));
   };
 
+  // selectedWeekDays가 undefined일 때를 대비한 안전한 처리
+  const safeSelectedWeekDays =
+    selectedWeekDays instanceof Set ? selectedWeekDays : new Set<number>();
+
   const toggleWeekDay = (index: number) => {
-    const newSet = new Set(selectedWeekDays);
+    const newSet = new Set(safeSelectedWeekDays);
     if (newSet.has(index)) {
       newSet.delete(index);
     } else {
       newSet.add(index);
     }
     setSelectedWeekDays(newSet);
+  };
+
+  // 반복 주기 변경 시 selectedWeekDays 초기화
+  const handleRepeatOptionChange = (item: { value: string; label: string }) => {
+    const newRepeatOption = item.value as RepeatOption;
+    setRepeatOption(newRepeatOption);
+
+    // daily나 monthly로 변경 시 selectedWeekDays 초기화
+    if (newRepeatOption === "daily" || newRepeatOption === "monthly") {
+      setSelectedWeekDays(new Set());
+    }
+
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handleSave = () => {
@@ -233,7 +262,7 @@ export const NewSessionModal = ({
               <Ionicons name="time-outline" size={24} color="black" />
             </Text>
             <View style={{ flex: 1 }}>
-              <TimePicker session={existingSession} />
+              <TimePicker />
             </View>
           </View>
           <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
@@ -243,10 +272,7 @@ export const NewSessionModal = ({
               <Ionicons name="calendar-outline" size={24} color="black" />
             </Text>
             <View style={{ flex: 1, gap: 8 }}>
-              <DatePicker
-                isCurrentlyWorking={isCurrentlyWorking}
-                session={existingSession}
-              />
+              <DatePicker isCurrentlyWorking={isCurrentlyWorking} />
               <View
                 style={{
                   flexDirection: "row",
@@ -279,14 +305,7 @@ export const NewSessionModal = ({
             <View style={{ flex: 1 }}>
               <Dropdown
                 data={repeatOptions}
-                onChange={(item) => {
-                  setRepeatOption(item.value as RepeatOption);
-                  Animated.timing(anim, {
-                    toValue: 1,
-                    duration: 300,
-                    useNativeDriver: true,
-                  }).start();
-                }}
+                onChange={handleRepeatOptionChange}
                 placeholder="반복 없음"
               />
             </View>
@@ -320,16 +339,17 @@ export const NewSessionModal = ({
                     key={day.value}
                     style={[
                       styles.optionButton,
-                      selectedWeekDays.has(day.value) &&
+                      safeSelectedWeekDays.has(day.value) &&
                         styles.optionButtonSelected,
                     ]}
                     onPress={() => toggleWeekDay(day.value)}
                   >
                     <Text
-                      style={
-                        selectedWeekDays.has(day.value) &&
-                        styles.optionButtonTextSelected
-                      }
+                      style={[
+                        styles.optionButtonText,
+                        safeSelectedWeekDays.has(day.value) &&
+                          styles.optionButtonTextSelected,
+                      ]}
                     >
                       {day.label}
                     </Text>
@@ -438,6 +458,9 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   optionButtonTextSelected: { color: "#fff" },
+  optionButtonText: {
+    color: "#333",
+  },
   timeButton: {
     padding: 10,
     borderWidth: 1,

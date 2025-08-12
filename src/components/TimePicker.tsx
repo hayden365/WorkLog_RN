@@ -9,10 +9,9 @@ import {
   Animated,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useShiftStore } from "../store/shiftStore";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { WorkSession } from "../models/WorkSession";
 
 // Android에서 LayoutAnimation 활성화
 if (
@@ -22,15 +21,8 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const TimePicker = ({ session }: { session?: WorkSession }) => {
+const TimePicker = () => {
   const { startTime, setStartTime, endTime, setEndTime } = useShiftStore();
-
-  useEffect(() => {
-    if (session) {
-      setStartTime(session.startTime || new Date());
-      setEndTime(session.endTime || new Date());
-    }
-  }, [session]);
 
   const [openPicker, setOpenPicker] = useState<null | {
     index: number;
@@ -127,41 +119,21 @@ const TimePicker = ({ session }: { session?: WorkSession }) => {
       </View>
 
       {/* DateTimePicker */}
-      {openPicker?.type === "time" && (
-        <Animated.View
-          style={{
-            width: "100%",
-            justifyContent: "center",
-            alignItems: "center",
-            opacity: anim,
-            transform: [
-              {
-                translateY: anim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [-20, 0],
-                }),
-              },
-            ],
-          }}
-        >
-          <DateTimePicker
-            value={openPicker.index === 1 ? endTime : startTime}
-            style={{ width: "100%", left: -30 }}
-            textColor="black"
-            mode={openPicker.type}
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(event, selectedDate) => {
-              if (selectedDate) {
-                if (openPicker.index === 1) {
-                  setEndTime(selectedDate);
-                } else {
-                  setStartTime(selectedDate);
-                }
+      {openPicker && (
+        <DateTimePicker
+          value={openPicker.index === 0 ? startTime : endTime}
+          mode="time"
+          is24Hour={false}
+          onChange={(event, selectedDate) => {
+            if (selectedDate) {
+              if (openPicker.index === 0) {
+                setStartTime(selectedDate);
+              } else {
+                setEndTime(selectedDate);
               }
-            }}
-            locale="ko-KR"
-          />
-        </Animated.View>
+            }
+          }}
+        />
       )}
     </View>
   );
