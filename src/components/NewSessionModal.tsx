@@ -8,8 +8,6 @@ import {
   ScrollView,
   StyleSheet,
   Switch,
-  LayoutRectangle,
-  Dimensions,
   Animated,
 } from "react-native";
 import { WorkSession, RepeatOption } from "../models/WorkSession";
@@ -306,7 +304,10 @@ export const NewSessionModal = ({
               <Dropdown
                 data={repeatOptions}
                 onChange={handleRepeatOptionChange}
-                placeholder="반복 없음"
+                placeholder={
+                  repeatOptions.find((option) => option.value === repeatOption)
+                    ?.label ?? "반복 없음"
+                }
               />
             </View>
           </View>

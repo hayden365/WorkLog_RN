@@ -86,11 +86,13 @@ const TimePicker = () => {
                 styles.activeValue,
             ]}
           >
-            {startTime.toLocaleTimeString("ko-KR", {
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })}
+            {startTime
+              ? new Date(startTime).toLocaleTimeString("ko-KR", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true,
+                })
+              : "시간 선택"}
           </Text>
         </TouchableOpacity>
         <MaterialCommunityIcons name="tilde" size={16} color="#444" />
@@ -109,7 +111,7 @@ const TimePicker = () => {
                 styles.activeValue,
             ]}
           >
-            {endTime.toLocaleTimeString("ko-KR", {
+            {new Date(endTime).toLocaleTimeString("ko-KR", {
               hour: "numeric",
               minute: "2-digit",
               hour12: true,
@@ -120,20 +122,41 @@ const TimePicker = () => {
 
       {/* DateTimePicker */}
       {openPicker && (
-        <DateTimePicker
-          value={openPicker.index === 0 ? startTime : endTime}
-          mode="time"
-          is24Hour={false}
-          onChange={(event, selectedDate) => {
-            if (selectedDate) {
-              if (openPicker.index === 0) {
-                setStartTime(selectedDate);
-              } else {
-                setEndTime(selectedDate);
-              }
-            }
+        <Animated.View
+          style={{
+            width: "100%",
+            justifyContent: "center",
+            alignItems: "center",
+            opacity: anim,
+            transform: [
+              {
+                translateY: anim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-20, 0],
+                }),
+              },
+            ],
           }}
-        />
+        >
+          <DateTimePicker
+            value={openPicker.index === 0 ? startTime : endTime}
+            style={{ width: "100%", left: -30 }}
+            textColor="black"
+            mode="time"
+            is24Hour={false}
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={(event, selectedDate) => {
+              if (selectedDate) {
+                if (openPicker.index === 0) {
+                  setStartTime(selectedDate);
+                } else {
+                  setEndTime(selectedDate);
+                }
+              }
+            }}
+            locale="ko-KR"
+          />
+        </Animated.View>
       )}
     </View>
   );

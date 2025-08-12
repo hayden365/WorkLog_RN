@@ -31,32 +31,6 @@ const mmkvStorage = createJSONStorage(() => ({
 
     const parsed = JSON.parse(value);
 
-    // 스케줄 스토어의 경우 Date 객체와 Set 객체 복원
-    if (name === STORE_NAMES.SCHEDULE && parsed.allSchedulesById) {
-      Object.keys(parsed.allSchedulesById).forEach((id) => {
-        const schedule = parsed.allSchedulesById[id];
-
-        // 배열을 Set 객체로 변환
-        if (Array.isArray(schedule.selectedWeekDays)) {
-          schedule.selectedWeekDays = new Set(schedule.selectedWeekDays);
-        }
-
-        // ISO 문자열을 Date 객체로 변환
-        if (typeof schedule.startTime === "string") {
-          schedule.startTime = new Date(schedule.startTime);
-        }
-        if (typeof schedule.endTime === "string") {
-          schedule.endTime = new Date(schedule.endTime);
-        }
-        if (typeof schedule.startDate === "string") {
-          schedule.startDate = new Date(schedule.startDate);
-        }
-        if (typeof schedule.endDate === "string") {
-          schedule.endDate = new Date(schedule.endDate);
-        }
-      });
-    }
-
     return parsed;
   },
 
@@ -110,6 +84,39 @@ const createPersistConfig = (name: StoreName) => ({
   version: SCHEDULE_STORE_VERSION,
   merge: (persistedState: any, currentState: any) => {
     if (persistedState && Object.keys(persistedState).length > 0) {
+      // 스케줄 스토어의 경우 Date 객체와 Set 객체 복원
+      if (name === STORE_NAMES.SCHEDULE && persistedState.allSchedulesById) {
+        Object.keys(persistedState.allSchedulesById).forEach((id) => {
+          const schedule = persistedState.allSchedulesById[id];
+
+          // 배열을 Set 객체로 변환
+          if (Array.isArray(schedule.selectedWeekDays)) {
+            schedule.selectedWeekDays = new Set(schedule.selectedWeekDays);
+          } else if (
+            schedule.selectedWeekDays &&
+            typeof schedule.selectedWeekDays === "object" &&
+            !Array.isArray(schedule.selectedWeekDays)
+          ) {
+            // 빈 객체인 경우 빈 Set으로 변환
+            schedule.selectedWeekDays = new Set();
+          }
+
+          // ISO 문자열을 Date 객체로 변환
+          if (schedule.startTime && typeof schedule.startTime === "string") {
+            schedule.startTime = new Date(schedule.startTime);
+          }
+          if (schedule.endTime && typeof schedule.endTime === "string") {
+            schedule.endTime = new Date(schedule.endTime);
+          }
+          if (schedule.startDate && typeof schedule.startDate === "string") {
+            schedule.startDate = new Date(schedule.startDate);
+          }
+          if (schedule.endDate && typeof schedule.endDate === "string") {
+            schedule.endDate = new Date(schedule.endDate);
+          }
+        });
+      }
+
       return {
         ...currentState,
         ...persistedState,
@@ -120,19 +127,10 @@ const createPersistConfig = (name: StoreName) => ({
 });
 
 // 임시 저장 스토어
-interface ShiftStore {
-  jobName: string;
-  wage: number;
-  startDate: Date;
-  endDate: Date;
-  startTime: Date;
-  endTime: Date;
-  repeatOption: RepeatOption;
-  selectedWeekDays: Set<number>;
-  description: string;
-
+interface ShiftStore extends WorkSession {
   setJobName: (jobName: string) => void;
   setWage: (wage: number) => void;
+  setWageType: (wageType: "hourly" | "daily" | "monthly") => void;
   setStartDate: (date: Date) => void;
   setEndDate: (date: Date) => void;
   setStartTime: (startTime: Date) => void;
@@ -148,6 +146,7 @@ const createInitialShiftState = (): Omit<
   keyof {
     setJobName: never;
     setWage: never;
+    setWageType: never;
     setStartDate: never;
     setEndDate: never;
     setStartTime: never;
@@ -158,8 +157,13 @@ const createInitialShiftState = (): Omit<
     reset: never;
   }
 > => ({
+  id: "",
+  calculatedDailyWage: 0,
+  isCurrentlyWorking: true,
+  color: "",
   jobName: "",
   wage: 0,
+  wageType: "hourly",
   startDate: new Date(),
   endDate: new Date(),
   startTime: new Date(),
@@ -173,6 +177,7 @@ export const useShiftStore = create<ShiftStore>((set) => ({
   ...createInitialShiftState(),
   setJobName: (jobName) => set({ jobName }),
   setWage: (wage) => set({ wage }),
+  setWageType: (wageType) => set({ wageType }),
   setStartDate: (startDate) => set({ startDate }),
   setEndDate: (endDate) => set({ endDate }),
   setStartTime: (startTime) => set({ startTime }),
@@ -236,8 +241,7 @@ export const useScheduleStore = create<ScheduleStore>()(
 interface DateScheduleStore {
   dateSchedule: ScheduleByDate;
 
-  addDateSchedule: (schedule: ScheduleByDate) => void;
-  updateDateSchedule: (date: string, sessionIds: string[]) => void;
+  setDateSchedule: (dateSchedule: ScheduleByDate) => void;
   removeDateSchedule: (date: string) => void;
   clear: () => void;
 }
@@ -247,14 +251,7 @@ export const useDateScheduleStore = create<DateScheduleStore>()(
     (set) => ({
       dateSchedule: {},
 
-      addDateSchedule: (schedule: ScheduleByDate) =>
-        set((state: DateScheduleStore) => ({
-          dateSchedule: { ...state.dateSchedule, ...schedule },
-        })),
-      updateDateSchedule: (date: string, sessionIds: string[]) =>
-        set((state: DateScheduleStore) => ({
-          dateSchedule: { ...state.dateSchedule, [date]: sessionIds },
-        })),
+      setDateSchedule: (dateSchedule: ScheduleByDate) => set({ dateSchedule }),
       removeDateSchedule: (date: string) =>
         set((state: DateScheduleStore) => {
           const { [date]: removed, ...remaining } = state.dateSchedule;
@@ -270,7 +267,7 @@ export const useDateScheduleStore = create<DateScheduleStore>()(
 interface CalendarDisplayStore {
   calendarDisplayMap: CalendarDisplayMap;
 
-  updateCalendarDisplay: (date: string, items: CalendarDisplayItem[]) => void;
+  setCalendarDisplay: (calendarDisplayMap: CalendarDisplayMap) => void;
   clearCalendarDisplay: () => void;
   getCalendarDisplayForDate: (date: string) => CalendarDisplayItem[];
 }
@@ -280,10 +277,8 @@ export const useCalendarDisplayStore = create<CalendarDisplayStore>()(
     (set, get) => ({
       calendarDisplayMap: {},
 
-      updateCalendarDisplay: (date: string, items: CalendarDisplayItem[]) =>
-        set((state: CalendarDisplayStore) => ({
-          calendarDisplayMap: { [date]: items },
-        })),
+      setCalendarDisplay: (calendarDisplayMap: CalendarDisplayMap) =>
+        set({ calendarDisplayMap }),
       clearCalendarDisplay: () => set({ calendarDisplayMap: {} }),
       getCalendarDisplayForDate: (date: string) =>
         get().calendarDisplayMap[date] || [],

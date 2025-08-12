@@ -14,22 +14,31 @@ import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useScheduleManager } from "../hooks/useScheduleManager";
 import { NewSessionModal } from "./NewSessionModal";
+import { useShiftStore } from "../store/shiftStore";
 
 interface ScheduleModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (session: WorkSession) => void;
   sessionId?: string;
 }
 
-const ScheduleModal = ({
-  visible,
-  onClose,
-  onSave,
-  sessionId,
-}: ScheduleModalProps) => {
-  const { getScheduleById, deleteSchedule } = useScheduleManager();
+const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
+  const { getScheduleById, deleteSchedule, updateSchedule } =
+    useScheduleManager();
   const session = sessionId ? getScheduleById(sessionId) : undefined;
+
+  const {
+    setJobName,
+    setWage,
+    setWageType,
+    setStartTime,
+    setEndTime,
+    setStartDate,
+    setEndDate,
+    setRepeatOption,
+    setSelectedWeekDays,
+    setDescription,
+  } = useShiftStore();
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -55,11 +64,25 @@ const ScheduleModal = ({
   };
 
   const handleEdit = () => {
-    setEditModalVisible(true);
+    if (session) {
+      // shiftStore의 상태를 먼저 설정
+      setJobName(session.jobName || "");
+      setWage(session.wage || 0);
+      setWageType(session.wageType || "hourly");
+      setStartTime(session.startTime || new Date());
+      setEndTime(session.endTime || new Date());
+      setStartDate(session.startDate || new Date());
+      setEndDate(session.endDate || new Date());
+      setRepeatOption(session.repeatOption || "none");
+      setSelectedWeekDays(session.selectedWeekDays || new Set());
+      setDescription(session.description || "");
+      // 상태 설정 후 모달 열기
+      setEditModalVisible(true);
+    }
   };
 
-  const handleUpdate = (session: WorkSession) => {
-    onSave(session);
+  const handleUpdate = (updatedSession: WorkSession) => {
+    updateSchedule(updatedSession.id, updatedSession);
     setEditModalVisible(false);
   };
 

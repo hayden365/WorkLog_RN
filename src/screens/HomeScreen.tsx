@@ -36,10 +36,10 @@ interface MarkedDate {
 }
 
 const HomeScreen = () => {
-  const { allSchedulesById, addSchedule, updateSchedule, getAllSchedules } =
+  const { allSchedulesById, addSchedule, getAllSchedules } =
     useScheduleManager();
-  const { dateSchedule, addDateSchedule } = useDateScheduleStore();
-  const { updateCalendarDisplay } = useCalendarDisplayStore();
+  const { dateSchedule, setDateSchedule } = useDateScheduleStore();
+  const { setCalendarDisplay, calendarDisplayMap } = useCalendarDisplayStore();
 
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().slice(0, 10)
@@ -52,7 +52,6 @@ const HomeScreen = () => {
   const [selectedSessionId, setSelectedSessionId] = useState<
     string | undefined
   >(undefined);
-  const [isInitialized, setIsInitialized] = useState(false);
 
   const { month } = useDateStore();
 
@@ -74,25 +73,20 @@ const HomeScreen = () => {
     addSchedule(newSession as WorkSession);
   };
 
-  const handleUpdate = (updatedSession: WorkSession) => {
-    updateSchedule(updatedSession.id, updatedSession);
-  };
-
   // 스케줄이 변경될 때 달력 데이터 업데이트
   useEffect(() => {
     const allSchedules = getAllSchedules(); // 전체 스케줄 자체의 데이터 객체의 배열
+    console.log("allSchedules", allSchedules);
     const now = new Date();
     const viewMonth = new Date(now.getFullYear(), month, 1);
     // 월별 스케줄 데이터: dateSchedule 업데이트, 달력 표시 데이터: markedDates 생성
     const { markedDates: newUIMarkedDates, dateSchedule: newDateScheduleById } =
       generateViewMonthScheduleData(allSchedules, viewMonth);
 
-    addDateSchedule(newDateScheduleById);
-
+    setDateSchedule(newDateScheduleById);
     // 달력 표시 데이터 업데이트
-    Object.entries(newUIMarkedDates).forEach(([date, items]) => {
-      updateCalendarDisplay(date, items);
-    });
+    setCalendarDisplay(newUIMarkedDates);
+
     // 월 수익 계산
     const monthlyEarnings = displayMonthlyWage(
       newDateScheduleById,
@@ -170,7 +164,6 @@ const HomeScreen = () => {
           setScheduleModalVisible(false);
           setSelectedSessionId(undefined);
         }}
-        onSave={handleUpdate}
         sessionId={selectedSessionId}
       />
     </View>

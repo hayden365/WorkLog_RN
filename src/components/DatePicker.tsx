@@ -89,7 +89,7 @@ const DatePicker = ({
                 styles.activeValue,
             ]}
           >
-            {startDate.toLocaleDateString("ko-KR", {
+            {new Date(startDate).toLocaleDateString("ko-KR", {
               year: "numeric",
               month: "long",
               day: "numeric",
@@ -114,11 +114,13 @@ const DatePicker = ({
                 styles.activeValue,
             ]}
           >
-            {endDate.toLocaleDateString("ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            {endDate
+              ? new Date(endDate).toLocaleDateString("ko-KR", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })
+              : ""}
           </Text>
         </TouchableOpacity>
       </View>
@@ -142,7 +144,13 @@ const DatePicker = ({
           }}
         >
           <DateTimePicker
-            value={openPicker.index === 1 ? endDate : startDate}
+            value={
+              openPicker.index === 1
+                ? endDate
+                  ? new Date(endDate)
+                  : new Date()
+                : new Date(startDate)
+            }
             style={{ width: "100%", left: -30 }}
             textColor="black"
             mode={openPicker.type}

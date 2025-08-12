@@ -23,15 +23,14 @@ export const useScheduleManager = () => {
 
   const {
     dateSchedule,
-    addDateSchedule,
-    updateDateSchedule,
+    setDateSchedule,
     removeDateSchedule,
     clear: clearDateSchedule, // clear 함수 추가
   } = useDateScheduleStore();
 
   const {
     calendarDisplayMap,
-    updateCalendarDisplay,
+    setCalendarDisplay,
     clearCalendarDisplay,
     getCalendarDisplayForDate,
   } = useCalendarDisplayStore();
@@ -54,12 +53,8 @@ export const useScheduleManager = () => {
     id: string,
     updates: Partial<WorkSession>
   ) => {
-    const currentSession = allSchedulesById[id];
-    if (currentSession) {
-      const updatedSession = { ...currentSession, ...updates };
-      const wage = calculateDailyWage(updatedSession);
-      updateSchedule(id, { ...updatedSession, calculatedDailyWage: wage });
-    }
+    const wage = calculateDailyWage(updates as WorkSession);
+    updateSchedule(id, { ...updates, calculatedDailyWage: wage });
   };
 
   // 스케줄 삭제 시 관련 데이터도 함께 정리
@@ -103,12 +98,11 @@ export const useScheduleManager = () => {
     getAllSchedules,
 
     // 날짜 스케줄 관련 함수들
-    addDateSchedule,
-    updateDateSchedule,
+    setDateSchedule,
     removeDateSchedule,
 
     // 달력 표시 관련 함수들
-    updateCalendarDisplay,
+    setCalendarDisplay,
     clearCalendarDisplay,
     getCalendarDisplayForDate,
 
