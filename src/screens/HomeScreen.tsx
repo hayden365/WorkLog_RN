@@ -78,7 +78,6 @@ const HomeScreen = () => {
   // 스케줄이 변경될 때 달력 데이터 업데이트
   useEffect(() => {
     const allSchedules = getAllSchedules(); // 전체 스케줄 자체의 데이터 객체의 배열
-    console.log("allSchedules", allSchedules);
     const now = new Date();
     const viewMonth = new Date(now.getFullYear(), month, 1);
     // 월별 스케줄 데이터: dateSchedule 업데이트, 달력 표시 데이터: markedDates 생성
