@@ -14,6 +14,7 @@ import { useDateStore } from "../store/dateStore";
 import {
   useDateScheduleStore,
   useCalendarDisplayStore,
+  useShiftStore,
 } from "../store/shiftStore";
 import { useScheduleManager } from "../hooks/useScheduleManager";
 
@@ -36,6 +37,7 @@ interface MarkedDate {
 }
 
 const HomeScreen = () => {
+  const { reset } = useShiftStore();
   const { allSchedulesById, addSchedule, getAllSchedules } =
     useScheduleManager();
   const { dateSchedule, setDateSchedule } = useDateScheduleStore();
@@ -142,18 +144,22 @@ const HomeScreen = () => {
         </View>
 
         {/* 스케줄 저장 테스트 컴포넌트 */}
-        <StorageTestComponent />
+        {/* <StorageTestComponent /> */}
       </ScrollView>
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => setModalVisible(true)}
+        onPress={() => {
+          reset();
+          setModalVisible(true);
+        }}
       >
         <Text style={styles.fabIcon}>＋</Text>
       </TouchableOpacity>
 
       <NewSessionModal
         visible={modalVisible}
+        mode="create"
         onClose={() => setModalVisible(false)}
         onSave={handleSave}
       />

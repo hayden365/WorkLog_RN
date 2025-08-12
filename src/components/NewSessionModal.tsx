@@ -91,7 +91,7 @@ export const NewSessionModal = ({
       setDescription("");
       setRepeatOption("none");
     }
-  }, [existingSession, mode, visible]);
+  }, [existingSession, mode]);
 
   // 숫자에 콤마 추가하는 함수
 

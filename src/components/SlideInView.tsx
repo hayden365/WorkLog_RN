@@ -16,27 +16,13 @@ const SlideInView = ({
 
   useEffect(() => {
     if (visible) {
-      // 슬라이드 인 + 페이드 인 애니메이션
-      Animated.parallel([
-        Animated.timing(translateX, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(translateY, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      // visible이 true인 경우 즉시 보이도록 설정 (애니메이션 없음)
+      translateX.setValue(0);
+      translateY.setValue(0);
+      opacity.setValue(1);
     } else {
       // 슬라이드 아웃 + 페이드 아웃 애니메이션
-      const slideDistance = 100; // 슬라이드 거리
+      const slideDistance = 50; // 슬라이드 거리
 
       const animations = [
         Animated.timing(opacity, {
@@ -84,20 +70,29 @@ const SlideInView = ({
     }
   }, [visible, direction]);
 
-  // 초기 위치 설정
+  // 초기 위치 설정 - visible 상태에 따라 다르게 설정
   useEffect(() => {
-    const slideDistance = 100;
-    if (direction === "left") {
-      translateX.setValue(slideDistance);
-    } else if (direction === "right") {
-      translateX.setValue(-slideDistance);
-    } else if (direction === "down") {
-      translateY.setValue(slideDistance);
-    } else if (direction === "up") {
-      translateY.setValue(-slideDistance);
+    const slideDistance = 50;
+
+    if (visible) {
+      // visible이 true인 경우 즉시 보이도록 설정
+      translateX.setValue(0);
+      translateY.setValue(0);
+      opacity.setValue(1);
+    } else {
+      // visible이 false인 경우 슬라이드 위치에 설정
+      if (direction === "left") {
+        translateX.setValue(slideDistance);
+      } else if (direction === "right") {
+        translateX.setValue(-slideDistance);
+      } else if (direction === "down") {
+        translateY.setValue(slideDistance);
+      } else if (direction === "up") {
+        translateY.setValue(-slideDistance);
+      }
+      opacity.setValue(0);
     }
-    opacity.setValue(0);
-  }, []);
+  }, [visible, direction]);
 
   return (
     <Animated.View

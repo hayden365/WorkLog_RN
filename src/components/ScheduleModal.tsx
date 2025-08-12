@@ -85,6 +85,7 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
 
   const handleUpdate = (updatedSession: WorkSession) => {
     updateSchedule(updatedSession.id, updatedSession);
+    onClose();
     setEditModalVisible(false);
   };
 
