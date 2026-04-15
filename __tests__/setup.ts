@@ -1,11 +1,11 @@
-const storage = new Map<string, string>();
+const mockStorage = new Map<string, string>();
 
 jest.mock('react-native-mmkv', () => ({
   MMKV: jest.fn().mockImplementation(() => ({
-    getString: (key: string) => storage.get(key),
-    set: (key: string, value: string) => storage.set(key, value),
-    delete: (key: string) => storage.delete(key),
-    clearAll: () => storage.clear(),
+    getString: (key: string) => mockStorage.get(key),
+    set: (key: string, value: string) => mockStorage.set(key, value),
+    delete: (key: string) => mockStorage.delete(key),
+    clearAll: () => mockStorage.clear(),
   })),
 }));
 
@@ -17,5 +17,5 @@ jest.mock('@expo/vector-icons/Feather', () => 'Feather');
 
 // 각 테스트 전 스토리지 초기화
 beforeEach(() => {
-  storage.clear();
+  mockStorage.clear();
 });
