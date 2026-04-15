@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- 배경: 둥근 사각형 -->
+  <rect width="1024" height="1024" rx="220" fill="#007aff"/>
+
+  <!-- 달력 본체 -->
+  <rect x="220" y="280" width="584" height="500" rx="40" fill="white"/>
+
+  <!-- 달력 상단 바 -->
+  <rect x="220" y="280" width="584" height="100" rx="40" fill="white"/>
+  <rect x="220" y="340" width="584" height="40" fill="white"/>
+
+  <!-- 달력 고리 왼쪽 -->
+  <rect x="360" y="230" width="40" height="100" rx="20" fill="white"/>
+
+  <!-- 달력 고리 오른쪽 -->
+  <rect x="624" y="230" width="40" height="100" rx="20" fill="white"/>
+
+  <!-- 달력 그리드 라인 가로 -->
+  <line x1="280" y1="460" x2="744" y2="460" stroke="#007aff" stroke-width="6" opacity="0.3"/>
+  <line x1="280" y1="540" x2="744" y2="540" stroke="#007aff" stroke-width="6" opacity="0.3"/>
+  <line x1="280" y1="620" x2="744" y2="620" stroke="#007aff" stroke-width="6" opacity="0.3"/>
+
+  <!-- 시계 (우하단) -->
+  <circle cx="680" cy="660" r="120" fill="#007aff" stroke="white" stroke-width="12"/>
+  <circle cx="680" cy="660" r="100" fill="white"/>
+
+  <!-- 시계 바늘 -->
+  <line x1="680" y1="660" x2="680" y2="590" stroke="#007aff" stroke-width="10" stroke-linecap="round"/>
+  <line x1="680" y1="660" x2="730" y2="660" stroke="#007aff" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- 시계 중심점 -->
+  <circle cx="680" cy="660" r="8" fill="#007aff"/>
+</svg>
