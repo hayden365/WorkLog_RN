@@ -37,7 +37,6 @@
     },
     "scheme": "worklogapp",
     "plugins": [
-      "expo-dev-client",
       [
         "react-native-google-mobile-ads",
         {
