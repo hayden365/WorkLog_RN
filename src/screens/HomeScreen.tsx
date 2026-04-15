@@ -18,7 +18,7 @@ import {
 } from '../store/shiftStore';
 import { useScheduleManager } from '../hooks/useScheduleManager';
 
-import { generateViewMonthScheduleData } from '../utils/calendarFns';
+import { generateViewMonthScheduleData } from '../utils/calendarfns';
 import { displayMonthlyWage } from '../utils/wageFns';
 import ScheduleCard from '../components/ScheduleCard';
 import ScheduleModal from '../components/ScheduleModal';
