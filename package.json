@@ -19,7 +19,6 @@
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "expo": "~53.0.20",
-    "expo-dev-client": "~5.2.4",
     "expo-status-bar": "~2.2.3",
     "react": "19.1.0",
     "react-native": "0.80.2",
