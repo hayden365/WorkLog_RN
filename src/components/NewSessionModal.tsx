@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Switch,
   Animated,
+  Alert,
 } from "react-native";
 import { WorkSession, RepeatOption } from "../models/WorkSession";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -135,12 +136,27 @@ export const NewSessionModal = ({
 
   const handleSave = () => {
     if (!startDate || !endDate) return;
+
+    // 입력값 검증
+    const trimmedJobName = jobName.trim();
+    if (!trimmedJobName) {
+      Alert.alert('입력 오류', '근무지명을 입력해주세요.');
+      return;
+    }
+    if (wage <= 0) {
+      Alert.alert('입력 오류', '급여를 입력해주세요.');
+      return;
+    }
+    if (wage > 100_000_000) {
+      Alert.alert('입력 오류', '급여가 너무 큽니다. 다시 확인해주세요.');
+      return;
+    }
+
     const endDateValue = isCurrentlyWorking ? null : endDate;
-    // 콤마 제거 후 숫자로 변환
 
     const newSession = {
-      id: existingSession?.id, // 업데이트 시 기존 ID 유지
-      jobName,
+      id: existingSession?.id,
+      jobName: trimmedJobName,
       wage,
       wageType,
       startTime,
