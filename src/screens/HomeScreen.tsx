@@ -22,6 +22,7 @@ import { generateViewMonthScheduleData } from '../utils/calendarFns';
 import { displayMonthlyWage } from '../utils/wageFns';
 import ScheduleCard from '../components/ScheduleCard';
 import ScheduleModal from '../components/ScheduleModal';
+import { AdBanner } from '../components/AdBanner';
 
 // 타입 정의 추가
 interface Period {
@@ -127,6 +128,7 @@ const HomeScreen = () => {
           )}
         </View>
 
+        <AdBanner />
       </ScrollView>
 
       <TouchableOpacity
