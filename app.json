@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -24,7 +23,6 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.hayden365.worklog"
     },
     "web": {
@@ -37,14 +35,14 @@
     },
     "scheme": "worklogapp",
     "plugins": [
+      "@react-native-community/datetimepicker",
       [
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-3940256099942544~3347511713",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
-      ],
-      "@react-native-community/datetimepicker"
+      ]
     ],
     "owner": "hyejikong"
   }
