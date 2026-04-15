@@ -1,4 +1,4 @@
-package com.anonymous.WorkLogApp
+package com.hayden365.worklog
 
 import android.app.Application
 import android.content.res.Configuration
