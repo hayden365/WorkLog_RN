@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "WorkLogApp",
+    "name": "WorkLog - 시급 자동 계산",
     "slug": "WorkLogApp",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.WorkLogApp",
+      "bundleIdentifier": "com.hayden365.worklog",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -25,7 +25,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.WorkLogApp"
+      "package": "com.hayden365.worklog"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,7 +37,14 @@
     },
     "scheme": "worklogapp",
     "plugins": [
-      "expo-dev-client"
+      "expo-dev-client",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy",
+          "iosAppId": "ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy"
+        }
+      ]
     ]
   }
 }
