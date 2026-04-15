@@ -1,29 +1,27 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-} from "react-native";
-import { EarningsCard } from "../components/EarningsCard";
-import { NewSessionModal } from "../components/NewSessionModal";
-import { WorkSession } from "../models/WorkSession";
-import { CalendarPage } from "../components/CalendarPage";
-import { useDateStore } from "../store/dateStore";
+} from 'react-native';
+import { EarningsCard } from '../components/EarningsCard';
+import { NewSessionModal } from '../components/NewSessionModal';
+import { WorkSession } from '../models/WorkSession';
+import { CalendarPage } from '../components/CalendarPage';
+import { useDateStore } from '../store/dateStore';
 import {
   useDateScheduleStore,
   useCalendarDisplayStore,
   useShiftStore,
-} from "../store/shiftStore";
-import { useScheduleManager } from "../hooks/useScheduleManager";
+} from '../store/shiftStore';
+import { useScheduleManager } from '../hooks/useScheduleManager';
 
-import { generateViewMonthScheduleData } from "../utils/calendarFns";
-import { displayMonthlyWage } from "../utils/wageFns";
-import ScheduleCard from "../components/ScheduleCard";
-import { initializeMockData } from "../data/mockSchedules";
-import { StorageTestComponent } from "../components/StorageTestComponent";
-import ScheduleModal from "../components/ScheduleModal";
+import { generateViewMonthScheduleData } from '../utils/calendarFns';
+import { displayMonthlyWage } from '../utils/wageFns';
+import ScheduleCard from '../components/ScheduleCard';
+import ScheduleModal from '../components/ScheduleModal';
 
 // 타입 정의 추가
 interface Period {
@@ -44,7 +42,7 @@ const HomeScreen = () => {
   const { setCalendarDisplay, calendarDisplayMap } = useCalendarDisplayStore();
 
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().slice(0, 10)
+    new Date().toISOString().slice(0, 10),
   );
   const [modalVisible, setModalVisible] = useState(false);
   const [scheduleModalVisible, setScheduleModalVisible] = useState(false);
@@ -58,18 +56,6 @@ const HomeScreen = () => {
   const { month } = useDateStore();
 
   const [earnings, setEarnings] = useState<number>(0);
-
-  // 앱 초기화 시 목데이터 로드
-  // useEffect(() => {
-  //   if (!isInitialized && Object.keys(allSchedulesById).length === 0) {
-  //     const mockData = initializeMockData();
-  //     mockData.forEach((schedule) => {
-  //       addSchedule(schedule);
-  //     });
-  //     setIsInitialized(true);
-  //     console.log("목데이터 로드 완료");
-  //   }
-  // }, [isInitialized, allSchedulesById, addSchedule]);
 
   const handleSave = (newSession: Partial<WorkSession>) => {
     addSchedule(newSession as WorkSession);
@@ -92,7 +78,7 @@ const HomeScreen = () => {
     const monthlyEarnings = displayMonthlyWage(
       newDateScheduleById,
       allSchedulesById,
-      viewMonth
+      viewMonth,
     );
     setEarnings(monthlyEarnings);
   }, [allSchedulesById, month]);
@@ -115,7 +101,6 @@ const HomeScreen = () => {
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* <HeaderSection /> */}
         <CalendarPage
           selectedDate={selectedDate}
           onDaySelected={setSelectedDate}
@@ -123,7 +108,7 @@ const HomeScreen = () => {
         <EarningsCard totalEarnings={earnings} />
         <View style={styles.card}>
           <Text style={styles.dateText}>
-            {new Date(selectedDate).getMonth() + 1}월{" "}
+            {new Date(selectedDate).getMonth() + 1}월{' '}
             {new Date(selectedDate).getDate()}일 일정
           </Text>
           {selectedDateSchedule.length === 0 ? (
@@ -142,8 +127,6 @@ const HomeScreen = () => {
           )}
         </View>
 
-        {/* 스케줄 저장 테스트 컴포넌트 */}
-        {/* <StorageTestComponent /> */}
       </ScrollView>
 
       <TouchableOpacity
@@ -158,7 +141,7 @@ const HomeScreen = () => {
 
       <NewSessionModal
         visible={modalVisible}
-        mode="create"
+        mode='create'
         onClose={() => setModalVisible(false)}
         onSave={handleSave}
       />
@@ -180,7 +163,7 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     paddingHorizontal: 16,
   },
   scrollViewContent: {
@@ -188,44 +171,44 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   card: {
-    width: "100%",
+    width: '100%',
     padding: 20,
-    backgroundColor: "#f8f8f8",
+    backgroundColor: '#f8f8f8',
     borderRadius: 12,
     marginBottom: 8,
   },
   dateText: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: '500',
     marginBottom: 8,
-    color: "#333",
+    color: '#333',
   },
   noScheduleText: {
     fontSize: 16,
-    color: "#666",
-    textAlign: "center",
+    color: '#666',
+    textAlign: 'center',
     marginTop: 20,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
   fab: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 24,
     right: 24,
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#007aff",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: '#007aff',
+    justifyContent: 'center',
+    alignItems: 'center',
     elevation: 8,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
   fabIcon: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 28,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
 });
