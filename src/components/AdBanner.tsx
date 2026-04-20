@@ -4,7 +4,7 @@ import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads'
 
 const adUnitId = __DEV__
   ? TestIds.ADAPTIVE_BANNER
-  : 'ca-app-pub-xxxxxxxxxxxxxxxx/yyyyyyyyyy'; // 실제 배너 광고 ID로 교체
+  : 'ca-app-pub-8982275568378070/6659222398';
 
 export const AdBanner = () => {
   return (
