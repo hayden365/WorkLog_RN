@@ -4,6 +4,12 @@ import { WorkSession } from "../models/WorkSession";
 import { format } from "date-fns";
 import { repeatOptions } from "../utils/repeatOptions";
 
+const formatTime = (date: Date) =>
+  new Date(date).toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
 interface ScheduleCardProps {
   session: WorkSession;
   onPress?: (session: WorkSession) => void;
@@ -15,10 +21,6 @@ const ScheduleCard: React.FC<ScheduleCardProps> = ({
   onPress,
   onDelete,
 }) => {
-  const formatTime = (date: Date) => {
-    return format(date, "HH:mm");
-  };
-
   const formatDate = (date: Date) => {
     return format(date, "MM월 dd일");
   };

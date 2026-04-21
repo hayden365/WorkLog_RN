@@ -220,7 +220,11 @@ export const NewSessionModal = ({
           {/* 시급 */}
           <View style={{ gap: 12 }}>
             <SegmentedControl
+              appearance="light"
               tintColor="#fff"
+              backgroundColor="#eee"
+              fontStyle={{ color: "#000" }}
+              activeFontStyle={{ color: "#000" }}
               values={["시급", "일급", "월급"]}
               selectedIndex={
                 wageType === "hourly" ? 0 : wageType === "daily" ? 1 : 2

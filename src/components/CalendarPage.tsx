@@ -134,6 +134,12 @@ export const CalendarPage = ({
           );
         }}
         dayComponent={dayComponent}
+        enableSwipeMonths={true}
+        renderArrow={(direction) => (
+          <Text style={styles.arrowText}>
+            {direction === "left" ? "<" : ">"}
+          </Text>
+        )}
         style={styles.calendar}
         theme={{
           selectedDayTextColor: "#ffffff",
@@ -176,7 +182,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
     padding: 16,
     gap: 6,
@@ -184,6 +190,12 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 16,
     fontWeight: "500",
+  },
+  arrowText: {
+    fontSize: 22,
+    color: "#2d4150",
+    fontWeight: "600",
+    paddingHorizontal: 8,
   },
   dayContainer: {
     width: "100%",

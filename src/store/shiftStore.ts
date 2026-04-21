@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { MMKV } from "react-native-mmkv";
+import { startOfDay } from "date-fns";
 import {
   RepeatOption,
   ScheduleByDate,
@@ -164,8 +165,8 @@ const createInitialShiftState = (): Omit<
   jobName: "",
   wage: 0,
   wageType: "hourly",
-  startDate: new Date(),
-  endDate: new Date(),
+  startDate: startOfDay(new Date()),
+  endDate: startOfDay(new Date()),
   startTime: new Date(),
   endTime: new Date(),
   repeatOption: "none",
@@ -178,8 +179,8 @@ export const useShiftStore = create<ShiftStore>((set) => ({
   setJobName: (jobName) => set({ jobName }),
   setWage: (wage) => set({ wage }),
   setWageType: (wageType) => set({ wageType }),
-  setStartDate: (startDate) => set({ startDate }),
-  setEndDate: (endDate) => set({ endDate }),
+  setStartDate: (startDate) => set({ startDate: startOfDay(startDate) }),
+  setEndDate: (endDate) => set({ endDate: startOfDay(endDate) }),
   setStartTime: (startTime) => set({ startTime }),
   setEndTime: (endTime) => set({ endTime }),
   setRepeatOption: (repeatOption) => set({ repeatOption }),

@@ -156,7 +156,10 @@ const DatePicker = ({
             mode={openPicker.type}
             display={Platform.OS === "ios" ? "spinner" : "default"}
             onChange={(event, selectedDate) => {
-              if (selectedDate) {
+              if (Platform.OS === "android") {
+                setOpenPicker(null);
+              }
+              if (event.type === "set" && selectedDate) {
                 if (openPicker.index === 1) {
                   setEndDate(selectedDate);
                 } else {

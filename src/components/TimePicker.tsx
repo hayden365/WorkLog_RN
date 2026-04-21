@@ -146,7 +146,10 @@ const TimePicker = () => {
             is24Hour={false}
             display={Platform.OS === "ios" ? "spinner" : "default"}
             onChange={(event, selectedDate) => {
-              if (selectedDate) {
+              if (Platform.OS === "android") {
+                setOpenPicker(null);
+              }
+              if (event.type === "set" && selectedDate) {
                 if (openPicker.index === 0) {
                   setStartTime(selectedDate);
                 } else {

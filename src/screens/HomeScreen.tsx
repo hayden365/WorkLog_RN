@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { EarningsCard } from '../components/EarningsCard';
 import { NewSessionModal } from '../components/NewSessionModal';
 import { WorkSession } from '../models/WorkSession';
@@ -96,9 +97,12 @@ const HomeScreen = () => {
     setSelectedDateSchedule(selectedDateSchedule);
   }, [dateSchedule, selectedDate, allSchedulesById]);
 
+  const [bannerHeight, setBannerHeight] = useState(0);
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
@@ -127,12 +131,10 @@ const HomeScreen = () => {
             ))
           )}
         </View>
-
-        <AdBanner />
       </ScrollView>
 
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { bottom: bannerHeight + 24 }]}
         onPress={() => {
           reset();
           setModalVisible(true);
@@ -140,6 +142,12 @@ const HomeScreen = () => {
       >
         <Text style={styles.fabIcon}>＋</Text>
       </TouchableOpacity>
+
+      <View
+        onLayout={(e) => setBannerHeight(e.nativeEvent.layout.height)}
+      >
+        <AdBanner />
+      </View>
 
       <NewSessionModal
         visible={modalVisible}
@@ -156,7 +164,7 @@ const HomeScreen = () => {
         }}
         sessionId={selectedSessionId}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -167,6 +175,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 16,
+  },
+  scrollView: {
+    flex: 1,
   },
   scrollViewContent: {
     paddingBottom: 100,
@@ -194,7 +205,6 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 24,
     right: 24,
     width: 60,
     height: 60,
