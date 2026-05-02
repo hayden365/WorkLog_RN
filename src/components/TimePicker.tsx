@@ -145,7 +145,7 @@ const TimePicker = () => {
           <DateTimePicker
             value={openPicker.index === 0 ? startTime : endTime}
             style={{ width: "100%", left: -30 }}
-            textColor="black"
+            textColor={colors.textPrimary}
             mode="time"
             is24Hour={false}
             display={Platform.OS === "ios" ? "spinner" : "default"}

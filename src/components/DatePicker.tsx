@@ -156,7 +156,7 @@ const DatePicker = ({
                 : new Date(startDate)
             }
             style={{ width: "100%", left: -30 }}
-            textColor="black"
+            textColor={colors.textPrimary}
             mode={openPicker.type}
             display={Platform.OS === "ios" ? "spinner" : "default"}
             onChange={(event, selectedDate) => {
