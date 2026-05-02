@@ -17,6 +17,7 @@ import { NewSessionModal } from "./NewSessionModal";
 import { useShiftStore } from "../store/shiftStore";
 import { formatNumberWithComma } from "../utils/formatNumbs";
 import { dayNames, repeatOptions } from "../utils/repeatOptions";
+import { useTheme } from "../hooks/useTheme";
 
 interface ScheduleModalProps {
   visible: boolean;
@@ -25,6 +26,7 @@ interface ScheduleModalProps {
 }
 
 const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
+  const { colors } = useTheme();
   const { getScheduleById, deleteSchedule, updateSchedule } =
     useScheduleManager();
   const session = sessionId ? getScheduleById(sessionId) : undefined;
@@ -103,7 +105,7 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
       >
         <View style={[styles.headerContainer]}>
           <TouchableOpacity onPress={onClose}>
-            <Feather name="x" size={22} color="black" />
+            <Feather name="x" size={22} color={colors.textPrimary} />
           </TouchableOpacity>
 
           <View style={{ flexDirection: "row", gap: 22 }}>
@@ -111,12 +113,12 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
               <MaterialCommunityIcons
                 name="pencil"
                 size={22}
-                color="black"
+                color={colors.textPrimary}
                 onPress={handleEdit}
               />
             </TouchableOpacity>
             <TouchableOpacity style={styles.saveButton} onPress={handleDelete}>
-              <Ionicons name="trash-outline" size={22} color="black" />
+              <Ionicons name="trash-outline" size={22} color={colors.textPrimary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -138,15 +140,15 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
                   },
                 ]}
               />
-              <Text style={styles.readOnlyText}>{session.jobName}</Text>
+              <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>{session.jobName}</Text>
             </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
           {/* 시급 */}
           <View style={{ gap: 12 }}>
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                <Ionicons name="cash-outline" size={24} color="black" />
+              <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+                <Ionicons name="cash-outline" size={24} color={colors.textPrimary} />
               </Text>
               <View
                 style={{
@@ -156,8 +158,8 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
                   gap: 10,
                 }}
               >
-                <FontAwesome name="won" size={16} color="black" />
-                <Text style={styles.readOnlyText}>
+                <FontAwesome name="won" size={16} color={colors.textPrimary} />
+                <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>
                   {formatNumberWithComma(session.wage.toString())} (
                   {session.wageType === "hourly"
                     ? "시급"
@@ -169,16 +171,16 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
               </View>
             </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
 
           {/* 시간 */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              <Ionicons name="time-outline" size={24} color="black" />
+            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+              <Ionicons name="time-outline" size={24} color={colors.textPrimary} />
             </Text>
             <View style={{ flex: 1 }}>
               <View style={styles.timeContainer}>
-                <Text style={styles.readOnlyText}>
+                <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>
                   {`${new Date(session.startTime).toLocaleTimeString("ko-KR", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -193,15 +195,15 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
               </View>
             </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
 
           {/* 날짜 */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              <Ionicons name="calendar-outline" size={24} color="black" />
+            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+              <Ionicons name="calendar-outline" size={24} color={colors.textPrimary} />
             </Text>
             <View style={{ flex: 1, gap: 8 }}>
-              <Text style={styles.readOnlyText}>
+              <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>
                 {`${new Date(session.startDate).toLocaleDateString(
                   "ko-KR"
                 )} - ${
@@ -213,12 +215,12 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
               </Text>
             </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
 
           {/* 반복 주기 */}
           <View style={[styles.inputGroup]}>
-            <Text style={styles.inputLabel}>
-              <Ionicons name="repeat-outline" size={24} color="black" />
+            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+              <Ionicons name="repeat-outline" size={24} color={colors.textPrimary} />
             </Text>
             <View
               style={{
@@ -240,13 +242,13 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
                   styles.readOnlyText,
                 ]}
               >
-                <Text style={{ fontSize: 16, color: "#333" }}>
+                <Text style={{ fontSize: 16, color: colors.textPrimary }}>
                   {
                     repeatOptions.find((r) => r.value === session.repeatOption)
                       ?.label
                   }
                 </Text>
-                <Text style={[styles.readOnlyText, { fontSize: 14 }]}>
+                <Text style={[styles.readOnlyText, { fontSize: 14, color: colors.textPrimary }]}>
                   (
                   {session.selectedWeekDays.size > 0
                     ? Array.from(session.selectedWeekDays)
@@ -261,15 +263,15 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
             </View>
           </View>
           {/* 요일 선택 */}
-          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
 
           {/* 메모 */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              <Entypo name="text" size={24} color="black" />
+            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
+              <Entypo name="text" size={24} color={colors.textPrimary} />
             </Text>
 
-            <Text style={styles.readOnlyText}>
+            <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>
               {session.description || "설명 없음"}
             </Text>
           </View>
@@ -317,7 +319,6 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
     textAlignVertical: "center",
     lineHeight: 48,
     alignSelf: "center",
@@ -325,17 +326,14 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: "#fff",
     height: 48,
   },
   readOnlyText: {
     flex: 1,
     fontSize: 16,
-    color: "#333",
     paddingVertical: 12,
   },
   timeContainer: {
@@ -345,20 +343,16 @@ const styles = StyleSheet.create({
   },
   timeButton: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#ddd",
     alignItems: "center",
   },
   timeButtonText: {
     fontSize: 16,
-    color: "#333",
   },
   timeSeparator: {
     fontSize: 16,
-    color: "#666",
   },
   dateContainer: {
     flexDirection: "row",
@@ -366,11 +360,9 @@ const styles = StyleSheet.create({
   },
   dateButton: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#ddd",
     alignItems: "center",
   },
   dateButtonDisabled: {
@@ -378,11 +370,8 @@ const styles = StyleSheet.create({
   },
   dateButtonText: {
     fontSize: 16,
-    color: "#333",
   },
-  dateButtonTextDisabled: {
-    color: "#999",
-  },
+  dateButtonTextDisabled: {},
   rowWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -399,34 +388,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 8,
     borderWidth: 1,
-    borderColor: "#ddd",
     borderRadius: 20,
     marginRight: 6,
     marginBottom: 6,
   },
-  optionButtonSelected: {
-    backgroundColor: "#007aff",
-    borderColor: "#007aff",
-    color: "#fff",
-  },
+  optionButtonSelected: {},
   optionButtonDisabled: {
     opacity: 0.6,
   },
-  optionButtonText: {
-    color: "#333",
-  },
-  optionButtonTextSelected: {
-    color: "#fff",
-  },
-  optionButtonTextDisabled: {
-    color: "#999",
-  },
+  optionButtonText: {},
+  optionButtonTextSelected: {},
+  optionButtonTextDisabled: {},
   saveButton: {
     alignItems: "center",
     borderRadius: 8,
   },
   saveButtonText: {
-    color: "#007aff",
     fontWeight: "bold",
   },
 });
