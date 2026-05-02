@@ -100,7 +100,7 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
       <View
         style={[
           styles.areaContainer,
-          { paddingTop: insets.top, paddingBottom: insets.bottom },
+          { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: colors.background },
         ]}
       >
         <View style={[styles.headerContainer]}>

@@ -189,7 +189,7 @@ export const NewSessionModal = ({
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <SafeAreaView style={styles.areaContainer}>
+      <SafeAreaView style={[styles.areaContainer, { backgroundColor: colors.background }]}>
         <View
           style={[
             styles.headerContainer,
@@ -205,7 +205,7 @@ export const NewSessionModal = ({
               <Feather name="x" size={20} color={colors.textPrimary} />
             </Text>
           </TouchableOpacity>
-          <Text style={styles.header}>{getHeaderTitle()}</Text>
+          <Text style={[styles.header, { color: colors.textPrimary }]}>{getHeaderTitle()}</Text>
           {/* 저장 버튼 */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={[styles.saveButtonText, { color: colors.accent }]}>저장</Text>
@@ -321,7 +321,7 @@ export const NewSessionModal = ({
                   height: 48,
                 }}
               >
-                <Text style={{ fontSize: 16, marginLeft: 10 }}>
+                <Text style={{ fontSize: 16, marginLeft: 10, color: colors.textPrimary }}>
                   종료일 없음
                 </Text>
                 <Switch
