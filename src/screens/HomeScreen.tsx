@@ -18,6 +18,7 @@ import {
   useShiftStore,
 } from '../store/shiftStore';
 import { useScheduleManager } from '../hooks/useScheduleManager';
+import { useTheme } from '../hooks/useTheme';
 
 import { generateViewMonthScheduleData } from '../utils/calendarfns';
 import { displayMonthlyWage } from '../utils/wageFns';
@@ -37,6 +38,7 @@ interface MarkedDate {
 }
 
 const HomeScreen = () => {
+  const { colors } = useTheme();
   const { reset } = useShiftStore();
   const { allSchedulesById, addSchedule, getAllSchedules } =
     useScheduleManager();
@@ -100,7 +102,10 @@ const HomeScreen = () => {
   const [bannerHeight, setBannerHeight] = useState(0);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      edges={['bottom']}
+    >
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -111,13 +116,13 @@ const HomeScreen = () => {
           onDaySelected={setSelectedDate}
         />
         <EarningsCard totalEarnings={earnings} />
-        <View style={styles.card}>
-          <Text style={styles.dateText}>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.dateText, { color: colors.textPrimary }]}>
             {new Date(selectedDate).getMonth() + 1}월{' '}
             {new Date(selectedDate).getDate()}일 일정
           </Text>
           {selectedDateSchedule.length === 0 ? (
-            <Text style={styles.noScheduleText}>일정이 없습니다</Text>
+            <Text style={[styles.noScheduleText, { color: colors.textSecondary }]}>일정이 없습니다</Text>
           ) : (
             selectedDateSchedule.map((session, index) => (
               <ScheduleCard
@@ -134,13 +139,10 @@ const HomeScreen = () => {
       </ScrollView>
 
       <TouchableOpacity
-        style={[styles.fab, { bottom: bannerHeight + 24 }]}
-        onPress={() => {
-          reset();
-          setModalVisible(true);
-        }}
+        style={[styles.fab, { bottom: bannerHeight + 24, backgroundColor: colors.accent }]}
+        onPress={() => { reset(); setModalVisible(true); }}
       >
-        <Text style={styles.fabIcon}>＋</Text>
+        <Text style={[styles.fabIcon, { color: colors.accentText }]}>＋</Text>
       </TouchableOpacity>
 
       <View
@@ -173,7 +175,6 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
   },
   scrollView: {
@@ -186,7 +187,6 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     padding: 20,
-    backgroundColor: '#f8f8f8',
     borderRadius: 12,
     marginBottom: 8,
   },
@@ -194,11 +194,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 8,
-    color: '#333',
   },
   noScheduleText: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     marginTop: 20,
     fontStyle: 'italic',
@@ -209,7 +207,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#007aff',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
@@ -219,7 +216,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   fabIcon: {
-    color: '#fff',
     fontSize: 28,
     fontWeight: 'bold',
   },
