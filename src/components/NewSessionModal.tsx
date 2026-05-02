@@ -22,6 +22,7 @@ import TimePicker from "./TimePicker";
 import DatePicker from "./DatePicker";
 import SlideInView from "./SlideInView";
 import { formatNumberWithComma } from "../utils/formatNumbs";
+import { useTheme } from "../hooks/useTheme";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -40,6 +41,8 @@ export const NewSessionModal = ({
   existingSession,
   mode = "create",
 }: NewSessionModalProps) => {
+  const { colors } = useTheme();
+
   const {
     jobName,
     setJobName,
@@ -187,17 +190,25 @@ export const NewSessionModal = ({
       presentationStyle="pageSheet"
     >
       <SafeAreaView style={styles.areaContainer}>
-        <View style={styles.headerContainer}>
+        <View
+          style={[
+            styles.headerContainer,
+            { borderColor: colors.border },
+          ]}
+        >
           {/* 닫기 */}
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>
+          <TouchableOpacity
+            style={[styles.closeButton, { backgroundColor: colors.surfaceElevated }]}
+            onPress={onClose}
+          >
+            <Text style={[styles.closeButtonText, { color: colors.textPrimary }]}>
               <Feather name="x" size={20} color="black" />
             </Text>
           </TouchableOpacity>
           <Text style={styles.header}>{getHeaderTitle()}</Text>
           {/* 저장 버튼 */}
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={styles.saveButtonText}>저장</Text>
+            <Text style={[styles.saveButtonText, { color: colors.accent }]}>저장</Text>
           </TouchableOpacity>
         </View>
         <ScrollView
@@ -206,25 +217,32 @@ export const NewSessionModal = ({
         >
           {/* 근무지 */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
+            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
               <Ionicons name="location-outline" size={24} color="black" />
             </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.surface,
+                },
+              ]}
               placeholder="근무지명을 입력하세요"
+              placeholderTextColor={colors.textMuted}
               value={jobName}
               onChangeText={setJobName}
             />
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
           {/* 시급 */}
           <View style={{ gap: 12 }}>
             <SegmentedControl
               appearance="light"
-              tintColor="#fff"
-              backgroundColor="#eee"
-              fontStyle={{ color: "#000" }}
-              activeFontStyle={{ color: "#000" }}
+              tintColor={colors.surfaceElevated}
+              backgroundColor={colors.divider}
+              fontStyle={{ color: colors.textPrimary }}
+              activeFontStyle={{ color: colors.textPrimary }}
               values={["시급", "일급", "월급"]}
               selectedIndex={
                 wageType === "hourly" ? 0 : wageType === "daily" ? 1 : 2
@@ -240,7 +258,7 @@ export const NewSessionModal = ({
               }}
             />
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
+              <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
                 <Ionicons name="cash-outline" size={24} color="black" />
               </Text>
               <View
@@ -253,7 +271,13 @@ export const NewSessionModal = ({
               >
                 <FontAwesome name="won" size={16} color="black" />
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: colors.border,
+                      backgroundColor: colors.surface,
+                    },
+                  ]}
                   placeholder={
                     wageType === "hourly"
                       ? "시급"
@@ -261,6 +285,7 @@ export const NewSessionModal = ({
                       ? "일급"
                       : "월급"
                   }
+                  placeholderTextColor={colors.textMuted}
                   value={wageValue}
                   keyboardType="number-pad"
                   onChangeText={(value) => {
@@ -270,20 +295,20 @@ export const NewSessionModal = ({
               </View>
             </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
           {/* 시간 */}
           <View style={{ minHeight: 48, flexDirection: "row" }}>
-            <Text style={[styles.inputLabel, { alignSelf: "flex-start" }]}>
+            <Text style={[styles.inputLabel, { alignSelf: "flex-start", color: colors.textPrimary }]}>
               <Ionicons name="time-outline" size={24} color="black" />
             </Text>
             <View style={{ flex: 1 }}>
               <TimePicker />
             </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
           {/* 날짜 */}
           <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { alignSelf: "flex-start" }]}>
+            <Text style={[styles.inputLabel, { alignSelf: "flex-start", color: colors.textPrimary }]}>
               <Ionicons name="calendar-outline" size={24} color="black" />
             </Text>
             <View style={{ flex: 1, gap: 8 }}>
@@ -303,18 +328,18 @@ export const NewSessionModal = ({
                   value={isCurrentlyWorking}
                   onValueChange={setIsCurrentlyWorking}
                   trackColor={{
-                    true: "#007aff",
-                    false: "#ddd",
+                    true: colors.accent,
+                    false: colors.border,
                   }}
-                  thumbColor="#fff"
+                  thumbColor={colors.surfaceElevated}
                 />
               </View>
             </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
           {/* 반복 주기 */}
           <View style={[styles.inputGroup, { marginBottom: -18 }]}>
-            <Text style={styles.inputLabel}>
+            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
               <Ionicons name="repeat-outline" size={24} color="black" />
             </Text>
             <View style={{ flex: 1 }}>
@@ -349,16 +374,25 @@ export const NewSessionModal = ({
                     key={day.value}
                     style={[
                       styles.optionButton,
-                      safeSelectedWeekDays.has(day.value) &&
+                      { borderColor: colors.border },
+                      safeSelectedWeekDays.has(day.value) && [
                         styles.optionButtonSelected,
+                        {
+                          backgroundColor: colors.accent,
+                          borderColor: colors.accent,
+                        },
+                      ],
                     ]}
                     onPress={() => toggleWeekDay(day.value)}
                   >
                     <Text
                       style={[
                         styles.optionButtonText,
-                        safeSelectedWeekDays.has(day.value) &&
+                        { color: colors.textPrimary },
+                        safeSelectedWeekDays.has(day.value) && [
                           styles.optionButtonTextSelected,
+                          { color: colors.accentText },
+                        ],
                       ]}
                     >
                       {day.label}
@@ -368,15 +402,16 @@ export const NewSessionModal = ({
               </View>
             </View>
           </SlideInView>
-          <View style={{ borderBottomWidth: 1, borderColor: "#ddd" }} />
+          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
           {/* 메모 */}
           <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { alignSelf: "flex-start" }]}>
+            <Text style={[styles.inputLabel, { alignSelf: "flex-start", color: colors.textPrimary }]}>
               <Entypo name="text" size={24} color="black" />
             </Text>
             <TextInput
-              style={[styles.input, { height: "100%", padding: 13 }]}
+              style={[styles.input, { height: "100%", padding: 13, borderColor: colors.border, backgroundColor: colors.surface }]}
               placeholder="설명 추가"
+              placeholderTextColor={colors.textMuted}
               value={description}
               multiline
               onChangeText={setDescription}
@@ -398,7 +433,6 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderColor: "#ddd",
     paddingBottom: 16,
   },
   container: {
@@ -418,7 +452,6 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
     width: 50,
     height: 48,
     textAlignVertical: "top",
@@ -427,11 +460,9 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: "#fff",
     height: 48,
   },
   label: { fontSize: 14, fontWeight: "bold", marginTop: 12, marginBottom: 6 },
@@ -457,24 +488,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 8,
     borderWidth: 1,
-    borderColor: "#ddd",
     borderRadius: 20,
     marginRight: 6,
     marginBottom: 6,
   },
-  optionButtonSelected: {
-    backgroundColor: "#007aff",
-    borderColor: "#007aff",
-    color: "#fff",
-  },
-  optionButtonTextSelected: { color: "#fff" },
-  optionButtonText: {
-    color: "#333",
-  },
+  optionButtonSelected: {},
+  optionButtonTextSelected: {},
+  optionButtonText: {},
   timeButton: {
     padding: 10,
     borderWidth: 1,
-    borderColor: "#ddd",
     borderRadius: 8,
     flex: 1,
     alignItems: "center",
@@ -484,9 +507,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 8,
   },
-  saveButtonText: { color: "#007aff", fontWeight: "bold" },
-  closeButton: {
-    backgroundColor: "white",
-  },
-  closeButtonText: { color: "#333" },
+  saveButtonText: { fontWeight: "bold" },
+  closeButton: {},
+  closeButtonText: {},
 });
