@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useDateStore } from "../store/dateStore";
 import Feather from "@expo/vector-icons/Feather";
+import { useTheme } from '../hooks/useTheme';
 
 export const EarningsCard = ({ totalEarnings }: { totalEarnings: number }) => {
   const { month } = useDateStore();
   const [isVisible, setIsVisible] = useState(false);
+  const { colors } = useTheme();
 
   const formatNumberWithComma = (value: string) => {
     const numericValue = value.replace(/[^0-9]/g, "");
@@ -13,27 +15,31 @@ export const EarningsCard = ({ totalEarnings }: { totalEarnings: number }) => {
   };
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.surface }]}>
       <View style={styles.column}>
         <View style={styles.row}>
-          <Text style={styles.label}>{month + 1}월 예상 급여</Text>
+          <Text style={[styles.label, { color: colors.textPrimary }]}>
+            {month + 1}월 예상 급여
+          </Text>
           {isVisible ? (
             <TouchableOpacity onPress={() => setIsVisible(false)}>
-              <Feather name="eye-off" size={18} color="black" />
+              <Feather name='eye-off' size={18} color={colors.textPrimary} />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity onPress={() => setIsVisible(true)}>
-              <Feather name="eye" size={18} color="black" />
+              <Feather name='eye' size={18} color={colors.textPrimary} />
             </TouchableOpacity>
           )}
         </View>
         {isVisible ? (
-          <Text style={styles.amount}>
+          <Text style={[styles.amount, { color: colors.textPrimary }]}>
             ₩ {formatNumberWithComma(totalEarnings.toString())}
           </Text>
         ) : (
           <View style={styles.hiddenAmount}>
-            <Text style={styles.hiddenAmountText}>금액숨김</Text>
+            <Text style={[styles.hiddenAmountText, { color: colors.textMuted }]}>
+              금액숨김
+            </Text>
           </View>
         )}
       </View>
@@ -46,7 +52,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 110,
     padding: 20,
-    backgroundColor: "#f8f8f8",
     borderRadius: 12,
     marginBottom: 8,
   },
@@ -63,16 +68,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 15,
-    color: "#1c1c1e", // CupertinoColors.label 대체
     fontWeight: "500",
   },
   amount: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#1c1c1e",
   },
   hiddenAmount: {
-    color: "#8e8e93",
     flexDirection: "row",
     alignItems: "flex-end",
     gap: 4,
@@ -80,7 +82,6 @@ const styles = StyleSheet.create({
   hiddenAmountText: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#8e8e93",
   },
   selectedDateSection: {
     marginTop: 16,
