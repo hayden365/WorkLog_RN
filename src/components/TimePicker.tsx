@@ -12,6 +12,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useRef, useState } from "react";
 import { useShiftStore } from "../store/shiftStore";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useTheme } from "../hooks/useTheme";
 
 // Android에서 LayoutAnimation 활성화
 if (
@@ -23,6 +24,7 @@ if (
 
 const TimePicker = () => {
   const { startTime, setStartTime, endTime, setEndTime } = useShiftStore();
+  const { colors } = useTheme();
 
   const [openPicker, setOpenPicker] = useState<null | {
     index: number;
@@ -68,7 +70,7 @@ const TimePicker = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.surfaceElevated }]}>
       {/* 시작 시간/종료 시간 섹션 */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
@@ -76,14 +78,15 @@ const TimePicker = () => {
           onPress={() => {
             handleToggle(0, "time");
           }}
-          style={styles.button}
+          style={[styles.button, { backgroundColor: colors.surface, borderColor: colors.border }]}
         >
           <Text
             style={[
               styles.value,
+              { color: colors.textPrimary },
               openPicker?.index === 0 &&
                 openPicker?.type === "time" &&
-                styles.activeValue,
+                { color: colors.accent },
             ]}
           >
             {startTime
@@ -95,20 +98,21 @@ const TimePicker = () => {
               : "시간 선택"}
           </Text>
         </TouchableOpacity>
-        <MaterialCommunityIcons name="tilde" size={16} color="#444" />
+        <MaterialCommunityIcons name="tilde" size={16} color={colors.textSecondary} />
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => {
             handleToggle(1, "time");
           }}
-          style={styles.button}
+          style={[styles.button, { backgroundColor: colors.surface, borderColor: colors.border }]}
         >
           <Text
             style={[
               styles.value,
+              { color: colors.textPrimary },
               openPicker?.index === 1 &&
                 openPicker?.type === "time" &&
-                styles.activeValue,
+                { color: colors.accent },
             ]}
           >
             {new Date(endTime).toLocaleTimeString("ko-KR", {
@@ -169,18 +173,10 @@ export default TimePicker;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
     gap: 16,
   },
   value: {
     fontSize: 16,
-    color: "#000",
-  },
-  activeValue: {
-    color: "#007AFF", // 활성화된 상태의 색상
-  },
-  disabled: {
-    color: "#ddd",
   },
   buttonContainer: {
     flexDirection: "row",
@@ -190,13 +186,11 @@ const styles = StyleSheet.create({
   },
   button: {
     maxWidth: 145,
-    backgroundColor: "#f5f5f5",
     flex: 1,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#ddd",
   },
 });
