@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import React, { useCallback, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../hooks/useTheme";
 
 type OptionItem = {
   value: string;
@@ -27,6 +28,7 @@ export default function Dropdown({
   onChange,
   placeholder,
 }: DropDownProps) {
+  const { colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const buttonRef = useRef<View>(null);
   const [value, setValue] = useState("");
@@ -90,14 +92,20 @@ export default function Dropdown({
         activeOpacity={0.8}
         onPress={toggleExpanded}
       >
-        <Text style={styles.text}>{value || placeholder}</Text>
-        <Ionicons name="chevron-expand" size={22} color="black" />
+        <Text style={[styles.text, { color: colors.textPrimary }]}>{value || placeholder}</Text>
+        <Ionicons name="chevron-expand" size={22} color={colors.textPrimary} />
       </TouchableOpacity>
       {expanded ? (
         <Modal visible={expanded} animationType="fade" transparent>
           <TouchableWithoutFeedback onPress={() => setExpanded(false)}>
             <View style={styles.backdrop}>
-              <View style={[styles.options, getDropdownStyle()]}>
+              <View
+                style={[
+                  styles.options,
+                  getDropdownStyle(),
+                  { backgroundColor: colors.surfaceElevated, borderColor: colors.divider },
+                ]}
+              >
                 <FlatList
                   keyExtractor={(item) => item.value}
                   data={data}
@@ -107,7 +115,7 @@ export default function Dropdown({
                       style={styles.optionItem}
                       onPress={() => onSelect(item)}
                     >
-                      <Text>{item.label}</Text>
+                      <Text style={{ color: colors.textPrimary }}>{item.label}</Text>
                     </TouchableOpacity>
                   )}
                   ItemSeparatorComponent={() => (
@@ -116,7 +124,7 @@ export default function Dropdown({
                         styles.separator,
                         {
                           borderBottomWidth: 1,
-                          borderColor: "rgba(0, 0, 0, 0.1)",
+                          borderColor: colors.divider,
                         },
                       ]}
                     />
@@ -145,13 +153,11 @@ const styles = StyleSheet.create({
     height: 4,
   },
   options: {
-    backgroundColor: "white",
     justifyContent: "center",
     width: "100%",
     padding: 10,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.1)",
     maxHeight: 250,
     shadowColor: "rgba(0, 0, 0, 0.2)",
     shadowOffset: {
