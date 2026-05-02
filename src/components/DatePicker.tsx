@@ -11,6 +11,7 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useRef, useState } from "react";
 import { useShiftStore } from "../store/shiftStore";
+import { useTheme } from "../hooks/useTheme";
 
 // Android에서 LayoutAnimation 활성화
 if (
@@ -26,6 +27,7 @@ const DatePicker = ({
   isCurrentlyWorking: boolean;
 }) => {
   const { startDate, setStartDate, endDate, setEndDate } = useShiftStore();
+  const { colors } = useTheme();
 
   const [openPicker, setOpenPicker] = useState<null | {
     index: number;
@@ -71,7 +73,7 @@ const DatePicker = ({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.surfaceElevated }]}>
       {/* 날짜 섹션 */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
@@ -79,14 +81,15 @@ const DatePicker = ({
           onPress={() => {
             handleToggle(0, "date");
           }}
-          style={styles.button}
+          style={[styles.button, { backgroundColor: colors.surface, borderColor: colors.border }]}
         >
           <Text
             style={[
               styles.value,
+              { color: colors.textPrimary },
               openPicker?.index === 0 &&
                 openPicker?.type === "date" &&
-                styles.activeValue,
+                { color: colors.accent },
             ]}
           >
             {new Date(startDate).toLocaleDateString("ko-KR", {
@@ -102,16 +105,17 @@ const DatePicker = ({
           onPress={() => {
             handleToggle(1, "date");
           }}
-          style={styles.button}
+          style={[styles.button, { backgroundColor: colors.surface, borderColor: colors.border }]}
           disabled={isCurrentlyWorking}
         >
           <Text
             style={[
               styles.value,
-              isCurrentlyWorking && styles.disabled,
+              { color: colors.textPrimary },
+              isCurrentlyWorking && { color: colors.textMuted },
               openPicker?.index === 1 &&
                 openPicker?.type === "date" &&
-                styles.activeValue,
+                { color: colors.accent },
             ]}
           >
             {endDate
@@ -179,18 +183,10 @@ export default DatePicker;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
     gap: 16,
   },
   value: {
     fontSize: 16,
-    color: "#000",
-  },
-  activeValue: {
-    color: "#007AFF", // 활성화된 상태의 색상
-  },
-  disabled: {
-    color: "#ddd",
   },
   buttonContainer: {
     flexDirection: "row",
@@ -200,13 +196,11 @@ const styles = StyleSheet.create({
   },
   button: {
     maxWidth: 145,
-    backgroundColor: "#f5f5f5",
     flex: 1,
     height: 40,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#ddd",
   },
 });
