@@ -1,4 +1,4 @@
-import React, { useCallback, PureComponent } from "react";
+import React, { useCallback, memo } from "react";
 import { Calendar } from "react-native-calendars";
 import dayjs from "dayjs";
 import { useDateStore } from "../store/dateStore";
@@ -6,74 +6,64 @@ import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
 import { useCalendarDisplayStore } from "../store/shiftStore";
 import { CalendarDisplayItem } from "../models/WorkSession";
 import "../utils/calendarOptions";
+import { useTheme } from "../hooks/useTheme";
 
-class CustomDayComponent extends PureComponent<{
+interface DayProps {
   date?: any;
   state?: string;
   onDaySelected: (date: string) => void;
   selectedDate: string;
   calendarDisplayItems?: any[];
-}> {
-  render() {
-    const {
-      date,
-      state,
-      onDaySelected,
-      selectedDate,
-      calendarDisplayItems = [],
-    } = this.props;
+}
 
-    const today = dayjs().format("YYYY-MM-DD");
-    const isToday = date?.dateString === today;
-    const isSelected = date?.dateString === selectedDate;
+const CustomDayComponent = memo(function CustomDayComponent(props: DayProps) {
+  const { colors } = useTheme();
+  const { date, state, onDaySelected, selectedDate, calendarDisplayItems = [] } = props;
 
-    const handleDayPress = () => onDaySelected(date?.dateString || "");
+  const today = dayjs().format("YYYY-MM-DD");
+  const isToday = date?.dateString === today;
+  const isSelected = date?.dateString === selectedDate;
 
-    return (
-      <TouchableOpacity
-        onPress={handleDayPress}
-        activeOpacity={0.8}
-        style={styles.dayContainer}
+  const handleDayPress = () => onDaySelected(date?.dateString || "");
+
+  return (
+    <TouchableOpacity
+      onPress={handleDayPress}
+      activeOpacity={0.8}
+      style={styles.dayContainer}
+    >
+      <View
+        style={[
+          styles.dayCircle,
+          isSelected && { backgroundColor: colors.calendarSelected },
+          isToday && !isSelected && { borderWidth: 2, borderColor: colors.calendarToday },
+        ]}
       >
-        <View
+        <Text
           style={[
-            styles.dayCircle,
-            isSelected && styles.selectedDayCircle,
-            isToday && styles.todayCircle,
+            styles.dayText,
+            { color: colors.textPrimary },
+            isSelected && { color: colors.accentText, fontWeight: "600" },
+            isToday && !isSelected && { color: colors.calendarToday, fontWeight: "600" },
+            state === "disabled" && { color: colors.calendarDisabled },
           ]}
         >
-          <Text
-            style={[
-              styles.dayText,
-              isSelected && styles.selectedDayText,
-              isToday && !isSelected && styles.todayText,
-              state === "disabled" && styles.disabledDayText,
-            ]}
-          >
-            {date?.day}
-          </Text>
-        </View>
+          {date?.day}
+        </Text>
+      </View>
 
-        {/* 기존 periods 표시 */}
-        <View style={styles.periodsContainer}>
-          {calendarDisplayItems.map(
-            (item: CalendarDisplayItem, index: number) => (
-              <View
-                key={`${item.color}-${index}-${date?.dateString}`}
-                style={[
-                  styles.period,
-                  {
-                    backgroundColor: item.color,
-                  },
-                ]}
-              />
-            )
-          )}
-        </View>
-      </TouchableOpacity>
-    );
-  }
-}
+      {/* 기존 periods 표시 */}
+      <View style={styles.periodsContainer}>
+        {calendarDisplayItems.map((item: CalendarDisplayItem, index: number) => (
+          <View
+            key={`${item.color}-${index}-${date?.dateString}`}
+            style={[styles.period, { backgroundColor: item.color }]}
+          />
+        ))}
+      </View>
+    </TouchableOpacity>
+  );
+});
 
 interface CalendarPageProps {
   selectedDate: string;
@@ -84,6 +74,7 @@ export const CalendarPage = ({
   selectedDate,
   onDaySelected,
 }: CalendarPageProps) => {
+  const { colors } = useTheme();
   const { setMonth } = useDateStore();
   const { calendarDisplayMap } = useCalendarDisplayStore();
 
@@ -115,7 +106,7 @@ export const CalendarPage = ({
   );
 
   return (
-    <View style={styles.calendarContainer}>
+    <View style={[styles.calendarContainer, { backgroundColor: colors.background }]}>
       <Calendar
         current={selectedDate}
         onDayPress={handleDayPress}
@@ -128,39 +119,39 @@ export const CalendarPage = ({
           const year = date?.getFullYear();
           return (
             <View style={styles.header}>
-              <Text style={styles.headerText}>{year}년</Text>
-              <Text style={styles.headerText}>{month}월</Text>
+              <Text style={[styles.headerText, { color: colors.textPrimary }]}>{year}년</Text>
+              <Text style={[styles.headerText, { color: colors.textPrimary }]}>{month}월</Text>
             </View>
           );
         }}
         dayComponent={dayComponent}
         enableSwipeMonths={true}
         renderArrow={(direction) => (
-          <Text style={styles.arrowText}>
+          <Text style={[styles.arrowText, { color: colors.textPrimary }]}>
             {direction === "left" ? "<" : ">"}
           </Text>
         )}
         style={styles.calendar}
         theme={{
-          selectedDayTextColor: "#ffffff",
-          todayTextColor: "#007aff",
-          dotColor: "#ff2d55",
-          textSectionTitleColor: "#1c1c1e",
+          selectedDayTextColor: colors.accentText,
+          todayTextColor: colors.calendarToday,
+          dotColor: colors.danger,
+          textSectionTitleColor: colors.textPrimary,
           textDayHeaderFontWeight: "600",
           textDayFontWeight: "400",
           textDayFontSize: 16,
           textMonthFontSize: 20,
           textMonthFontWeight: "600",
-          arrowColor: "#000",
-          backgroundColor: "#ffffff",
-          calendarBackground: "#ffffff",
-          textSectionTitleDisabledColor: "#d9e1e8",
-          selectedDayBackgroundColor: "#007aff",
-          dayTextColor: "#2d4150",
-          textDisabledColor: "#d9e1e8",
-          selectedDotColor: "#ffffff",
-          monthTextColor: "#2d4150",
-          indicatorColor: "#007aff",
+          arrowColor: colors.textPrimary,
+          backgroundColor: colors.background,
+          calendarBackground: colors.background,
+          textSectionTitleDisabledColor: colors.calendarDisabled,
+          selectedDayBackgroundColor: colors.calendarSelected,
+          dayTextColor: colors.textPrimary,
+          textDisabledColor: colors.calendarDisabled,
+          selectedDotColor: colors.accentText,
+          monthTextColor: colors.textPrimary,
+          indicatorColor: colors.accent,
           textDayFontFamily: "System",
           textMonthFontFamily: "System",
           textDayHeaderFontFamily: "System",
@@ -173,7 +164,6 @@ export const CalendarPage = ({
 
 const styles = StyleSheet.create({
   calendarContainer: {
-    backgroundColor: "#fff",
     borderRadius: 12,
     elevation: 2,
   },
@@ -193,7 +183,6 @@ const styles = StyleSheet.create({
   },
   arrowText: {
     fontSize: 22,
-    color: "#2d4150",
     fontWeight: "600",
     paddingHorizontal: 8,
   },
@@ -211,28 +200,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 4,
   },
-  selectedDayCircle: {
-    backgroundColor: "#007AFF",
-  },
-  todayCircle: {
-    borderWidth: 2,
-    borderColor: "#007AFF",
-  },
   dayText: {
-    color: "#2d4150",
     fontWeight: "400",
     fontSize: 16,
-  },
-  selectedDayText: {
-    color: "#ffffff",
-    fontWeight: "600",
-  },
-  todayText: {
-    color: "#007AFF",
-    fontWeight: "600",
-  },
-  disabledDayText: {
-    color: "#d9e1e8",
   },
   periodsContainer: {
     width: "100%",
