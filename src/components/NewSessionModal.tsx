@@ -41,7 +41,7 @@ export const NewSessionModal = ({
   existingSession,
   mode = "create",
 }: NewSessionModalProps) => {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
 
   const {
     jobName,
@@ -202,7 +202,7 @@ export const NewSessionModal = ({
             onPress={onClose}
           >
             <Text style={[styles.closeButtonText, { color: colors.textPrimary }]}>
-              <Feather name="x" size={20} color="black" />
+              <Feather name="x" size={20} color={colors.textPrimary} />
             </Text>
           </TouchableOpacity>
           <Text style={styles.header}>{getHeaderTitle()}</Text>
@@ -218,7 +218,7 @@ export const NewSessionModal = ({
           {/* 근무지 */}
           <View style={styles.inputGroup}>
             <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
-              <Ionicons name="location-outline" size={24} color="black" />
+              <Ionicons name="location-outline" size={24} color={colors.textPrimary} />
             </Text>
             <TextInput
               style={[
@@ -238,7 +238,7 @@ export const NewSessionModal = ({
           {/* 시급 */}
           <View style={{ gap: 12 }}>
             <SegmentedControl
-              appearance="light"
+              appearance={scheme}
               tintColor={colors.surfaceElevated}
               backgroundColor={colors.divider}
               fontStyle={{ color: colors.textPrimary }}
@@ -259,7 +259,7 @@ export const NewSessionModal = ({
             />
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
-                <Ionicons name="cash-outline" size={24} color="black" />
+                <Ionicons name="cash-outline" size={24} color={colors.textPrimary} />
               </Text>
               <View
                 style={{
@@ -269,7 +269,7 @@ export const NewSessionModal = ({
                   gap: 10,
                 }}
               >
-                <FontAwesome name="won" size={16} color="black" />
+                <FontAwesome name="won" size={16} color={colors.textPrimary} />
                 <TextInput
                   style={[
                     styles.input,
@@ -299,7 +299,7 @@ export const NewSessionModal = ({
           {/* 시간 */}
           <View style={{ minHeight: 48, flexDirection: "row" }}>
             <Text style={[styles.inputLabel, { alignSelf: "flex-start", color: colors.textPrimary }]}>
-              <Ionicons name="time-outline" size={24} color="black" />
+              <Ionicons name="time-outline" size={24} color={colors.textPrimary} />
             </Text>
             <View style={{ flex: 1 }}>
               <TimePicker />
@@ -309,7 +309,7 @@ export const NewSessionModal = ({
           {/* 날짜 */}
           <View style={styles.inputGroup}>
             <Text style={[styles.inputLabel, { alignSelf: "flex-start", color: colors.textPrimary }]}>
-              <Ionicons name="calendar-outline" size={24} color="black" />
+              <Ionicons name="calendar-outline" size={24} color={colors.textPrimary} />
             </Text>
             <View style={{ flex: 1, gap: 8 }}>
               <DatePicker isCurrentlyWorking={isCurrentlyWorking} />
@@ -340,7 +340,7 @@ export const NewSessionModal = ({
           {/* 반복 주기 */}
           <View style={[styles.inputGroup, { marginBottom: -18 }]}>
             <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
-              <Ionicons name="repeat-outline" size={24} color="black" />
+              <Ionicons name="repeat-outline" size={24} color={colors.textPrimary} />
             </Text>
             <View style={{ flex: 1 }}>
               <Dropdown
@@ -406,7 +406,7 @@ export const NewSessionModal = ({
           {/* 메모 */}
           <View style={styles.inputGroup}>
             <Text style={[styles.inputLabel, { alignSelf: "flex-start", color: colors.textPrimary }]}>
-              <Entypo name="text" size={24} color="black" />
+              <Entypo name="text" size={24} color={colors.textPrimary} />
             </Text>
             <TextInput
               style={[styles.input, { height: "100%", padding: 13, borderColor: colors.border, backgroundColor: colors.surface }]}
