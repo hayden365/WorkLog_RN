@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { CalendarDisplayItem as CalendarDisplayItemType } from "../models/WorkSession";
+import { useTheme } from "../hooks/useTheme";
 
 interface CalendarDisplayItemProps {
   item: CalendarDisplayItemType;
@@ -13,6 +14,8 @@ export const CalendarDisplayItem: React.FC<CalendarDisplayItemProps> = ({
   onPress,
   isSelected = false,
 }) => {
+  const { colors } = useTheme();
+
   const handlePress = () => {
     if (onPress) {
       onPress(item.sessionId);
@@ -29,7 +32,7 @@ export const CalendarDisplayItem: React.FC<CalendarDisplayItemProps> = ({
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      <Text style={styles.jobName} numberOfLines={1}>
+      <Text style={[styles.jobName, { color: colors.accentText }]} numberOfLines={1}>
         {item.jobName}
       </Text>
     </TouchableOpacity>
@@ -57,7 +60,6 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.05 }],
   },
   jobName: {
-    color: "#fff",
     fontSize: 12,
     fontWeight: "600",
     textAlign: "center",
