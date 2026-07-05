@@ -184,11 +184,13 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
                   {`${new Date(session.startTime).toLocaleTimeString("ko-KR", {
                     hour: "2-digit",
                     minute: "2-digit",
+                    hour12: false,
                   })} - ${new Date(session.endTime).toLocaleTimeString(
                     "ko-KR",
                     {
                       hour: "2-digit",
                       minute: "2-digit",
+                      hour12: false,
                     }
                   )}`}
                 </Text>

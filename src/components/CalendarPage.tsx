@@ -75,7 +75,7 @@ export const CalendarPage = ({
   onDaySelected,
 }: CalendarPageProps) => {
   const { colors } = useTheme();
-  const { setMonth } = useDateStore();
+  const { setYearMonth } = useDateStore();
   const { calendarDisplayMap } = useCalendarDisplayStore();
 
   const handleDayPress = useCallback(
@@ -110,8 +110,8 @@ export const CalendarPage = ({
       <Calendar
         current={selectedDate}
         onDayPress={handleDayPress}
-        onMonthChange={(month) => {
-          setMonth(month.month - 1);
+        onMonthChange={(date) => {
+          setYearMonth(date.year, date.month - 1);
         }}
         firstDay={1}
         renderHeader={(date) => {

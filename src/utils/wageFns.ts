@@ -14,7 +14,11 @@ export const calculateDailyWage = (session: WorkSession): number | null => {
       session.startTime.getHours() * 60 + session.startTime.getMinutes();
     const endMinutes =
       session.endTime.getHours() * 60 + session.endTime.getMinutes();
-    const workMinutes = endMinutes - startMinutes;
+    let workMinutes = endMinutes - startMinutes;
+    // 종료 시각이 시작 시각보다 이르면 자정을 넘긴 근무이므로 24시간을 더한다
+    if (workMinutes < 0) {
+      workMinutes += 24 * 60;
+    }
     const workHours = workMinutes / 60;
     return workHours * session.wage;
   } else if (session.wageType === "monthly") {
@@ -30,6 +34,9 @@ export const displayMonthlyWage = (
   viewMonth: Date
 ): number => {
   let total = 0;
+  // 월급제 세션은 근무일마다 더하면 중복이므로, 그 달에 근무일이 있는 경우
+  // 전액을 1회만 반영한다 (발생주의). 여기서 id를 모아 두었다가 마지막에 합산한다.
+  const monthlyJobIds = new Set<string>();
   Object.entries(dateSchedule).forEach(([date, sessionIds]) => {
     const dateObj = new Date(date);
     if (
@@ -38,12 +45,20 @@ export const displayMonthlyWage = (
     ) {
       for (const id of sessionIds) {
         const session = allSchedulesById[id];
-        // session이 존재하고 calculatedDailyWage가 null이 아닌 경우에만 더하기
-        if (session && session.calculatedDailyWage !== null) {
+        if (!session) continue;
+        if (session.wageType === "monthly") {
+          monthlyJobIds.add(id);
+        } else if (session.calculatedDailyWage !== null) {
+          // 시급·일급: 미리 계산된 일급을 근무일마다 더한다
           total += session.calculatedDailyWage;
         }
       }
     }
   });
+
+  monthlyJobIds.forEach((id) => {
+    total += allSchedulesById[id].wage;
+  });
+
   return total;
 };

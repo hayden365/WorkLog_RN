@@ -91,9 +91,9 @@ const TimePicker = () => {
           >
             {startTime
               ? new Date(startTime).toLocaleTimeString("ko-KR", {
-                  hour: "numeric",
+                  hour: "2-digit",
                   minute: "2-digit",
-                  hour12: true,
+                  hour12: false,
                 })
               : "시간 선택"}
           </Text>
@@ -116,9 +116,9 @@ const TimePicker = () => {
             ]}
           >
             {new Date(endTime).toLocaleTimeString("ko-KR", {
-              hour: "numeric",
+              hour: "2-digit",
               minute: "2-digit",
-              hour12: true,
+              hour12: false,
             })}
           </Text>
         </TouchableOpacity>
