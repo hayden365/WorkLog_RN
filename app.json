@@ -7,6 +7,12 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/63eca05e-3d48-437d-bf15-f8946eb39f19"
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
