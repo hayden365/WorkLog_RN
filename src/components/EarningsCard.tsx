@@ -83,20 +83,4 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
   },
-  selectedDateSection: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#e5e5e5",
-  },
-  selectedDateLabel: {
-    fontSize: 13,
-    color: "#666",
-    marginBottom: 4,
-  },
-  selectedDateAmount: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#007aff",
-  },
 });
