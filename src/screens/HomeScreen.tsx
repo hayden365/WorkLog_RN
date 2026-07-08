@@ -93,7 +93,13 @@ const HomeScreen = () => {
     useScheduleManager();
   const { dateSchedule, setDateSchedule } = useDateScheduleStore();
   const { setCalendarDisplay, calendarDisplayMap } = useCalendarDisplayStore();
-  const { year, month } = useDateStore();
+  const { year, month, setYearMonth } = useDateStore();
+
+  // Move the calendar by ±1 month, rolling the year over at the boundaries.
+  const shiftMonth = (delta: number) => {
+    const next = new Date(year, month + delta, 1);
+    setYearMonth(next.getFullYear(), next.getMonth());
+  };
 
   const [selectedDate, setSelectedDate] = useState(
     format(new Date(), 'yyyy-MM-dd'),
@@ -135,6 +141,17 @@ const HomeScreen = () => {
   for (let i = 0; i < grid.length; i += 7) weeks.push(grid.slice(i, i + 7));
 
   const todayKey = format(new Date(), 'yyyy-MM-dd');
+
+  // Distinct (jobName, color) pairs shown this month — drives the calendar legend.
+  const legend = useMemo(() => {
+    const byJob = new Map<string, string>();
+    Object.values(calendarDisplayMap).forEach((items) =>
+      items.forEach((it) => {
+        if (!byJob.has(it.jobName)) byJob.set(it.jobName, it.color);
+      }),
+    );
+    return Array.from(byJob, ([jobName, color]) => ({ jobName, color }));
+  }, [calendarDisplayMap]);
 
   // Sum of a day's daily wages (monthly-type jobs have null daily wage → skipped).
   const dayWage = (key: string) =>
@@ -244,9 +261,27 @@ const HomeScreen = () => {
         <View
           style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
         >
-          <Text style={[styles.monthTitle, { color: colors.textPrimary }]}>
-            {year}년 {month + 1}월
-          </Text>
+          <View style={styles.monthNav}>
+            <Text style={[styles.monthTitle, { color: colors.textPrimary }]}>
+              {year}년 {month + 1}월
+            </Text>
+            <View style={styles.monthNavButtons}>
+              <TouchableOpacity
+                hitSlop={8}
+                style={[styles.monthNavButton, { backgroundColor: colors.surface }]}
+                onPress={() => shiftMonth(-1)}
+              >
+                <Feather name='chevron-left' size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                hitSlop={8}
+                style={[styles.monthNavButton, { backgroundColor: colors.surface }]}
+                onPress={() => shiftMonth(1)}
+              >
+                <Feather name='chevron-right' size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <View style={styles.weekHeader}>
             {WEEKDAYS.map((w, i) => (
@@ -277,8 +312,7 @@ const HomeScreen = () => {
                   : [];
                 const amount = cell.inMonth ? formatK(dayWage(cell.key)) : '';
                 const isSelected = cell.inMonth && cell.key === selectedDate;
-                const isToday =
-                  cell.inMonth && cell.key === todayKey && !isSelected;
+                const isToday = cell.inMonth && cell.key === todayKey;
                 const numColor = !cell.inMonth
                   ? colors.calendarDisabled
                   : ci === 5
@@ -297,20 +331,20 @@ const HomeScreen = () => {
                     <View
                       style={[
                         styles.dayInner,
-                        isToday && { backgroundColor: 'rgba(78,146,128,0.14)' },
+                        isSelected && { backgroundColor: colors.divider },
                       ]}
                     >
                       <View
                         style={[
                           styles.numWrap,
-                          isSelected && { backgroundColor: colors.brandStrong },
+                          isToday && { backgroundColor: colors.brandStrong },
                         ]}
                       >
                         <Text
                           style={[
                             styles.dayNum,
                             {
-                              color: isSelected ? colors.accentText : numColor,
+                              color: isToday ? colors.accentText : numColor,
                             },
                           ]}
                         >
@@ -334,6 +368,23 @@ const HomeScreen = () => {
               })}
             </View>
           ))}
+
+          {legend.length > 0 && (
+            <View style={[styles.legendRow, { borderTopColor: colors.divider }]}>
+              {legend.map((l) => (
+                <View key={l.jobName} style={styles.legendItem}>
+                  <View
+                    style={[styles.legendDot, { backgroundColor: l.color }]}
+                  />
+                  <Text
+                    style={[styles.legendLabel, { color: colors.textSecondary }]}
+                  >
+                    {l.jobName}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Selected-day detail */}
@@ -407,7 +458,11 @@ const HomeScreen = () => {
         )}
       </ScrollView>
 
-      {/* Floating add button — sits above the ad banner */}
+      <View onLayout={(e) => setBannerHeight(e.nativeEvent.layout.height)}>
+        <AdBanner />
+      </View>
+
+      {/* Floating add button — rendered after the banner so it paints on top */}
       <TouchableOpacity
         style={[
           styles.fab,
@@ -421,10 +476,6 @@ const HomeScreen = () => {
       >
         <Feather name='plus' size={28} color={colors.accentText} />
       </TouchableOpacity>
-
-      <View onLayout={(e) => setBannerHeight(e.nativeEvent.layout.height)}>
-        <AdBanner />
-      </View>
 
       <NewSessionModal
         visible={createVisible}
@@ -540,10 +591,23 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     marginBottom: spacing.lg,
   },
+  monthNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.lg,
+  },
   monthTitle: {
     fontSize: fontSize.xl,
     fontWeight: fontWeight.bold,
-    marginBottom: spacing.lg,
+  },
+  monthNavButtons: { flexDirection: 'row', gap: spacing.sm },
+  monthNavButton: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   weekHeader: { flexDirection: 'row', marginBottom: spacing.sm },
@@ -574,6 +638,19 @@ const styles = StyleSheet.create({
   dotsRow: { flexDirection: 'row', height: 8, marginTop: spacing.xxs },
   dot: { width: 6, height: 6, borderRadius: 3, marginHorizontal: 1 },
   dayAmount: { fontSize: 10, fontWeight: fontWeight.semibold, marginTop: 1 },
+
+  legendRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.lg,
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+  },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
 
   detailHeader: {
     flexDirection: 'row',
@@ -617,6 +694,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 5,
+    elevation: 8,
+    zIndex: 10,
   },
 });
