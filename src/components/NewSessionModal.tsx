@@ -23,6 +23,7 @@ import DatePicker from "./DatePicker";
 import SlideInView from "./SlideInView";
 import { formatNumberWithComma } from "../utils/formatNumbs";
 import { useTheme } from "../hooks/useTheme";
+import { spacing, radius, fontSize, fontWeight } from "../theme/tokens";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -189,57 +190,53 @@ export const NewSessionModal = ({
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <SafeAreaView style={[styles.areaContainer, { backgroundColor: colors.background }]}>
-        <View
-          style={[
-            styles.headerContainer,
-            { borderColor: colors.border },
-          ]}
-        >
+      <SafeAreaView style={[styles.areaContainer, { backgroundColor: colors.surface }]}>
+        <View style={styles.headerContainer}>
           {/* 닫기 */}
           <TouchableOpacity
             style={[styles.closeButton, { backgroundColor: colors.surfaceElevated }]}
             onPress={onClose}
           >
-            <Text style={[styles.closeButtonText, { color: colors.textPrimary }]}>
-              <Feather name="x" size={20} color={colors.textPrimary} />
-            </Text>
+            <Feather name="x" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
           <Text style={[styles.header, { color: colors.textPrimary }]}>{getHeaderTitle()}</Text>
           {/* 저장 버튼 */}
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <Text style={[styles.saveButtonText, { color: colors.accent }]}>저장</Text>
+          <TouchableOpacity
+            style={[styles.saveButton, { backgroundColor: colors.brand }]}
+            onPress={handleSave}
+          >
+            <Text style={[styles.saveButtonText, { color: colors.accentText }]}>저장</Text>
           </TouchableOpacity>
         </View>
         <ScrollView
           ref={scrollViewRef}
           contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
         >
           {/* 근무지 */}
-          <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
-              <Ionicons name="location-outline" size={24} color={colors.textPrimary} />
-            </Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  borderColor: colors.border,
-                  backgroundColor: colors.surface,
-                },
-              ]}
-              placeholder="근무지명을 입력하세요"
-              placeholderTextColor={colors.textMuted}
-              value={jobName}
-              onChangeText={setJobName}
-            />
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.inputGroup}>
+              <View style={styles.iconWrap}>
+                <Ionicons name="location-outline" size={22} color={colors.brand} />
+              </View>
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: colors.surface, color: colors.textPrimary },
+                ]}
+                placeholder="근무지명을 입력하세요"
+                placeholderTextColor={colors.textMuted}
+                value={jobName}
+                onChangeText={setJobName}
+              />
+            </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
-          {/* 시급 */}
-          <View style={{ gap: 12 }}>
+
+          {/* 급여 */}
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
             <SegmentedControl
               appearance={scheme}
-              tintColor={colors.surfaceElevated}
+              tintColor={colors.surface}
               backgroundColor={colors.divider}
               fontStyle={{ color: colors.textPrimary }}
               activeFontStyle={{ color: colors.textPrimary }}
@@ -258,25 +255,15 @@ export const NewSessionModal = ({
               }}
             />
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
-                <Ionicons name="cash-outline" size={24} color={colors.textPrimary} />
-              </Text>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  flex: 1,
-                  gap: 10,
-                }}
-              >
-                <FontAwesome name="won" size={16} color={colors.textPrimary} />
+              <View style={styles.iconWrap}>
+                <Ionicons name="cash-outline" size={22} color={colors.brand} />
+              </View>
+              <View style={styles.wageInputRow}>
+                <FontAwesome name="won" size={16} color={colors.textSecondary} />
                 <TextInput
                   style={[
                     styles.input,
-                    {
-                      borderColor: colors.border,
-                      backgroundColor: colors.surface,
-                    },
+                    { flex: 1, backgroundColor: colors.surface, color: colors.textPrimary },
                   ]}
                   placeholder={
                     wageType === "hourly"
@@ -295,127 +282,126 @@ export const NewSessionModal = ({
               </View>
             </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
+
           {/* 시간 */}
-          <View style={{ minHeight: 48, flexDirection: "row" }}>
-            <Text style={[styles.inputLabel, { alignSelf: "flex-start", color: colors.textPrimary }]}>
-              <Ionicons name="time-outline" size={24} color={colors.textPrimary} />
-            </Text>
-            <View style={{ flex: 1 }}>
-              <TimePicker />
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.rowTop}>
+              <View style={styles.iconWrap}>
+                <Ionicons name="time-outline" size={22} color={colors.brand} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <TimePicker />
+              </View>
             </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
+
           {/* 날짜 */}
-          <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { alignSelf: "flex-start", color: colors.textPrimary }]}>
-              <Ionicons name="calendar-outline" size={24} color={colors.textPrimary} />
-            </Text>
-            <View style={{ flex: 1, gap: 8 }}>
-              <DatePicker isCurrentlyWorking={isCurrentlyWorking} />
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  height: 48,
-                }}
-              >
-                <Text style={{ fontSize: 16, marginLeft: 10, color: colors.textPrimary }}>
-                  종료일 없음
-                </Text>
-                <Switch
-                  value={isCurrentlyWorking}
-                  onValueChange={setIsCurrentlyWorking}
-                  trackColor={{
-                    true: colors.accent,
-                    false: colors.border,
-                  }}
-                  thumbColor={colors.surfaceElevated}
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.rowTop}>
+              <View style={styles.iconWrap}>
+                <Ionicons name="calendar-outline" size={22} color={colors.brand} />
+              </View>
+              <View style={{ flex: 1, gap: spacing.sm }}>
+                <DatePicker isCurrentlyWorking={isCurrentlyWorking} />
+                <View style={styles.switchRow}>
+                  <Text style={{ fontSize: fontSize.base, color: colors.textPrimary }}>
+                    종료일 없음
+                  </Text>
+                  <Switch
+                    value={isCurrentlyWorking}
+                    onValueChange={setIsCurrentlyWorking}
+                    trackColor={{
+                      true: colors.brand,
+                      false: colors.border,
+                    }}
+                    thumbColor={colors.surfaceElevated}
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+
+          {/* 반복 주기 */}
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.inputGroup}>
+              <View style={styles.iconWrap}>
+                <Ionicons name="repeat-outline" size={22} color={colors.brand} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Dropdown
+                  data={repeatOptions}
+                  onChange={handleRepeatOptionChange}
+                  placeholder={
+                    repeatOptions.find((option) => option.value === repeatOption)
+                      ?.label ?? "반복 없음"
+                  }
                 />
               </View>
             </View>
-          </View>
-          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
-          {/* 반복 주기 */}
-          <View style={[styles.inputGroup, { marginBottom: -18 }]}>
-            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
-              <Ionicons name="repeat-outline" size={24} color={colors.textPrimary} />
-            </Text>
-            <View style={{ flex: 1 }}>
-              <Dropdown
-                data={repeatOptions}
-                onChange={handleRepeatOptionChange}
-                placeholder={
-                  repeatOptions.find((option) => option.value === repeatOption)
-                    ?.label ?? "반복 없음"
+            {/* 요일 선택 */}
+            <SlideInView
+              visible={repeatOption === "weekly" || repeatOption === "biweekly"}
+              direction="down"
+            >
+              <View
+                style={
+                  repeatOption === "weekly" || repeatOption === "biweekly"
+                    ? { paddingTop: spacing.md }
+                    : { height: 0 }
                 }
+              >
+                <View style={styles.rowWrap}>
+                  {dayNames.map((day) => {
+                    const selected = safeSelectedWeekDays.has(day.value);
+                    return (
+                      <TouchableOpacity
+                        key={day.value}
+                        style={[
+                          styles.optionButton,
+                          { borderColor: colors.border },
+                          selected && {
+                            backgroundColor: colors.brand,
+                            borderColor: colors.brand,
+                          },
+                        ]}
+                        onPress={() => toggleWeekDay(day.value)}
+                      >
+                        <Text
+                          style={{
+                            fontSize: fontSize.md,
+                            fontWeight: fontWeight.medium,
+                            color: selected ? colors.accentText : colors.textPrimary,
+                          }}
+                        >
+                          {day.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </SlideInView>
+          </View>
+
+          {/* 메모 */}
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.rowTop}>
+              <View style={styles.iconWrap}>
+                <Entypo name="text" size={22} color={colors.brand} />
+              </View>
+              <TextInput
+                style={[
+                  styles.input,
+                  styles.memoInput,
+                  { backgroundColor: colors.surface, color: colors.textPrimary },
+                ]}
+                placeholder="설명 추가"
+                placeholderTextColor={colors.textMuted}
+                value={description}
+                multiline
+                onChangeText={setDescription}
               />
             </View>
-          </View>
-          {/* 요일 선택 */}
-          <SlideInView
-            visible={repeatOption === "weekly" || repeatOption === "biweekly"}
-            direction="down"
-          >
-            <View
-              style={
-                repeatOption === "weekly" || repeatOption === "biweekly"
-                  ? {
-                      height: 50,
-                      paddingTop: 12,
-                    }
-                  : { height: 0 }
-              }
-            >
-              <View style={styles.rowWrap}>
-                {dayNames.map((day) => (
-                  <TouchableOpacity
-                    key={day.value}
-                    style={[
-                      styles.optionButton,
-                      { borderColor: colors.border },
-                      safeSelectedWeekDays.has(day.value) && [
-                        styles.optionButtonSelected,
-                        {
-                          backgroundColor: colors.accent,
-                          borderColor: colors.accent,
-                        },
-                      ],
-                    ]}
-                    onPress={() => toggleWeekDay(day.value)}
-                  >
-                    <Text
-                      style={[
-                        styles.optionButtonText,
-                        { color: colors.textPrimary },
-                        safeSelectedWeekDays.has(day.value) && [
-                          styles.optionButtonTextSelected,
-                          { color: colors.accentText },
-                        ],
-                      ]}
-                    >
-                      {day.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </SlideInView>
-          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
-          {/* 메모 */}
-          <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { alignSelf: "flex-start", color: colors.textPrimary }]}>
-              <Entypo name="text" size={24} color={colors.textPrimary} />
-            </Text>
-            <TextInput
-              style={[styles.input, { height: "100%", padding: 13, borderColor: colors.border, backgroundColor: colors.surface }]}
-              placeholder="설명 추가"
-              placeholderTextColor={colors.textMuted}
-              value={description}
-              multiline
-              onChangeText={setDescription}
-            />
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -430,55 +416,71 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
-    marginBottom: 16,
-    borderBottomWidth: 1,
-    paddingBottom: 16,
-  },
-  container: {
-    padding: 16,
-    paddingBottom: 60,
-    gap: 24,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   header: {
-    fontSize: 16,
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
     textAlign: "center",
+  },
+  container: {
+    padding: spacing.lg,
+    paddingBottom: 60,
+    gap: spacing.md,
+  },
+  card: {
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
   },
   inputGroup: {
     flexDirection: "row",
     minHeight: 48,
     alignItems: "center",
+    gap: spacing.md,
   },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    width: 50,
+  rowTop: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.md,
+  },
+  iconWrap: {
+    width: 28,
     height: 48,
-    textAlignVertical: "top",
-    lineHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
   },
   input: {
     flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    fontSize: fontSize.base,
     height: 48,
   },
-  label: { fontSize: 14, fontWeight: "bold", marginTop: 12, marginBottom: 6 },
-  row: {
+  memoInput: {
+    minHeight: 88,
+    height: undefined,
+    paddingVertical: spacing.md,
+    textAlignVertical: "top",
+  },
+  wageInputRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    flex: 1,
+    gap: spacing.sm,
+  },
+  switchRow: {
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
+    height: 48,
+    paddingHorizontal: spacing.xs,
   },
   rowWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginTop: -10,
-    marginBottom: 12,
     width: "100%",
-    flex: 1,
     justifyContent: "space-around",
   },
   optionButton: {
@@ -486,28 +488,25 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: "center",
     justifyContent: "center",
-    padding: 8,
     borderWidth: 1,
-    borderRadius: 20,
-    marginRight: 6,
-    marginBottom: 6,
+    borderRadius: radius.full,
   },
-  optionButtonSelected: {},
-  optionButtonTextSelected: {},
-  optionButtonText: {},
-  timeButton: {
-    padding: 10,
-    borderWidth: 1,
-    borderRadius: 8,
-    flex: 1,
-    alignItems: "center",
-  },
-
   saveButton: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
     alignItems: "center",
-    borderRadius: 8,
+    justifyContent: "center",
   },
-  saveButtonText: { fontWeight: "bold" },
-  closeButton: {},
-  closeButtonText: {},
+  saveButtonText: {
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.bold,
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
