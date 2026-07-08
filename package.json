@@ -11,6 +11,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
     "@react-native-community/datetimepicker": "8.6.0",
     "@react-native-segmented-control/segmented-control": "2.5.7",
     "@react-native/new-app-screen": "0.80.2",
