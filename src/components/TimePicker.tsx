@@ -32,6 +32,14 @@ const TimePicker = () => {
   }>(null);
   const anim = useRef(new Animated.Value(0)).current;
 
+  // 시작/종료 시간 비교 (wageFns와 동일하게 시·분만 비교)
+  const startMinutes =
+    new Date(startTime).getHours() * 60 + new Date(startTime).getMinutes();
+  const endMinutes =
+    new Date(endTime).getHours() * 60 + new Date(endTime).getMinutes();
+  const isSameTime = startMinutes === endMinutes;
+  const isOvernight = startMinutes > endMinutes;
+
   const handleToggle = (index: number, type: "time") => {
     // 레이아웃 애니메이션 설정
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -124,6 +132,17 @@ const TimePicker = () => {
         </TouchableOpacity>
       </View>
 
+      {/* 시작/종료 시간 안내 문구 */}
+      {isSameTime ? (
+        <Text style={[styles.notice, { color: colors.danger }]}>
+          시작 시간과 종료 시간이 같습니다. 근무 시간이 0시간으로 계산됩니다.
+        </Text>
+      ) : isOvernight ? (
+        <Text style={[styles.notice, { color: colors.textSecondary }]}>
+          종료 시간이 시작 시간보다 이릅니다. 자정을 넘긴 야간 근무로 계산됩니다.
+        </Text>
+      ) : null}
+
       {/* DateTimePicker */}
       {openPicker && (
         <Animated.View
@@ -177,6 +196,11 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 16,
+  },
+  notice: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: -8,
   },
   buttonContainer: {
     flexDirection: "row",

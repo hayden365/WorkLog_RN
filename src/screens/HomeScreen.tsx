@@ -66,7 +66,12 @@ function buildGrid(year: number, month: number): Cell[] {
     const dayNum = i - offset + 1;
     const col = i % 7;
     if (dayNum < 1) {
-      cells.push({ label: prevMonthDays + dayNum, inMonth: false, key: '', col });
+      cells.push({
+        label: prevMonthDays + dayNum,
+        inMonth: false,
+        key: '',
+        col,
+      });
     } else if (dayNum > daysInMonth) {
       cells.push({ label: dayNum - daysInMonth, inMonth: false, key: '', col });
     } else {
@@ -84,17 +89,22 @@ function buildGrid(year: number, month: number): Cell[] {
 const HomeScreen = () => {
   const { colors } = useTheme();
   const { reset } = useShiftStore();
-  const { allSchedulesById, addSchedule, getAllSchedules } = useScheduleManager();
+  const { allSchedulesById, addSchedule, getAllSchedules } =
+    useScheduleManager();
   const { dateSchedule, setDateSchedule } = useDateScheduleStore();
   const { setCalendarDisplay, calendarDisplayMap } = useCalendarDisplayStore();
   const { year, month } = useDateStore();
 
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [selectedDate, setSelectedDate] = useState(
+    format(new Date(), 'yyyy-MM-dd'),
+  );
   const [earnings, setEarnings] = useState(0);
   const [prevEarnings, setPrevEarnings] = useState(0);
   const [amountVisible, setAmountVisible] = useState(true);
   const [createVisible, setCreateVisible] = useState(false);
-  const [editSessionId, setEditSessionId] = useState<string | undefined>(undefined);
+  const [editSessionId, setEditSessionId] = useState<string | undefined>(
+    undefined,
+  );
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [bannerHeight, setBannerHeight] = useState(0);
 
@@ -111,8 +121,13 @@ const HomeScreen = () => {
     setEarnings(displayMonthlyWage(byDate, allSchedulesById, viewMonth));
 
     const prevMonth = new Date(year, month - 1, 1);
-    const { dateSchedule: prevByDate } = generateViewMonthScheduleData(all, prevMonth);
-    setPrevEarnings(displayMonthlyWage(prevByDate, allSchedulesById, prevMonth));
+    const { dateSchedule: prevByDate } = generateViewMonthScheduleData(
+      all,
+      prevMonth,
+    );
+    setPrevEarnings(
+      displayMonthlyWage(prevByDate, allSchedulesById, prevMonth),
+    );
   }, [allSchedulesById, year, month]);
 
   const grid = useMemo(() => buildGrid(year, month), [year, month]);
@@ -131,7 +146,12 @@ const HomeScreen = () => {
   const workDays = Object.keys(dateSchedule).length;
   const totalHours = Object.values(dateSchedule).reduce(
     (sum, ids) =>
-      sum + ids.reduce((h, id) => h + (allSchedulesById[id] ? sessionHours(allSchedulesById[id]) : 0), 0),
+      sum +
+      ids.reduce(
+        (h, id) =>
+          h + (allSchedulesById[id] ? sessionHours(allSchedulesById[id]) : 0),
+        0,
+      ),
     0,
   );
 
@@ -142,21 +162,39 @@ const HomeScreen = () => {
   const selDate = new Date(selectedDate);
 
   const trendPct =
-    prevEarnings > 0 ? Math.round(((earnings - prevEarnings) / prevEarnings) * 100) : null;
+    prevEarnings > 0
+      ? Math.round(((earnings - prevEarnings) / prevEarnings) * 100)
+      : null;
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: colors.surface }]} edges={['top', 'bottom']}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+    <SafeAreaView
+      style={[styles.root, { backgroundColor: colors.surface }]}
+      edges={['top', 'bottom']}
+    >
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoRow}>
-            <View style={[styles.logoMark, { backgroundColor: colors.brandStrong }]}>
-              <Text style={[styles.logoText, { color: colors.accentText }]}>W</Text>
+            <View
+              style={[styles.logoMark, { backgroundColor: colors.brandStrong }]}
+            >
+              <Text style={[styles.logoText, { color: colors.accentText }]}>
+                W
+              </Text>
             </View>
-            <Text style={[styles.brandName, { color: colors.textPrimary }]}>WorkLog</Text>
+            <Text style={[styles.brandName, { color: colors.textPrimary }]}>
+              WorkLog
+            </Text>
           </View>
-          <TouchableOpacity hitSlop={8} onPress={() => setSettingsVisible(true)}>
-            <Feather name="settings" size={22} color={colors.textSecondary} />
+          <TouchableOpacity
+            hitSlop={8}
+            onPress={() => setSettingsVisible(true)}
+          >
+            <Feather name='settings' size={22} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -166,20 +204,25 @@ const HomeScreen = () => {
           <View style={styles.blob2} />
           <View style={styles.earningsTopRow}>
             <Text style={styles.earningsLabel}>{month + 1}월 예상 급여</Text>
-            <TouchableOpacity hitSlop={8} onPress={() => setAmountVisible((v) => !v)}>
+            <TouchableOpacity
+              hitSlop={8}
+              onPress={() => setAmountVisible((v) => !v)}
+            >
               <Feather
                 name={amountVisible ? 'eye' : 'eye-off'}
                 size={20}
-                color="rgba(255,255,255,0.9)"
+                color='rgba(255,255,255,0.9)'
               />
             </TouchableOpacity>
           </View>
           <Text style={styles.earningsAmount}>
-            {amountVisible ? `₩${formatNumberWithComma(String(earnings))}` : '₩ •••••••'}
+            {amountVisible
+              ? `₩${formatNumberWithComma(String(earnings))}`
+              : '₩ •••••••'}
           </Text>
           <View style={styles.earningsBottomRow}>
             <Text style={styles.earningsMeta}>
-              근무 {workDays}일  ·  {Math.round(totalHours)}시간
+              근무 {workDays}일 · {Math.round(totalHours)}시간
             </Text>
             {trendPct !== null && (
               <View style={styles.trendPill}>
@@ -198,7 +241,9 @@ const HomeScreen = () => {
         </View>
 
         {/* Calendar card */}
-        <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+        <View
+          style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
+        >
           <Text style={[styles.monthTitle, { color: colors.textPrimary }]}>
             {year}년 {month + 1}월
           </Text>
@@ -209,7 +254,14 @@ const HomeScreen = () => {
                 key={w}
                 style={[
                   styles.weekHeaderCell,
-                  { color: i === 5 ? colors.saturday : i === 6 ? colors.sunday : colors.textSecondary },
+                  {
+                    color:
+                      i === 5
+                        ? colors.saturday
+                        : i === 6
+                        ? colors.sunday
+                        : colors.textSecondary,
+                  },
                 ]}
               >
                 {w}
@@ -220,10 +272,13 @@ const HomeScreen = () => {
           {weeks.map((week, wi) => (
             <View key={wi} style={styles.weekRow}>
               {week.map((cell, ci) => {
-                const dots = cell.inMonth ? calendarDisplayMap[cell.key] ?? [] : [];
+                const dots = cell.inMonth
+                  ? calendarDisplayMap[cell.key] ?? []
+                  : [];
                 const amount = cell.inMonth ? formatK(dayWage(cell.key)) : '';
                 const isSelected = cell.inMonth && cell.key === selectedDate;
-                const isToday = cell.inMonth && cell.key === todayKey && !isSelected;
+                const isToday =
+                  cell.inMonth && cell.key === todayKey && !isSelected;
                 const numColor = !cell.inMonth
                   ? colors.calendarDisabled
                   : ci === 5
@@ -239,18 +294,40 @@ const HomeScreen = () => {
                     disabled={!cell.inMonth}
                     onPress={() => cell.inMonth && setSelectedDate(cell.key)}
                   >
-                    <View style={[styles.dayInner, isToday && { backgroundColor: 'rgba(78,146,128,0.14)' }]}>
-                      <View style={[styles.numWrap, isSelected && { backgroundColor: colors.brandStrong }]}>
-                        <Text style={[styles.dayNum, { color: isSelected ? colors.accentText : numColor }]}>
+                    <View
+                      style={[
+                        styles.dayInner,
+                        isToday && { backgroundColor: 'rgba(78,146,128,0.14)' },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.numWrap,
+                          isSelected && { backgroundColor: colors.brandStrong },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.dayNum,
+                            {
+                              color: isSelected ? colors.accentText : numColor,
+                            },
+                          ]}
+                        >
                           {cell.label}
                         </Text>
                       </View>
                       <View style={styles.dotsRow}>
                         {dots.slice(0, 3).map((d, di) => (
-                          <View key={di} style={[styles.dot, { backgroundColor: d.color }]} />
+                          <View
+                            key={di}
+                            style={[styles.dot, { backgroundColor: d.color }]}
+                          />
                         ))}
                       </View>
-                      <Text style={[styles.dayAmount, { color: colors.brand }]}>{amount}</Text>
+                      <Text style={[styles.dayAmount, { color: colors.brand }]}>
+                        {amount}
+                      </Text>
                     </View>
                   </TouchableOpacity>
                 );
@@ -262,18 +339,29 @@ const HomeScreen = () => {
         {/* Selected-day detail */}
         <View style={styles.detailHeader}>
           <Text style={[styles.detailDate, { color: colors.textPrimary }]}>
-            {selDate.getMonth() + 1}월 {selDate.getDate()}일 ({WD_KO[selDate.getDay()]})
+            {selDate.getMonth() + 1}월 {selDate.getDate()}일 (
+            {WD_KO[selDate.getDay()]})
           </Text>
           {selectedWage > 0 && (
             <Text style={[styles.detailWage, { color: colors.brand }]}>
-              일급 <Text style={styles.detailWageAmount}>₩{formatNumberWithComma(String(selectedWage))}</Text>
+              일급{' '}
+              <Text style={styles.detailWageAmount}>
+                ₩{formatNumberWithComma(String(selectedWage))}
+              </Text>
             </Text>
           )}
         </View>
 
         {selectedSessions.length === 0 ? (
-          <View style={[styles.scheduleCard, { backgroundColor: colors.surfaceElevated }]}>
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>일정이 없습니다</Text>
+          <View
+            style={[
+              styles.scheduleCard,
+              { backgroundColor: colors.surfaceElevated },
+            ]}
+          >
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              일정이 없습니다
+            </Text>
           </View>
         ) : (
           selectedSessions.map((session) => (
@@ -281,19 +369,36 @@ const HomeScreen = () => {
               key={session.id}
               activeOpacity={0.8}
               onPress={() => setEditSessionId(session.id)}
-              style={[styles.scheduleCard, { backgroundColor: colors.surfaceElevated }]}
+              style={[
+                styles.scheduleCard,
+                { backgroundColor: colors.surfaceElevated },
+              ]}
             >
-              <View style={[styles.scheduleBar, { backgroundColor: session.color || colors.brand }]} />
+              <View
+                style={[
+                  styles.scheduleBar,
+                  { backgroundColor: session.color || colors.brand },
+                ]}
+              />
               <View style={styles.scheduleBody}>
-                <Text style={[styles.scheduleTitle, { color: colors.textPrimary }]}>{session.jobName}</Text>
-                <Text style={[styles.scheduleTime, { color: colors.textSecondary }]}>
-                  {format(session.startTime, 'HH:mm')} – {format(session.endTime, 'HH:mm')}
+                <Text
+                  style={[styles.scheduleTitle, { color: colors.textPrimary }]}
+                >
+                  {session.jobName}
+                </Text>
+                <Text
+                  style={[styles.scheduleTime, { color: colors.textSecondary }]}
+                >
+                  {format(session.startTime, 'HH:mm')} –{' '}
+                  {format(session.endTime, 'HH:mm')}
                   {'  ·  '}
                   {Math.round(sessionHours(session) * 10) / 10}시간
                 </Text>
               </View>
               {session.calculatedDailyWage != null && (
-                <Text style={[styles.scheduleWage, { color: colors.textPrimary }]}>
+                <Text
+                  style={[styles.scheduleWage, { color: colors.textPrimary }]}
+                >
                   ₩{formatNumberWithComma(String(session.calculatedDailyWage))}
                 </Text>
               )}
@@ -304,14 +409,17 @@ const HomeScreen = () => {
 
       {/* Floating add button — sits above the ad banner */}
       <TouchableOpacity
-        style={[styles.fab, { bottom: bannerHeight + spacing.xl, backgroundColor: colors.brand }]}
+        style={[
+          styles.fab,
+          { bottom: bannerHeight + spacing.xl, backgroundColor: colors.brand },
+        ]}
         activeOpacity={0.85}
         onPress={() => {
           reset();
           setCreateVisible(true);
         }}
       >
-        <Feather name="plus" size={28} color={colors.accentText} />
+        <Feather name='plus' size={28} color={colors.accentText} />
       </TouchableOpacity>
 
       <View onLayout={(e) => setBannerHeight(e.nativeEvent.layout.height)}>
@@ -320,7 +428,7 @@ const HomeScreen = () => {
 
       <NewSessionModal
         visible={createVisible}
-        mode="create"
+        mode='create'
         onClose={() => setCreateVisible(false)}
         onSave={(s: Partial<WorkSession>) => addSchedule(s as WorkSession)}
       />
@@ -329,7 +437,10 @@ const HomeScreen = () => {
         onClose={() => setEditSessionId(undefined)}
         sessionId={editSessionId}
       />
-      <SettingsModal visible={settingsVisible} onClose={() => setSettingsVisible(false)} />
+      <SettingsModal
+        visible={settingsVisible}
+        onClose={() => setSettingsVisible(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -382,8 +493,16 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
-  earningsTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  earningsLabel: { fontSize: fontSize.md, fontWeight: fontWeight.medium, color: 'rgba(255,255,255,0.85)' },
+  earningsTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  earningsLabel: {
+    fontSize: fontSize.md,
+    fontWeight: fontWeight.medium,
+    color: 'rgba(255,255,255,0.85)',
+  },
   earningsAmount: {
     fontSize: fontSize.display,
     fontWeight: fontWeight.bold,
@@ -391,8 +510,16 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     marginBottom: spacing.md,
   },
-  earningsBottomRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  earningsMeta: { fontSize: fontSize.md, color: 'rgba(255,255,255,0.85)', fontWeight: fontWeight.medium },
+  earningsBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  earningsMeta: {
+    fontSize: fontSize.md,
+    color: 'rgba(255,255,255,0.85)',
+    fontWeight: fontWeight.medium,
+  },
   trendPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -402,13 +529,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.full,
   },
-  trendText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: '#ffffff' },
+  trendText: {
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.semibold,
+    color: '#ffffff',
+  },
 
-  card: { borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.lg },
-  monthTitle: { fontSize: fontSize.xl, fontWeight: fontWeight.bold, marginBottom: spacing.lg },
+  card: {
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  monthTitle: {
+    fontSize: fontSize.xl,
+    fontWeight: fontWeight.bold,
+    marginBottom: spacing.lg,
+  },
 
   weekHeader: { flexDirection: 'row', marginBottom: spacing.sm },
-  weekHeaderCell: { flex: 1, textAlign: 'center', fontSize: fontSize.sm, fontWeight: fontWeight.medium },
+  weekHeaderCell: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: fontSize.sm,
+    fontWeight: fontWeight.medium,
+  },
   weekRow: { flexDirection: 'row' },
   dayCell: { flex: 1, alignItems: 'center' },
   dayInner: {
@@ -419,7 +563,13 @@ const styles = StyleSheet.create({
     minHeight: 58,
     width: 42,
   },
-  numWrap: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  numWrap: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   dayNum: { fontSize: fontSize.md, fontWeight: fontWeight.medium },
   dotsRow: { flexDirection: 'row', height: 8, marginTop: spacing.xxs },
   dot: { width: 6, height: 6, borderRadius: 3, marginHorizontal: 1 },
@@ -448,7 +598,12 @@ const styles = StyleSheet.create({
   scheduleTitle: { fontSize: fontSize.base, fontWeight: fontWeight.bold },
   scheduleTime: { fontSize: fontSize.sm },
   scheduleWage: { fontSize: fontSize.base, fontWeight: fontWeight.semibold },
-  emptyText: { flex: 1, textAlign: 'center', fontSize: fontSize.md, fontStyle: 'italic' },
+  emptyText: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: fontSize.md,
+    fontStyle: 'italic',
+  },
 
   fab: {
     position: 'absolute',
