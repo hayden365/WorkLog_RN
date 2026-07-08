@@ -22,6 +22,7 @@
     "dayjs": "^1.11.13",
     "expo": "^55.0.15",
     "expo-dev-client": "~55.0.27",
+    "expo-font": "~55.0.8",
     "expo-status-bar": "~55.0.5",
     "expo-updates": "~55.0.25",
     "react": "19.2.0",

@@ -49,7 +49,8 @@
           "androidAppId": "ca-app-pub-8982275568378070~2958445253",
           "iosAppId": "ca-app-pub-8982275568378070~2958445253"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "owner": "hyejikong"
   }
