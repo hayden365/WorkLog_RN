@@ -9,7 +9,11 @@ export type ThemeColors = {
   textMuted: string;
   accent: string;
   accentText: string;
+  brand: string;
+  brandStrong: string;
   danger: string;
+  saturday: string;
+  sunday: string;
   calendarSelected: string;
   calendarToday: string;
   calendarDisabled: string;
@@ -26,7 +30,11 @@ export const lightColors: ThemeColors = {
   textMuted: '#8e8e93',
   accent: '#007aff',
   accentText: '#ffffff',
+  brand: '#4e9280',
+  brandStrong: '#3e7e6b',
   danger: '#ff3b30',
+  saturday: '#3e6fd0',
+  sunday: '#e0503c',
   calendarSelected: '#007aff',
   calendarToday: '#007aff',
   calendarDisabled: '#d9e1e8',
@@ -43,7 +51,11 @@ export const darkColors: ThemeColors = {
   textMuted: '#8e8e93',
   accent: '#0a84ff',
   accentText: '#ffffff',
+  brand: '#4e9280',
+  brandStrong: '#5fa997',
   danger: '#ff453a',
+  saturday: '#5b8def',
+  sunday: '#ff6b5b',
   calendarSelected: '#0a84ff',
   calendarToday: '#0a84ff',
   calendarDisabled: '#48484a',

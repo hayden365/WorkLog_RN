@@ -50,6 +50,8 @@ export const fontSize = {
   xl: 22,
   xxl: 24,
   xxxl: 28,
+  /** Hero numbers (e.g. the salary total on the home card). */
+  display: 44,
 } as const;
 
 /**
