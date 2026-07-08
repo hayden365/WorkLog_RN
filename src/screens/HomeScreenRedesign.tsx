@@ -1,13 +1,11 @@
 /**
- * HomeScreenRedesign — a faithful RN translation of the Claude Design mockup,
- * built entirely from our design tokens (src/theme/tokens) and semantic colors
- * (src/theme/colors, incl. the new `brand` green).
+ * HomeScreenRedesign — the Claude Design mockup translated to RN, wired to the
+ * app's real stores. Same data flow as HomeScreen (generateViewMonthScheduleData
+ * + displayMonthlyWage), rendered with our design tokens and the `brand` palette.
  *
- * Presentational only: it renders mock data and is not wired to the app's
- * stores or navigation, so it doesn't touch the working HomeScreen. To preview
- * it, point a route at <HomeScreenRedesign /> (see the note in the chat).
+ * Drop-in candidate: point a route at <HomeScreenRedesign /> to preview it.
  */
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -17,86 +15,142 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
+import { format } from 'date-fns';
 import { useTheme } from '../hooks/useTheme';
 import { spacing, radius, fontSize, fontWeight } from '../theme/tokens';
-
-// --- Mock data (would come from stores in the wired screen) --------------------
-
-/** Workplace category colors — data, not theme tokens. */
-const CATEGORY = {
-  starbucks: { color: '#4e9280', label: '스타벅스' },
-  gs25: { color: '#e6a23d', label: 'GS25' },
-  tutoring: { color: '#9b7ede', label: '과외' },
-} as const;
-
-type Category = keyof typeof CATEGORY;
-
-type DayMark = { dots: Category[]; amount: string };
-
-/** July 2026 marks, keyed by day-of-month (matches the mockup). */
-const MARKS: Record<number, DayMark> = {
-  1: { dots: ['starbucks'], amount: '60k' },
-  2: { dots: ['gs25'], amount: '44k' },
-  3: { dots: ['starbucks'], amount: '72k' },
-  6: { dots: ['starbucks', 'gs25'], amount: '104k' },
-  8: { dots: ['starbucks'], amount: '60k' },
-  9: { dots: ['tutoring'], amount: '80k' },
-  10: { dots: ['starbucks'], amount: '72k' },
-  13: { dots: ['starbucks'], amount: '60k' },
-  15: { dots: ['gs25'], amount: '55k' },
-  16: { dots: ['starbucks'], amount: '60k' },
-  17: { dots: ['tutoring'], amount: '80k' },
-  20: { dots: ['starbucks'], amount: '60k' },
-  22: { dots: ['starbucks'], amount: '72k' },
-  24: { dots: ['gs25'], amount: '44k' },
-  27: { dots: ['starbucks'], amount: '60k' },
-  29: { dots: ['tutoring'], amount: '80k' },
-};
-
-const TODAY = 6; // light pill highlight
-const SELECTED = 7; // filled circle
+import { useDateStore } from '../store/dateStore';
+import {
+  useDateScheduleStore,
+  useCalendarDisplayStore,
+  useShiftStore,
+} from '../store/shiftStore';
+import { useScheduleManager } from '../hooks/useScheduleManager';
+import { generateViewMonthScheduleData } from '../utils/calendarfns';
+import { displayMonthlyWage } from '../utils/wageFns';
+import { formatNumberWithComma } from '../utils/formatNumbs';
+import { WorkSession } from '../models/WorkSession';
+import { NewSessionModal } from '../components/NewSessionModal';
+import ScheduleModal from '../components/ScheduleModal';
 
 const WEEKDAYS = ['월', '화', '수', '목', '금', '토', '일'];
+const WD_KO = ['일', '월', '화', '수', '목', '금', '토'];
 
-/**
- * Month grid, Monday-first. July 2026 starts on a Wednesday (index 2), so two
- * trailing June days lead, and two August days trail — five weeks, as drawn.
- */
-type Cell = { day: number; inMonth: boolean };
-function buildGrid(): Cell[] {
+/** Worked hours for one session, wrapping past midnight (mirrors calculateDailyWage). */
+function sessionHours(s: WorkSession): number {
+  const start = s.startTime.getHours() * 60 + s.startTime.getMinutes();
+  const end = s.endTime.getHours() * 60 + s.endTime.getMinutes();
+  let mins = end - start;
+  if (mins < 0) mins += 24 * 60;
+  return mins / 60;
+}
+
+/** 104000 → "104k"; 0/undefined → "". */
+function formatK(n: number): string {
+  if (!n) return '';
+  return `${Math.round(n / 1000)}k`;
+}
+
+type Cell = { label: number; inMonth: boolean; key: string; col: number };
+
+/** Monday-first month grid for (year, month), with leading/trailing days. */
+function buildGrid(year: number, month: number): Cell[] {
+  const first = new Date(year, month, 1);
+  const offset = (first.getDay() + 6) % 7; // Mon-first leading count
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const prevMonthDays = new Date(year, month, 0).getDate();
+  const total = Math.ceil((offset + daysInMonth) / 7) * 7;
+
   const cells: Cell[] = [];
-  for (let d = 29; d <= 30; d++) cells.push({ day: d, inMonth: false }); // Jun 29–30
-  for (let d = 1; d <= 31; d++) cells.push({ day: d, inMonth: true }); // Jul 1–31
-  for (let d = 1; d <= 2; d++) cells.push({ day: d, inMonth: false }); // Aug 1–2
+  for (let i = 0; i < total; i++) {
+    const dayNum = i - offset + 1;
+    const col = i % 7;
+    if (dayNum < 1) {
+      cells.push({ label: prevMonthDays + dayNum, inMonth: false, key: '', col });
+    } else if (dayNum > daysInMonth) {
+      cells.push({ label: dayNum - daysInMonth, inMonth: false, key: '', col });
+    } else {
+      cells.push({
+        label: dayNum,
+        inMonth: true,
+        key: format(new Date(year, month, dayNum), 'yyyy-MM-dd'),
+        col,
+      });
+    }
+  }
   return cells;
 }
 
-// --- Screen -------------------------------------------------------------------
-
 export default function HomeScreenRedesign() {
   const { colors } = useTheme();
-  const grid = buildGrid();
+  const { reset } = useShiftStore();
+  const { allSchedulesById, addSchedule, getAllSchedules } = useScheduleManager();
+  const { dateSchedule, setDateSchedule } = useDateScheduleStore();
+  const { setCalendarDisplay, calendarDisplayMap } = useCalendarDisplayStore();
+  const { year, month } = useDateStore();
+
+  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [earnings, setEarnings] = useState(0);
+  const [prevEarnings, setPrevEarnings] = useState(0);
+  const [amountVisible, setAmountVisible] = useState(true);
+  const [createVisible, setCreateVisible] = useState(false);
+  const [editSessionId, setEditSessionId] = useState<string | undefined>(undefined);
+
+  // Rebuild the view-month calendar + earnings whenever schedules or month change.
+  useEffect(() => {
+    const all = getAllSchedules();
+    const viewMonth = new Date(year, month, 1);
+    const { markedDates, dateSchedule: byDate } = generateViewMonthScheduleData(
+      all,
+      viewMonth,
+    );
+    setDateSchedule(byDate);
+    setCalendarDisplay(markedDates);
+    setEarnings(displayMonthlyWage(byDate, allSchedulesById, viewMonth));
+
+    const prevMonth = new Date(year, month - 1, 1);
+    const { dateSchedule: prevByDate } = generateViewMonthScheduleData(all, prevMonth);
+    setPrevEarnings(displayMonthlyWage(prevByDate, allSchedulesById, prevMonth));
+  }, [allSchedulesById, year, month]);
+
+  const grid = useMemo(() => buildGrid(year, month), [year, month]);
   const weeks: Cell[][] = [];
   for (let i = 0; i < grid.length; i += 7) weeks.push(grid.slice(i, i + 7));
 
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+
+  // Sum of a day's daily wages (monthly-type jobs have null daily wage → skipped).
+  const dayWage = (key: string) =>
+    (dateSchedule[key] ?? []).reduce(
+      (sum, id) => sum + (allSchedulesById[id]?.calculatedDailyWage ?? 0),
+      0,
+    );
+
+  const workDays = Object.keys(dateSchedule).length;
+  const totalHours = Object.values(dateSchedule).reduce(
+    (sum, ids) =>
+      sum + ids.reduce((h, id) => h + (allSchedulesById[id] ? sessionHours(allSchedulesById[id]) : 0), 0),
+    0,
+  );
+
+  const selectedSessions = (dateSchedule[selectedDate] ?? [])
+    .map((id) => allSchedulesById[id])
+    .filter(Boolean) as WorkSession[];
+  const selectedWage = dayWage(selectedDate);
+  const selDate = new Date(selectedDate);
+
+  const trendPct =
+    prevEarnings > 0 ? Math.round(((earnings - prevEarnings) / prevEarnings) * 100) : null;
+
   return (
-    <SafeAreaView
-      style={[styles.root, { backgroundColor: colors.surface }]}
-      edges={['top']}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.surface }]} edges={['top', 'bottom']}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoRow}>
             <View style={[styles.logoMark, { backgroundColor: colors.brandStrong }]}>
               <Text style={[styles.logoText, { color: colors.accentText }]}>W</Text>
             </View>
-            <Text style={[styles.brandName, { color: colors.textPrimary }]}>
-              WorkLog
-            </Text>
+            <Text style={[styles.brandName, { color: colors.textPrimary }]}>WorkLog</Text>
           </View>
           <TouchableOpacity hitSlop={8}>
             <Feather name="settings" size={22} color={colors.textSecondary} />
@@ -108,23 +162,42 @@ export default function HomeScreenRedesign() {
           <View style={styles.blob1} />
           <View style={styles.blob2} />
           <View style={styles.earningsTopRow}>
-            <Text style={styles.earningsLabel}>7월 예상 급여</Text>
-            <Feather name="eye" size={20} color="rgba(255,255,255,0.9)" />
+            <Text style={styles.earningsLabel}>{month + 1}월 예상 급여</Text>
+            <TouchableOpacity hitSlop={8} onPress={() => setAmountVisible((v) => !v)}>
+              <Feather
+                name={amountVisible ? 'eye' : 'eye-off'}
+                size={20}
+                color="rgba(255,255,255,0.9)"
+              />
+            </TouchableOpacity>
           </View>
-          <Text style={styles.earningsAmount}>₩1,284,000</Text>
+          <Text style={styles.earningsAmount}>
+            {amountVisible ? `₩${formatNumberWithComma(String(earnings))}` : '₩ •••••••'}
+          </Text>
           <View style={styles.earningsBottomRow}>
-            <Text style={styles.earningsMeta}>근무 14일  ·  96시간</Text>
-            <View style={styles.trendPill}>
-              <Feather name="chevron-up" size={14} color={colors.accentText} />
-              <Text style={styles.trendText}>지난달 +12%</Text>
-            </View>
+            <Text style={styles.earningsMeta}>
+              근무 {workDays}일  ·  {Math.round(totalHours)}시간
+            </Text>
+            {trendPct !== null && (
+              <View style={styles.trendPill}>
+                <Feather
+                  name={trendPct >= 0 ? 'chevron-up' : 'chevron-down'}
+                  size={14}
+                  color={colors.accentText}
+                />
+                <Text style={styles.trendText}>
+                  지난달 {trendPct >= 0 ? '+' : ''}
+                  {trendPct}%
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
         {/* Calendar card */}
         <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
           <Text style={[styles.monthTitle, { color: colors.textPrimary }]}>
-            2026년 7월
+            {year}년 {month + 1}월
           </Text>
 
           <View style={styles.weekHeader}>
@@ -133,14 +206,7 @@ export default function HomeScreenRedesign() {
                 key={w}
                 style={[
                   styles.weekHeaderCell,
-                  {
-                    color:
-                      i === 5
-                        ? colors.saturday
-                        : i === 6
-                        ? colors.sunday
-                        : colors.textSecondary,
-                  },
+                  { color: i === 5 ? colors.saturday : i === 6 ? colors.sunday : colors.textSecondary },
                 ]}
               >
                 {w}
@@ -151,9 +217,10 @@ export default function HomeScreenRedesign() {
           {weeks.map((week, wi) => (
             <View key={wi} style={styles.weekRow}>
               {week.map((cell, ci) => {
-                const mark = cell.inMonth ? MARKS[cell.day] : undefined;
-                const isSelected = cell.inMonth && cell.day === SELECTED;
-                const isToday = cell.inMonth && cell.day === TODAY;
+                const dots = cell.inMonth ? calendarDisplayMap[cell.key] ?? [] : [];
+                const amount = cell.inMonth ? formatK(dayWage(cell.key)) : '';
+                const isSelected = cell.inMonth && cell.key === selectedDate;
+                const isToday = cell.inMonth && cell.key === todayKey && !isSelected;
                 const numColor = !cell.inMonth
                   ? colors.calendarDisabled
                   : ci === 5
@@ -162,129 +229,107 @@ export default function HomeScreenRedesign() {
                   ? colors.sunday
                   : colors.textPrimary;
                 return (
-                  <TouchableOpacity key={ci} style={styles.dayCell} activeOpacity={0.7}>
-                    <View
-                      style={[
-                        styles.dayInner,
-                        isToday && {
-                          backgroundColor: 'rgba(78,146,128,0.14)',
-                        },
-                      ]}
-                    >
-                      <View
-                        style={[
-                          styles.numWrap,
-                          isSelected && { backgroundColor: colors.brandStrong },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.dayNum,
-                            { color: isSelected ? colors.accentText : numColor },
-                          ]}
-                        >
-                          {cell.day}
+                  <TouchableOpacity
+                    key={ci}
+                    style={styles.dayCell}
+                    activeOpacity={0.7}
+                    disabled={!cell.inMonth}
+                    onPress={() => cell.inMonth && setSelectedDate(cell.key)}
+                  >
+                    <View style={[styles.dayInner, isToday && { backgroundColor: 'rgba(78,146,128,0.14)' }]}>
+                      <View style={[styles.numWrap, isSelected && { backgroundColor: colors.brandStrong }]}>
+                        <Text style={[styles.dayNum, { color: isSelected ? colors.accentText : numColor }]}>
+                          {cell.label}
                         </Text>
                       </View>
                       <View style={styles.dotsRow}>
-                        {mark?.dots.map((c, di) => (
-                          <View
-                            key={di}
-                            style={[styles.dot, { backgroundColor: CATEGORY[c].color }]}
-                          />
+                        {dots.slice(0, 3).map((d, di) => (
+                          <View key={di} style={[styles.dot, { backgroundColor: d.color }]} />
                         ))}
                       </View>
-                      <Text style={[styles.dayAmount, { color: colors.brand }]}>
-                        {mark?.amount ?? ''}
-                      </Text>
+                      <Text style={[styles.dayAmount, { color: colors.brand }]}>{amount}</Text>
                     </View>
                   </TouchableOpacity>
                 );
               })}
             </View>
           ))}
-
-          <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-
-          <View style={styles.legend}>
-            {(Object.keys(CATEGORY) as Category[]).map((c) => (
-              <View key={c} style={styles.legendItem}>
-                <View style={[styles.dot, { backgroundColor: CATEGORY[c].color }]} />
-                <Text style={[styles.legendLabel, { color: colors.textSecondary }]}>
-                  {CATEGORY[c].label}
-                </Text>
-              </View>
-            ))}
-          </View>
         </View>
 
         {/* Selected-day detail */}
         <View style={styles.detailHeader}>
           <Text style={[styles.detailDate, { color: colors.textPrimary }]}>
-            7월 6일 (월)
+            {selDate.getMonth() + 1}월 {selDate.getDate()}일 ({WD_KO[selDate.getDay()]})
           </Text>
-          <Text style={[styles.detailWage, { color: colors.brand }]}>
-            일급 <Text style={styles.detailWageAmount}>₩104,000</Text>
-          </Text>
+          {selectedWage > 0 && (
+            <Text style={[styles.detailWage, { color: colors.brand }]}>
+              일급 <Text style={styles.detailWageAmount}>₩{formatNumberWithComma(String(selectedWage))}</Text>
+            </Text>
+          )}
         </View>
 
-        <View style={[styles.scheduleCard, { backgroundColor: colors.surfaceElevated }]}>
-          <View style={[styles.scheduleBar, { backgroundColor: colors.brand }]} />
-          <View style={styles.scheduleBody}>
-            <Text style={[styles.scheduleTitle, { color: colors.textPrimary }]}>
-              스타벅스 강남점
-            </Text>
-            <Text style={[styles.scheduleTime, { color: colors.textSecondary }]}>
-              09:00 – 14:00  ·  5시간
-            </Text>
+        {selectedSessions.length === 0 ? (
+          <View style={[styles.scheduleCard, { backgroundColor: colors.surfaceElevated }]}>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>일정이 없습니다</Text>
           </View>
-          <Text style={[styles.scheduleWage, { color: colors.textPrimary }]}>
-            ₩60,000
-          </Text>
-        </View>
+        ) : (
+          selectedSessions.map((session) => (
+            <TouchableOpacity
+              key={session.id}
+              activeOpacity={0.8}
+              onPress={() => setEditSessionId(session.id)}
+              style={[styles.scheduleCard, { backgroundColor: colors.surfaceElevated }]}
+            >
+              <View style={[styles.scheduleBar, { backgroundColor: session.color || colors.brand }]} />
+              <View style={styles.scheduleBody}>
+                <Text style={[styles.scheduleTitle, { color: colors.textPrimary }]}>{session.jobName}</Text>
+                <Text style={[styles.scheduleTime, { color: colors.textSecondary }]}>
+                  {format(session.startTime, 'HH:mm')} – {format(session.endTime, 'HH:mm')}
+                  {'  ·  '}
+                  {Math.round(sessionHours(session) * 10) / 10}시간
+                </Text>
+              </View>
+              {session.calculatedDailyWage != null && (
+                <Text style={[styles.scheduleWage, { color: colors.textPrimary }]}>
+                  ₩{formatNumberWithComma(String(session.calculatedDailyWage))}
+                </Text>
+              )}
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
 
       {/* Floating add button */}
       <TouchableOpacity
         style={[styles.fab, { backgroundColor: colors.brand }]}
         activeOpacity={0.85}
+        onPress={() => {
+          reset();
+          setCreateVisible(true);
+        }}
       >
         <Feather name="plus" size={28} color={colors.accentText} />
       </TouchableOpacity>
 
-      {/* Bottom tab bar */}
-      <View
-        style={[
-          styles.tabBar,
-          { backgroundColor: colors.surfaceElevated, borderTopColor: colors.divider },
-        ]}
-      >
-        {[
-          { icon: 'calendar', label: '캘린더', active: true },
-          { icon: 'bar-chart-2', label: '통계', active: false },
-          { icon: 'list', label: '근무지', active: false },
-          { icon: 'user', label: '내정보', active: false },
-        ].map((t) => {
-          const tint = t.active ? colors.brand : colors.textMuted;
-          return (
-            <TouchableOpacity key={t.label} style={styles.tabItem} activeOpacity={0.7}>
-              <Feather name={t.icon as any} size={22} color={tint} />
-              <Text style={[styles.tabLabel, { color: tint }]}>{t.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      <NewSessionModal
+        visible={createVisible}
+        mode="create"
+        onClose={() => setCreateVisible(false)}
+        onSave={(s: Partial<WorkSession>) => addSchedule(s as WorkSession)}
+      />
+      <ScheduleModal
+        visible={editSessionId !== undefined}
+        onClose={() => setEditSessionId(undefined)}
+        sessionId={editSessionId}
+      />
     </SafeAreaView>
   );
 }
 
-// --- Styles (layout/spacing/type from tokens; colors applied inline) ----------
-
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scroll: { padding: spacing.lg, paddingBottom: 120 },
+  scroll: { padding: spacing.lg, paddingBottom: 100 },
 
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -302,7 +347,6 @@ const styles = StyleSheet.create({
   logoText: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
   brandName: { fontSize: fontSize.xl, fontWeight: fontWeight.bold },
 
-  // Earnings card
   earnings: {
     borderRadius: radius.lg,
     padding: spacing.xl,
@@ -327,16 +371,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     backgroundColor: 'rgba(255,255,255,0.06)',
   },
-  earningsTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  earningsLabel: {
-    fontSize: fontSize.md,
-    fontWeight: fontWeight.medium,
-    color: 'rgba(255,255,255,0.85)',
-  },
+  earningsTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  earningsLabel: { fontSize: fontSize.md, fontWeight: fontWeight.medium, color: 'rgba(255,255,255,0.85)' },
   earningsAmount: {
     fontSize: fontSize.display,
     fontWeight: fontWeight.bold,
@@ -344,16 +380,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     marginBottom: spacing.md,
   },
-  earningsBottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  earningsMeta: {
-    fontSize: fontSize.md,
-    color: 'rgba(255,255,255,0.85)',
-    fontWeight: fontWeight.medium,
-  },
+  earningsBottomRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  earningsMeta: { fontSize: fontSize.md, color: 'rgba(255,255,255,0.85)', fontWeight: fontWeight.medium },
   trendPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -363,32 +391,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.full,
   },
-  trendText: {
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.semibold,
-    color: '#ffffff',
-  },
+  trendText: { fontSize: fontSize.sm, fontWeight: fontWeight.semibold, color: '#ffffff' },
 
-  // Cards
-  card: {
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  monthTitle: {
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.bold,
-    marginBottom: spacing.lg,
-  },
+  card: { borderRadius: radius.lg, padding: spacing.lg, marginBottom: spacing.lg },
+  monthTitle: { fontSize: fontSize.xl, fontWeight: fontWeight.bold, marginBottom: spacing.lg },
 
-  // Calendar
   weekHeader: { flexDirection: 'row', marginBottom: spacing.sm },
-  weekHeaderCell: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: fontSize.sm,
-    fontWeight: fontWeight.medium,
-  },
+  weekHeaderCell: { flex: 1, textAlign: 'center', fontSize: fontSize.sm, fontWeight: fontWeight.medium },
   weekRow: { flexDirection: 'row' },
   dayCell: { flex: 1, alignItems: 'center' },
   dayInner: {
@@ -399,28 +408,12 @@ const styles = StyleSheet.create({
     minHeight: 58,
     width: 42,
   },
-  numWrap: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  numWrap: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   dayNum: { fontSize: fontSize.md, fontWeight: fontWeight.medium },
   dotsRow: { flexDirection: 'row', height: 8, marginTop: spacing.xxs },
   dot: { width: 6, height: 6, borderRadius: 3, marginHorizontal: 1 },
   dayAmount: { fontSize: 10, fontWeight: fontWeight.semibold, marginTop: 1 },
 
-  divider: { height: 1, marginVertical: spacing.md },
-  legend: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: spacing.lg,
-  },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  legendLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
-
-  // Selected-day detail
   detailHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -437,22 +430,19 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: spacing.lg,
     gap: spacing.md,
+    marginBottom: spacing.sm,
   },
-  scheduleBar: {
-    width: 4,
-    alignSelf: 'stretch',
-    borderRadius: radius.full,
-  },
+  scheduleBar: { width: 4, alignSelf: 'stretch', borderRadius: radius.full },
   scheduleBody: { flex: 1, gap: spacing.xs },
   scheduleTitle: { fontSize: fontSize.base, fontWeight: fontWeight.bold },
   scheduleTime: { fontSize: fontSize.sm },
   scheduleWage: { fontSize: fontSize.base, fontWeight: fontWeight.semibold },
+  emptyText: { flex: 1, textAlign: 'center', fontSize: fontSize.md, fontStyle: 'italic' },
 
-  // FAB
   fab: {
     position: 'absolute',
     right: spacing.lg,
-    bottom: 96,
+    bottom: spacing.xl,
     width: 60,
     height: 60,
     borderRadius: radius.xl,
@@ -464,14 +454,4 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 5,
   },
-
-  // Tab bar
-  tabBar: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    paddingTop: spacing.md,
-    paddingBottom: spacing.lg,
-  },
-  tabItem: { flex: 1, alignItems: 'center', gap: spacing.xs },
-  tabLabel: { fontSize: fontSize.xs, fontWeight: fontWeight.medium },
 });
