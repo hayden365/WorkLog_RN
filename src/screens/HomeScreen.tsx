@@ -8,6 +8,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -197,11 +198,13 @@ const HomeScreen = () => {
         <View style={styles.header}>
           <View style={styles.logoRow}>
             <View
-              style={[styles.logoMark, { backgroundColor: colors.brandStrong }]}
+              style={[styles.logoMark, { backgroundColor: colors.brand }]}
             >
-              <Text style={[styles.logoText, { color: colors.accentText }]}>
-                W
-              </Text>
+              <Image
+                source={require('../../assets/brand/mark-white-trim.png')}
+                style={styles.logoMarkImg}
+                resizeMode='contain'
+              />
             </View>
             <Text style={[styles.brandName, { color: colors.textPrimary }]}>
               WorkLog
@@ -517,7 +520,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoText: { fontSize: fontSize.lg, fontWeight: fontWeight.bold },
+  logoMarkImg: { width: 22, height: 22 },
   brandName: { fontSize: fontSize.xl, fontWeight: fontWeight.bold },
 
   earnings: {
