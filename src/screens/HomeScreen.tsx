@@ -219,39 +219,49 @@ const HomeScreen = () => {
         </View>
 
         {/* Earnings card */}
-        <View style={[styles.earnings, { backgroundColor: colors.brand }]}>
-          <View style={styles.blob1} />
-          <View style={styles.blob2} />
+        <View
+          style={[
+            styles.earnings,
+            styles.cardShadow,
+            { backgroundColor: colors.surfaceElevated },
+          ]}
+        >
           <View style={styles.earningsTopRow}>
-            <Text style={styles.earningsLabel}>{month + 1}월 예상 급여</Text>
-            <TouchableOpacity
-              hitSlop={8}
-              onPress={() => setAmountVisible((v) => !v)}
-            >
-              <Feather
-                name={amountVisible ? 'eye' : 'eye-off'}
-                size={20}
-                color='rgba(255,255,255,0.9)'
-              />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.earningsAmount}>
-            {amountVisible
-              ? `₩${formatNumberWithComma(String(earnings))}`
-              : '₩ •••••••'}
-          </Text>
-          <View style={styles.earningsBottomRow}>
-            <Text style={styles.earningsMeta}>
+            <View style={styles.earningsLabelRow}>
+              <Text style={[styles.earningsLabel, { color: colors.textSecondary }]}>
+                {month + 1}월 예상 급여
+              </Text>
+              <TouchableOpacity
+                hitSlop={8}
+                onPress={() => setAmountVisible((v) => !v)}
+              >
+                <Feather
+                  name={amountVisible ? 'eye' : 'eye-off'}
+                  size={18}
+                  color={colors.textSecondary}
+                />
+              </TouchableOpacity>
+            </View>
+            <Text style={[styles.earningsMeta, { color: colors.textSecondary }]}>
               근무 {workDays}일 · {Math.round(totalHours)}시간
             </Text>
+          </View>
+          <View style={styles.earningsBottomRow}>
+            <Text style={[styles.earningsAmount, { color: colors.brand }]}>
+              {amountVisible
+                ? `₩${formatNumberWithComma(String(earnings))}`
+                : '₩ •••••••'}
+            </Text>
             {trendPct !== null && (
-              <View style={styles.trendPill}>
+              <View
+                style={[styles.trendPill, { backgroundColor: colors.brandSoft }]}
+              >
                 <Feather
                   name={trendPct >= 0 ? 'chevron-up' : 'chevron-down'}
                   size={14}
-                  color={colors.accentText}
+                  color={colors.brand}
                 />
-                <Text style={styles.trendText}>
+                <Text style={[styles.trendText, { color: colors.brand }]}>
                   지난달 {trendPct >= 0 ? '+' : ''}
                   {trendPct}%
                 </Text>
@@ -262,7 +272,11 @@ const HomeScreen = () => {
 
         {/* Calendar card */}
         <View
-          style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
+          style={[
+            styles.card,
+            styles.cardShadow,
+            { backgroundColor: colors.surfaceElevated },
+          ]}
         >
           <View style={styles.monthNav}>
             <Text style={[styles.monthTitle, { color: colors.textPrimary }]}>
@@ -410,6 +424,7 @@ const HomeScreen = () => {
           <View
             style={[
               styles.scheduleCard,
+              styles.cardShadow,
               { backgroundColor: colors.surfaceElevated },
             ]}
           >
@@ -425,6 +440,7 @@ const HomeScreen = () => {
               onPress={() => setEditSessionId(session.id)}
               style={[
                 styles.scheduleCard,
+                styles.cardShadow,
                 { backgroundColor: colors.surfaceElevated },
               ]}
             >
@@ -523,70 +539,60 @@ const styles = StyleSheet.create({
   logoMarkImg: { width: 22, height: 22 },
   brandName: { fontSize: fontSize.xl, fontWeight: fontWeight.bold },
 
+  // Soft elevation shared by the earnings, calendar, and schedule cards.
+  cardShadow: {
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+
   earnings: {
     borderRadius: radius.lg,
     padding: spacing.xl,
-    overflow: 'hidden',
     marginBottom: spacing.lg,
-  },
-  blob1: {
-    position: 'absolute',
-    right: -30,
-    top: -20,
-    width: 160,
-    height: 160,
-    borderRadius: radius.full,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  blob2: {
-    position: 'absolute',
-    right: 40,
-    bottom: -50,
-    width: 120,
-    height: 120,
-    borderRadius: radius.full,
-    backgroundColor: 'rgba(255,255,255,0.06)',
   },
   earningsTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  earningsLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   earningsLabel: {
     fontSize: fontSize.md,
     fontWeight: fontWeight.medium,
-    color: 'rgba(255,255,255,0.85)',
   },
   earningsAmount: {
     fontSize: fontSize.display,
     fontWeight: fontWeight.bold,
-    color: '#ffffff',
-    marginTop: spacing.sm,
-    marginBottom: spacing.md,
   },
   earningsBottomRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     justifyContent: 'space-between',
+    marginTop: spacing.sm,
   },
   earningsMeta: {
     fontSize: fontSize.md,
-    color: 'rgba(255,255,255,0.85)',
     fontWeight: fontWeight.medium,
   },
   trendPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xxs,
-    backgroundColor: 'rgba(255,255,255,0.18)',
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     borderRadius: radius.full,
+    marginBottom: spacing.xs,
   },
   trendText: {
     fontSize: fontSize.sm,
     fontWeight: fontWeight.semibold,
-    color: '#ffffff',
   },
 
   card: {

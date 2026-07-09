@@ -11,6 +11,8 @@ export type ThemeColors = {
   accentText: string;
   brand: string;
   brandStrong: string;
+  /** Soft brand-tinted fill for pills/badges on light surfaces. */
+  brandSoft: string;
   danger: string;
   saturday: string;
   sunday: string;
@@ -32,6 +34,7 @@ export const lightColors: ThemeColors = {
   accentText: '#ffffff',
   brand: '#3b82f6',
   brandStrong: '#2563eb',
+  brandSoft: '#e8edff',
   danger: '#ff3b30',
   saturday: '#3e6fd0',
   sunday: '#e0503c',
@@ -53,6 +56,7 @@ export const darkColors: ThemeColors = {
   accentText: '#ffffff',
   brand: '#3b82f6',
   brandStrong: '#60a5fa',
+  brandSoft: 'rgba(96,165,250,0.16)',
   danger: '#ff453a',
   saturday: '#5b8def',
   sunday: '#ff6b5b',
