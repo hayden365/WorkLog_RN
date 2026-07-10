@@ -1,14 +1,20 @@
-import { familyForWeight } from '../../src/components/AppText';
+import { StyleSheet } from 'react-native';
+import { withFontFamily } from '../../src/components/AppText';
 
-describe('familyForWeight', () => {
-  test('maps numeric + keyword weights to Pretendard families', () => {
-    expect(familyForWeight('700')).toBe('Pretendard-Bold');
-    expect(familyForWeight('800')).toBe('Pretendard-Bold');
-    expect(familyForWeight('900')).toBe('Pretendard-Bold');
-    expect(familyForWeight('bold')).toBe('Pretendard-Bold');
-    expect(familyForWeight('600')).toBe('Pretendard-SemiBold');
-    expect(familyForWeight('500')).toBe('Pretendard-Medium');
-    expect(familyForWeight('400')).toBe('Pretendard-Regular');
-    expect(familyForWeight(undefined)).toBe('Pretendard-Regular');
+describe('withFontFamily', () => {
+  test('injects the Pretendard family while preserving the call-site weight', () => {
+    const flat = StyleSheet.flatten(withFontFamily({ fontWeight: '700' }));
+    expect(flat.fontFamily).toBe('Pretendard');
+    expect(flat.fontWeight).toBe('700');
+  });
+
+  test('applies Pretendard when no style is given', () => {
+    const flat = StyleSheet.flatten(withFontFamily());
+    expect(flat.fontFamily).toBe('Pretendard');
+  });
+
+  test('an explicit fontFamily in the call-site style wins', () => {
+    const flat = StyleSheet.flatten(withFontFamily({ fontFamily: 'Other' }));
+    expect(flat.fontFamily).toBe('Other');
   });
 });

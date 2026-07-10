@@ -66,20 +66,18 @@ export const fontWeight = {
 } as const;
 
 /**
- * Pretendard family names, keyed by the same weight labels as `fontWeight`.
- * Android cannot pick a static font's weight from `fontWeight` alone, so we
- * bind an explicit family per weight and let `fontWeight` cover iOS.
+ * The single embedded Pretendard family. Weight is selected by `fontWeight`,
+ * NOT by per-weight family names ("Pretendard-Bold" etc.) — those match neither
+ * the font's internal family name ("Pretendard") nor the family the expo-font
+ * plugin registers, so they silently fall back to the system font. On Android
+ * the weight resolves through the generated font-family XML (weight→file); on
+ * iOS through the family's registered faces.
  */
-export const fontFamily = {
-  regular: 'Pretendard-Regular',
-  medium: 'Pretendard-Medium',
-  semibold: 'Pretendard-SemiBold',
-  bold: 'Pretendard-Bold',
-} as const;
+export const FONT_FAMILY = 'Pretendard';
 
-/** Style fragment binding the correct Pretendard family + RN weight. */
-export function font(weight: keyof typeof fontFamily = 'regular') {
-  return { fontFamily: fontFamily[weight], fontWeight: fontWeight[weight] };
+/** Style fragment binding the Pretendard family + the requested weight. */
+export function font(weight: keyof typeof fontWeight = 'regular') {
+  return { fontFamily: FONT_FAMILY, fontWeight: fontWeight[weight] };
 }
 
 /** Tabular (fixed-width) figures — spread onto any numeric Text style. */
@@ -89,7 +87,7 @@ export const numeric = { fontVariant: ['tabular-nums'] as ['tabular-nums'] };
 export const typography = {
   size: fontSize,
   weight: fontWeight,
-  family: fontFamily,
+  family: FONT_FAMILY,
 } as const;
 
 export type Spacing = keyof typeof spacing;

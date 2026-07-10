@@ -4,7 +4,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MenuProvider } from 'react-native-popup-menu';
 import { StatusBar } from 'expo-status-bar';
-import { useFonts } from 'expo-font';
 import HomeScreen from './src/screens/HomeScreen';
 import { useTheme } from './src/hooks/useTheme';
 
@@ -37,15 +36,8 @@ const AppContent = () => {
 };
 
 export default function App() {
-  const [fontsLoaded, fontError] = useFonts({
-    'Pretendard-Regular': require('./assets/fonts/Pretendard-Regular.ttf'),
-    'Pretendard-Medium': require('./assets/fonts/Pretendard-Medium.ttf'),
-    'Pretendard-SemiBold': require('./assets/fonts/Pretendard-SemiBold.ttf'),
-    'Pretendard-Bold': require('./assets/fonts/Pretendard-Bold.ttf'),
-  });
-
-  if (!fontsLoaded && !fontError) return null;
-
+  // Pretendard is embedded natively via the expo-font config plugin (app.json),
+  // so it is available at launch — no runtime font loading/gating needed.
   return (
     <SafeAreaProvider>
       <MenuProvider>

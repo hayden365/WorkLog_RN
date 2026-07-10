@@ -1,16 +1,15 @@
-import { font, fontFamily, numeric } from '../../src/theme/tokens';
+import { font, FONT_FAMILY, numeric } from '../../src/theme/tokens';
 
 describe('typography helpers', () => {
-  test('font() maps weight to Pretendard family + RN weight', () => {
-    expect(font('bold')).toEqual({ fontFamily: 'Pretendard-Bold', fontWeight: '700' });
-    expect(font('semibold')).toEqual({ fontFamily: 'Pretendard-SemiBold', fontWeight: '600' });
-    expect(font('medium')).toEqual({ fontFamily: 'Pretendard-Medium', fontWeight: '500' });
-    expect(font()).toEqual({ fontFamily: 'Pretendard-Regular', fontWeight: '400' });
+  test('font() binds the single Pretendard family + the RN weight', () => {
+    expect(font('bold')).toEqual({ fontFamily: 'Pretendard', fontWeight: '700' });
+    expect(font('semibold')).toEqual({ fontFamily: 'Pretendard', fontWeight: '600' });
+    expect(font('medium')).toEqual({ fontFamily: 'Pretendard', fontWeight: '500' });
+    expect(font()).toEqual({ fontFamily: 'Pretendard', fontWeight: '400' });
   });
 
-  test('fontFamily map exposes the four Pretendard families', () => {
-    expect(fontFamily.regular).toBe('Pretendard-Regular');
-    expect(fontFamily.bold).toBe('Pretendard-Bold');
+  test('FONT_FAMILY is the embedded Pretendard family name', () => {
+    expect(FONT_FAMILY).toBe('Pretendard');
   });
 
   test('numeric enables tabular figures', () => {
