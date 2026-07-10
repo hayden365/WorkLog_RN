@@ -65,10 +65,31 @@ export const fontWeight = {
   bold: '700',
 } as const;
 
+/**
+ * Pretendard family names, keyed by the same weight labels as `fontWeight`.
+ * Android cannot pick a static font's weight from `fontWeight` alone, so we
+ * bind an explicit family per weight and let `fontWeight` cover iOS.
+ */
+export const fontFamily = {
+  regular: 'Pretendard-Regular',
+  medium: 'Pretendard-Medium',
+  semibold: 'Pretendard-SemiBold',
+  bold: 'Pretendard-Bold',
+} as const;
+
+/** Style fragment binding the correct Pretendard family + RN weight. */
+export function font(weight: keyof typeof fontFamily = 'regular') {
+  return { fontFamily: fontFamily[weight], fontWeight: fontWeight[weight] };
+}
+
+/** Tabular (fixed-width) figures — spread onto any numeric Text style. */
+export const numeric = { fontVariant: ['tabular-nums'] as ['tabular-nums'] };
+
 /** Grouped typography tokens for ergonomic imports. */
 export const typography = {
   size: fontSize,
   weight: fontWeight,
+  family: fontFamily,
 } as const;
 
 export type Spacing = keyof typeof spacing;
