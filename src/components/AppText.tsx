@@ -17,6 +17,8 @@ export function familyForWeight(weight?: TextStyle['fontWeight']): string {
     case '600':
       return fontFamily.semibold;
     case '700':
+    case '800':
+    case '900':
     case 'bold':
       return fontFamily.bold;
     default:
