@@ -2,11 +2,12 @@ import React, { useCallback, memo } from "react";
 import { Calendar } from "react-native-calendars";
 import dayjs from "dayjs";
 import { useDateStore } from "../store/dateStore";
-import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import { TouchableOpacity, View, StyleSheet } from "react-native";
 import { useCalendarDisplayStore } from "../store/shiftStore";
 import { CalendarDisplayItem } from "../models/WorkSession";
 import "../utils/calendarOptions";
 import { useTheme } from "../hooks/useTheme";
+import { AppText as Text } from './AppText';
 
 interface DayProps {
   date?: any;

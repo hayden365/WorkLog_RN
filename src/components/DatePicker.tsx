@@ -2,7 +2,6 @@ import {
   LayoutAnimation,
   Platform,
   StyleSheet,
-  Text,
   TouchableOpacity,
   UIManager,
   View,
@@ -12,6 +11,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useRef, useState } from "react";
 import { useShiftStore } from "../store/shiftStore";
 import { useTheme } from "../hooks/useTheme";
+import { AppText as Text } from './AppText';
 
 // Android에서 LayoutAnimation 활성화
 if (

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
+import { AppText as Text } from './AppText';
 import Modal from 'react-native-modal';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import Feather from '@expo/vector-icons/Feather';

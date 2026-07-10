@@ -7,7 +7,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import HomeScreen from './src/screens/HomeScreen';
 import { useTheme } from './src/hooks/useTheme';
-import { applyGlobalFont } from './src/theme/applyGlobalFont';
 
 const Stack = createNativeStackNavigator();
 
@@ -46,7 +45,6 @@ export default function App() {
   });
 
   if (!fontsLoaded) return null;
-  applyGlobalFont();
 
   return (
     <SafeAreaProvider>

@@ -2,8 +2,6 @@ import React, { useState, useRef, useEffect } from "react";
 import {
   Modal,
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
@@ -11,6 +9,7 @@ import {
   Animated,
   Alert,
 } from "react-native";
+import { AppText as Text, AppTextInput as TextInput } from './AppText';
 import { WorkSession, RepeatOption } from "../models/WorkSession";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
