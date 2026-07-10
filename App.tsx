@@ -4,8 +4,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MenuProvider } from 'react-native-popup-menu';
 import { StatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
 import HomeScreen from './src/screens/HomeScreen';
 import { useTheme } from './src/hooks/useTheme';
+import { applyGlobalFont } from './src/theme/applyGlobalFont';
 
 const Stack = createNativeStackNavigator();
 
@@ -36,6 +38,16 @@ const AppContent = () => {
 };
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    'Pretendard-Regular': require('./assets/fonts/Pretendard-Regular.ttf'),
+    'Pretendard-Medium': require('./assets/fonts/Pretendard-Medium.ttf'),
+    'Pretendard-SemiBold': require('./assets/fonts/Pretendard-SemiBold.ttf'),
+    'Pretendard-Bold': require('./assets/fonts/Pretendard-Bold.ttf'),
+  });
+
+  if (!fontsLoaded) return null;
+  applyGlobalFont();
+
   return (
     <SafeAreaProvider>
       <MenuProvider>
