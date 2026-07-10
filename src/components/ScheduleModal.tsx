@@ -2,12 +2,12 @@ import React, { useRef, useState } from "react";
 import {
   Modal,
   View,
-  Text,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
   Alert,
 } from "react-native";
+import { AppText as Text } from './AppText';
 import { WorkSession } from "../models/WorkSession";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";

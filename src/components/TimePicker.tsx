@@ -2,12 +2,12 @@ import {
   LayoutAnimation,
   Platform,
   StyleSheet,
-  Text,
   TouchableOpacity,
   UIManager,
   View,
   Animated,
 } from "react-native";
+import { AppText as Text } from './AppText';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import React, { useRef, useState } from "react";
 import { useShiftStore } from "../store/shiftStore";

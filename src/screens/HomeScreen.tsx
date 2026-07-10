@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
 import { format } from 'date-fns';
 import { useTheme } from '../hooks/useTheme';
-import { spacing, radius, fontSize, fontWeight } from '../theme/tokens';
+import { spacing, radius, fontSize, font, numeric } from '../theme/tokens';
 import { useDateStore } from '../store/dateStore';
 import {
   useDateScheduleStore,
@@ -248,9 +248,14 @@ const HomeScreen = () => {
           </View>
           <View style={styles.earningsBottomRow}>
             <Text style={[styles.earningsAmount, { color: colors.brand }]}>
-              {amountVisible
-                ? `₩${formatNumberWithComma(String(earnings))}`
-                : '₩ •••••••'}
+              {amountVisible ? (
+                <>
+                  <Text style={[styles.earningsSymbol, { color: colors.brand }]}>₩</Text>
+                  {formatNumberWithComma(String(earnings))}
+                </>
+              ) : (
+                '₩ •••••••'
+              )}
             </Text>
             {trendPct !== null && (
               <View
@@ -376,7 +381,7 @@ const HomeScreen = () => {
                           />
                         ))}
                       </View>
-                      <Text style={[styles.dayAmount, { color: colors.brand }]}>
+                      <Text style={[styles.dayAmount, { color: colors.textMuted }]}>
                         {amount}
                       </Text>
                     </View>
@@ -537,7 +542,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoMarkImg: { width: 22, height: 22 },
-  brandName: { fontSize: fontSize.xl, fontWeight: fontWeight.bold },
+  brandName: { fontSize: fontSize.xl, ...font('bold') },
 
   // Soft elevation shared by the earnings, calendar, and schedule cards.
   cardShadow: {
@@ -565,11 +570,17 @@ const styles = StyleSheet.create({
   },
   earningsLabel: {
     fontSize: fontSize.md,
-    fontWeight: fontWeight.medium,
+    ...font('medium'),
   },
   earningsAmount: {
     fontSize: fontSize.display,
-    fontWeight: fontWeight.bold,
+    ...font('bold'),
+    ...numeric,
+    letterSpacing: -1,
+  },
+  earningsSymbol: {
+    fontSize: fontSize.xxl,
+    ...font('semibold'),
   },
   earningsBottomRow: {
     flexDirection: 'row',
@@ -579,7 +590,7 @@ const styles = StyleSheet.create({
   },
   earningsMeta: {
     fontSize: fontSize.md,
-    fontWeight: fontWeight.medium,
+    ...font('medium'),
   },
   trendPill: {
     flexDirection: 'row',
@@ -592,7 +603,7 @@ const styles = StyleSheet.create({
   },
   trendText: {
     fontSize: fontSize.sm,
-    fontWeight: fontWeight.semibold,
+    ...font('semibold'),
   },
 
   card: {
@@ -608,7 +619,7 @@ const styles = StyleSheet.create({
   },
   monthTitle: {
     fontSize: fontSize.xl,
-    fontWeight: fontWeight.bold,
+    ...font('bold'),
   },
   monthNavButtons: { flexDirection: 'row', gap: spacing.sm },
   monthNavButton: {
@@ -624,7 +635,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: fontSize.sm,
-    fontWeight: fontWeight.medium,
+    ...font('medium'),
   },
   weekRow: { flexDirection: 'row' },
   dayCell: { flex: 1, alignItems: 'center' },
@@ -643,10 +654,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dayNum: { fontSize: fontSize.md, fontWeight: fontWeight.medium },
+  dayNum: { fontSize: fontSize.md, ...font('medium') },
   dotsRow: { flexDirection: 'row', height: 8, marginTop: spacing.xxs },
   dot: { width: 6, height: 6, borderRadius: 3, marginHorizontal: 1 },
-  dayAmount: { fontSize: 10, fontWeight: fontWeight.semibold, marginTop: 1 },
+  dayAmount: { fontSize: 10, ...font('medium'), ...numeric, marginTop: 1 },
 
   legendRow: {
     flexDirection: 'row',
@@ -659,7 +670,7 @@ const styles = StyleSheet.create({
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendLabel: { fontSize: fontSize.sm, fontWeight: fontWeight.medium },
+  legendLabel: { fontSize: fontSize.sm, ...font('medium') },
 
   detailHeader: {
     flexDirection: 'row',
@@ -667,9 +678,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: spacing.md,
   },
-  detailDate: { fontSize: fontSize.base, fontWeight: fontWeight.bold },
-  detailWage: { fontSize: fontSize.base, fontWeight: fontWeight.medium },
-  detailWageAmount: { fontWeight: fontWeight.bold },
+  detailDate: { fontSize: fontSize.base, ...font('bold') },
+  detailWage: { fontSize: fontSize.base, ...font('medium') },
+  detailWageAmount: { ...font('bold'), ...numeric },
 
   scheduleCard: {
     flexDirection: 'row',
@@ -681,14 +692,14 @@ const styles = StyleSheet.create({
   },
   scheduleBar: { width: 4, alignSelf: 'stretch', borderRadius: radius.full },
   scheduleBody: { flex: 1, gap: spacing.xs },
-  scheduleTitle: { fontSize: fontSize.base, fontWeight: fontWeight.bold },
-  scheduleTime: { fontSize: fontSize.sm },
-  scheduleWage: { fontSize: fontSize.base, fontWeight: fontWeight.semibold },
+  scheduleTitle: { fontSize: fontSize.base, ...font('bold') },
+  scheduleTime: { fontSize: fontSize.sm, ...font('regular') },
+  scheduleWage: { fontSize: fontSize.base, ...font('semibold'), ...numeric },
   emptyText: {
     flex: 1,
     textAlign: 'center',
     fontSize: fontSize.md,
-    fontStyle: 'italic',
+    ...font('regular'),
   },
 
   fab: {

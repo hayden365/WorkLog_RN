@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { CalendarDisplayItem as CalendarDisplayItemType } from "../models/WorkSession";
 import { useTheme } from "../hooks/useTheme";
+import { AppText as Text } from './AppText';
 
 interface CalendarDisplayItemProps {
   item: CalendarDisplayItemType;

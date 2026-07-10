@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   FlatList,
@@ -11,6 +10,7 @@ import {
 import React, { useCallback, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../hooks/useTheme";
+import { AppText as Text } from './AppText';
 
 type OptionItem = {
   value: string;

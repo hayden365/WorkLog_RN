@@ -321,6 +321,142 @@ git commit -m "chore: 미사용 레거시 컴포넌트 및 테스트 정리"
 
 ---
 
+### Task 5: 전역 Pretendard — AppText 래퍼 (React 19 대응)
+
+**배경:** Task 2의 `applyGlobalFont`(Text.defaultProps 변경)는 **React 19 + 자동 JSX 런타임에서 무시됨** — 함수 컴포넌트 defaultProps 미지원. 따라서 홈 외 화면(모달·설정 등)은 여전히 시스템 폰트로 렌더된다. 실제로 동작하는 방식(래퍼 컴포넌트)으로 교체해 앱 전역에 Pretendard를 적용한다.
+
+**Files:**
+- Create: `src/components/AppText.tsx`
+- Test: `__tests__/components/AppText.test.tsx` (create)
+- Modify (Text import을 별칭 교체): `src/components/CalendarDisplayItem.tsx`, `src/components/CalendarPage.tsx`, `src/components/DatePicker.tsx`, `src/components/Dropdown.tsx`, `src/components/NewSessionModal.tsx`, `src/components/ScheduleModal.tsx`, `src/components/SettingsModal.tsx`, `src/components/TimePicker.tsx`
+- Delete: `src/theme/applyGlobalFont.ts`
+- Modify: `App.tsx` (applyGlobalFont import·호출 제거)
+
+**Interfaces:**
+- Consumes: `fontFamily` from `src/theme/tokens`.
+- Produces:
+  - `familyForWeight(weight?): string` — RN fontWeight → Pretendard 패밀리명(순수 함수, 테스트 대상).
+  - `AppText: React.FC<TextProps>` — `Text` 드롭인. 전달된 스타일의 `fontWeight`를 읽어 맞는 Pretendard 패밀리를 주입. 스타일에 이미 `fontFamily`가 있으면 그대로 존중(홈 화면 등 이중적용 방지).
+  - `AppTextInput: React.FC<TextInputProps>` — 동일 로직의 `TextInput` 드롭인.
+
+- [ ] **Step 1: 실패 테스트 작성**
+
+`__tests__/components/AppText.test.tsx`:
+```ts
+import { familyForWeight } from '../../src/components/AppText';
+
+describe('familyForWeight', () => {
+  test('maps numeric + keyword weights to Pretendard families', () => {
+    expect(familyForWeight('700')).toBe('Pretendard-Bold');
+    expect(familyForWeight('bold')).toBe('Pretendard-Bold');
+    expect(familyForWeight('600')).toBe('Pretendard-SemiBold');
+    expect(familyForWeight('500')).toBe('Pretendard-Medium');
+    expect(familyForWeight('400')).toBe('Pretendard-Regular');
+    expect(familyForWeight(undefined)).toBe('Pretendard-Regular');
+  });
+});
+```
+
+- [ ] **Step 2: 실패 확인**
+
+Run: `npx jest __tests__/components/AppText.test.tsx`
+Expected: FAIL — `familyForWeight`/모듈 없음.
+
+- [ ] **Step 3: `src/components/AppText.tsx` 작성**
+
+```tsx
+import React from 'react';
+import {
+  Text as RNText,
+  TextInput as RNTextInput,
+  StyleSheet,
+  TextProps,
+  TextInputProps,
+  TextStyle,
+} from 'react-native';
+import { fontFamily } from '../theme/tokens';
+
+/** RN fontWeight → 대응 Pretendard 패밀리명. */
+export function familyForWeight(weight?: TextStyle['fontWeight']): string {
+  switch (String(weight)) {
+    case '500':
+      return fontFamily.medium;
+    case '600':
+      return fontFamily.semibold;
+    case '700':
+    case 'bold':
+      return fontFamily.bold;
+    default:
+      return fontFamily.regular;
+  }
+}
+
+/** 전달된 스타일에 Pretendard 패밀리를 비파괴적으로 주입. 이미 fontFamily가 있으면 존중. */
+function withFamily(style: TextProps['style']) {
+  const flat = (StyleSheet.flatten(style) || {}) as TextStyle;
+  const family = flat.fontFamily ?? familyForWeight(flat.fontWeight);
+  return [style, { fontFamily: family }];
+}
+
+/** `Text` 드롭인. 앱 전역 기본 폰트를 Pretendard로 만든다. */
+export const AppText = React.forwardRef<RNText, TextProps>(
+  ({ style, ...rest }, ref) => (
+    <RNText ref={ref} {...rest} style={withFamily(style)} />
+  ),
+);
+AppText.displayName = 'AppText';
+
+/** `TextInput` 드롭인. */
+export const AppTextInput = React.forwardRef<RNTextInput, TextInputProps>(
+  ({ style, ...rest }, ref) => (
+    <RNTextInput ref={ref} {...rest} style={withFamily(style)} />
+  ),
+);
+AppTextInput.displayName = 'AppTextInput';
+```
+
+- [ ] **Step 4: 통과 확인**
+
+Run: `npx jest __tests__/components/AppText.test.tsx`
+Expected: PASS.
+
+- [ ] **Step 5: 8개 파일의 Text import을 별칭으로 교체 (JSX 무변경)**
+
+각 파일에서 `react-native` import 목록의 `Text`(그리고 NewSessionModal은 `TextInput`)를 제거하고, 아래 import를 추가한다. 상대경로는 모두 `src/components/*` 기준이므로 `./AppText`.
+
+`src/components/CalendarDisplayItem.tsx`, `CalendarPage.tsx`, `DatePicker.tsx`, `Dropdown.tsx`, `ScheduleModal.tsx`, `SettingsModal.tsx`, `TimePicker.tsx`:
+- `react-native` import에서 `Text` 토큰 제거
+- 추가: `import { AppText as Text } from './AppText';`
+
+`src/components/NewSessionModal.tsx` (Text + TextInput 둘 다):
+- `react-native` import에서 `Text`, `TextInput` 제거
+- 추가: `import { AppText as Text, AppTextInput as TextInput } from './AppText';`
+
+주의: `react-native` import에서 `Text`/`TextInput`만 빼고 나머지(View, StyleSheet 등)는 그대로 유지. 파일에서 `Text`/`TextInput`을 다른 용도(타입 등)로 쓰지 않는지 확인.
+
+- [ ] **Step 6: 죽은 코드 제거 (applyGlobalFont)**
+
+```bash
+git rm src/theme/applyGlobalFont.ts
+```
+`App.tsx`에서 다음 두 곳 제거:
+- `import { applyGlobalFont } from './src/theme/applyGlobalFont';` 라인 삭제
+- 렌더 본문의 `applyGlobalFont();` 호출 삭제 (fontsLoaded 가드 `if (!fontsLoaded) return null;`는 유지)
+
+- [ ] **Step 7: 검증**
+
+Run: `npx tsc --noEmit` → 에러 0.
+Run: `npx jest` → 전체 PASS.
+
+- [ ] **Step 8: Commit**
+
+```bash
+git add -A
+git commit -m "feat(ui): AppText 래퍼로 Pretendard 전역 적용 및 미동작 applyGlobalFont 제거"
+```
+
+---
+
 ## 검증 (전체)
 
 - `npx jest` — 전체 그린.
