@@ -1,4 +1,4 @@
-import { WorkSession, RepeatOption } from "../models/WorkSession";
+import { WorkSession, RepeatOption, ScheduleByDate, SchedulesById } from "../models/WorkSession";
 import { Workplace, WageType } from "../models/Workplace";
 
 export interface PayBreakdown {
@@ -98,4 +98,78 @@ export const computeSessionPay = (r: ResolvedSession): PayBreakdown => {
     deductions,
     net,
   };
+};
+
+export interface MonthlyTotal {
+  gross: number;
+  net: number;
+  workDays: number; // 근무일 수 (그 달에 세션이 있는 날짜 수)
+  paidMinutes: number;
+  byWorkplace: Record<string, { gross: number; net: number; paidMinutes: number }>;
+}
+
+export const computeMonthlyTotal = (
+  dateSchedule: ScheduleByDate,
+  sessions: SchedulesById,
+  workplaces: Record<string, Workplace>,
+  viewMonth: Date
+): MonthlyTotal => {
+  const total: MonthlyTotal = {
+    gross: 0,
+    net: 0,
+    workDays: 0,
+    paidMinutes: 0,
+    byWorkplace: {},
+  };
+
+  const addToWorkplace = (id: string, gross: number, net: number, paid: number) => {
+    if (!total.byWorkplace[id]) total.byWorkplace[id] = { gross: 0, net: 0, paidMinutes: 0 };
+    total.byWorkplace[id].gross += gross;
+    total.byWorkplace[id].net += net;
+    total.byWorkplace[id].paidMinutes += paid;
+  };
+
+  // 월급제 세션은 근무일마다 더하면 중복이므로, 그 달에 근무일이 있으면 1회만 반영한다.
+  const monthlyIds = new Set<string>();
+
+  Object.entries(dateSchedule).forEach(([date, sessionIds]) => {
+    const dateObj = new Date(date);
+    if (
+      dateObj.getMonth() !== viewMonth.getMonth() ||
+      dateObj.getFullYear() !== viewMonth.getFullYear()
+    ) {
+      return;
+    }
+    total.workDays += 1;
+
+    for (const id of sessionIds) {
+      const session = sessions[id];
+      if (!session) continue;
+      const workplace = workplaces[session.workplaceId];
+      if (!workplace) continue;
+      const resolved = resolveSession(session, workplace);
+
+      if (resolved.wageType === "monthly") {
+        monthlyIds.add(id);
+        continue;
+      }
+      const pay = computeSessionPay(resolved);
+      total.gross += pay.gross;
+      total.net += pay.net;
+      total.paidMinutes += pay.paidMinutes;
+      addToWorkplace(session.workplaceId, pay.gross, pay.net, pay.paidMinutes);
+    }
+  });
+
+  monthlyIds.forEach((id) => {
+    const session = sessions[id];
+    const workplace = workplaces[session.workplaceId];
+    if (!workplace) return;
+    const resolved = resolveSession(session, workplace);
+    total.gross += resolved.wage;
+    total.net += resolved.wage;
+    addToWorkplace(session.workplaceId, resolved.wage, resolved.wage, 0);
+  });
+
+  return total;
 };

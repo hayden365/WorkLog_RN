@@ -1,5 +1,6 @@
-import { resolveSession, computeSessionPay, ResolvedSession } from '../../src/utils/payFns';
+import { resolveSession, computeSessionPay, ResolvedSession, computeMonthlyTotal } from '../../src/utils/payFns';
 import { Workplace } from '../../src/models/Workplace';
+import { SchedulesById, ScheduleByDate } from '../../src/models/WorkSession';
 import { createTestSession } from '../helpers';
 
 const workplace = (o: Partial<Workplace> = {}): Workplace => ({
@@ -87,5 +88,37 @@ describe('computeSessionPay', () => {
     expect(pay.totalMinutes).toBe(480);
     expect(pay.paidMinutes).toBe(420);
     expect(pay.base).toBe(70000);
+  });
+});
+
+describe('computeMonthlyTotal', () => {
+  const workplaces = {
+    wp1: { id: 'wp1', name: '카페', color: '#111', wageType: 'hourly' as const, wage: 10000, defaultBreakMinutes: 60, archived: false },
+    wp2: { id: 'wp2', name: '학원', color: '#222', wageType: 'monthly' as const, wage: 2000000, defaultBreakMinutes: 0, archived: false },
+  };
+
+  const hourly = createTestSession({
+    id: 's1', workplaceId: 'wp1', wage: null, wageType: null, breakMinutes: null,
+    startTime: new Date(2026, 3, 15, 9, 0), endTime: new Date(2026, 3, 15, 18, 0),
+  } as any);
+  const monthly = createTestSession({
+    id: 's2', workplaceId: 'wp2', wage: null, wageType: null, breakMinutes: null,
+  } as any);
+  const sessions: SchedulesById = { s1: hourly, s2: monthly };
+
+  it('시급제 실근무 급여를 근무일마다 더하고 월급제는 1회만 반영한다', () => {
+    const dateSchedule: ScheduleByDate = {
+      '2026-04-01': ['s1', 's2'],
+      '2026-04-02': ['s1', 's2'],
+      '2026-05-01': ['s1'], // 다른 달 → 제외
+    };
+    const total = computeMonthlyTotal(dateSchedule, sessions, workplaces, new Date(2026, 3, 1));
+    // s1: (9시간-1시간)×10000 = 80000, 2일 = 160000. s2 월급 2000000 1회.
+    expect(total.net).toBe(2160000);
+    expect(total.workDays).toBe(2);
+    expect(total.byWorkplace.wp1.net).toBe(160000);
+    expect(total.byWorkplace.wp2.net).toBe(2000000);
+    // 근무지별 소계 합 = 전체
+    expect(total.byWorkplace.wp1.net + total.byWorkplace.wp2.net).toBe(total.net);
   });
 });
