@@ -26,7 +26,8 @@ import {
 } from '../store/shiftStore';
 import { useScheduleManager } from '../hooks/useScheduleManager';
 import { generateViewMonthScheduleData } from '../utils/calendarfns';
-import { displayMonthlyWage } from '../utils/wageFns';
+import { computeMonthlyTotal, resolveSession, computeSessionPay } from '../utils/payFns';
+import { useWorkplaceStore } from '../store/workplaceStore';
 import { formatNumberWithComma } from '../utils/formatNumbs';
 import { WorkSession } from '../models/WorkSession';
 import { NewSessionModal } from '../components/NewSessionModal';
@@ -95,6 +96,7 @@ const HomeScreen = () => {
   const { dateSchedule, setDateSchedule } = useDateScheduleStore();
   const { setCalendarDisplay, calendarDisplayMap } = useCalendarDisplayStore();
   const { year, month, setYearMonth } = useDateStore();
+  const workplacesById = useWorkplaceStore((s) => s.workplacesById);
 
   // Move the calendar by ±1 month, rolling the year over at the boundaries.
   const shiftMonth = (delta: number) => {
@@ -125,7 +127,9 @@ const HomeScreen = () => {
     );
     setDateSchedule(byDate);
     setCalendarDisplay(markedDates);
-    setEarnings(displayMonthlyWage(byDate, allSchedulesById, viewMonth));
+    setEarnings(
+      computeMonthlyTotal(byDate, allSchedulesById, workplacesById, viewMonth).net,
+    );
 
     const prevMonth = new Date(year, month - 1, 1);
     const { dateSchedule: prevByDate } = generateViewMonthScheduleData(
@@ -133,9 +137,10 @@ const HomeScreen = () => {
       prevMonth,
     );
     setPrevEarnings(
-      displayMonthlyWage(prevByDate, allSchedulesById, prevMonth),
+      computeMonthlyTotal(prevByDate, allSchedulesById, workplacesById, prevMonth)
+        .net,
     );
-  }, [allSchedulesById, year, month]);
+  }, [allSchedulesById, workplacesById, year, month]);
 
   const grid = useMemo(() => buildGrid(year, month), [year, month]);
   const weeks: Cell[][] = [];
@@ -154,12 +159,14 @@ const HomeScreen = () => {
     return Array.from(byJob, ([jobName, color]) => ({ jobName, color }));
   }, [calendarDisplayMap]);
 
-  // Sum of a day's daily wages (monthly-type jobs have null daily wage → skipped).
+  // Sum of a day's daily wages, derived from workplace + session (근무지 없으면 0).
   const dayWage = (key: string) =>
-    (dateSchedule[key] ?? []).reduce(
-      (sum, id) => sum + (allSchedulesById[id]?.calculatedDailyWage ?? 0),
-      0,
-    );
+    (dateSchedule[key] ?? []).reduce((sum, id) => {
+      const s = allSchedulesById[id];
+      const wp = s ? workplacesById[s.workplaceId] : undefined;
+      if (!s || !wp) return sum;
+      return sum + computeSessionPay(resolveSession(s, wp)).net;
+    }, 0);
 
   const workDays = Object.keys(dateSchedule).length;
   const totalHours = Object.values(dateSchedule).reduce(
@@ -438,47 +445,51 @@ const HomeScreen = () => {
             </Text>
           </View>
         ) : (
-          selectedSessions.map((session) => (
-            <TouchableOpacity
-              key={session.id}
-              activeOpacity={0.8}
-              onPress={() => setEditSessionId(session.id)}
-              style={[
-                styles.scheduleCard,
-                styles.cardBorder,
-                { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
-              ]}
-            >
-              <View
+          selectedSessions.map((session) => {
+            const wp = workplacesById[session.workplaceId];
+            const pay = wp ? computeSessionPay(resolveSession(session, wp)) : null;
+            return (
+              <TouchableOpacity
+                key={session.id}
+                activeOpacity={0.8}
+                onPress={() => setEditSessionId(session.id)}
                 style={[
-                  styles.scheduleBar,
-                  { backgroundColor: session.color || colors.brand },
+                  styles.scheduleCard,
+                  styles.cardBorder,
+                  { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
                 ]}
-              />
-              <View style={styles.scheduleBody}>
-                <Text
-                  style={[styles.scheduleTitle, { color: colors.textPrimary }]}
-                >
-                  {session.jobName}
-                </Text>
-                <Text
-                  style={[styles.scheduleTime, { color: colors.textSecondary }]}
-                >
-                  {format(session.startTime, 'HH:mm')} –{' '}
-                  {format(session.endTime, 'HH:mm')}
-                  {'  ·  '}
-                  {Math.round(sessionHours(session) * 10) / 10}시간
-                </Text>
-              </View>
-              {session.calculatedDailyWage != null && (
-                <Text
-                  style={[styles.scheduleWage, { color: colors.textPrimary }]}
-                >
-                  ₩{formatNumberWithComma(String(session.calculatedDailyWage))}
-                </Text>
-              )}
-            </TouchableOpacity>
-          ))
+              >
+                <View
+                  style={[
+                    styles.scheduleBar,
+                    { backgroundColor: wp?.color ?? colors.brand },
+                  ]}
+                />
+                <View style={styles.scheduleBody}>
+                  <Text
+                    style={[styles.scheduleTitle, { color: colors.textPrimary }]}
+                  >
+                    {wp?.name ?? ''}
+                  </Text>
+                  <Text
+                    style={[styles.scheduleTime, { color: colors.textSecondary }]}
+                  >
+                    {format(session.startTime, 'HH:mm')} –{' '}
+                    {format(session.endTime, 'HH:mm')}
+                    {'  ·  '}
+                    {Math.round(sessionHours(session) * 10) / 10}시간
+                  </Text>
+                </View>
+                {pay && (
+                  <Text
+                    style={[styles.scheduleWage, { color: colors.textPrimary }]}
+                  >
+                    ₩{formatNumberWithComma(String(Math.round(pay.net)))}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            );
+          })
         )}
       </ScrollView>
 
