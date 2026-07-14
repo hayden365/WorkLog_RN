@@ -79,10 +79,13 @@ describe('runWorkplaceMigration', () => {
   it('중단된 마이그레이션을 재시도해도 백업을 훼손하지 않고 근무지를 병합하지 않는다', () => {
     // 최초 실행이 중단된 상황을 모사: 순정 백업은 이미 기록되어 있고,
     // schedule-store는 절반만 마이그레이션되어 jobName이 사라진 상태.
+    // wageType/wage는 동일하게 두고 jobName만 다르게 하여, group-key(jobName||wageType||wage)가
+    // jobName 소실 시에만 충돌하도록 만든다 — wage가 다르면 이미 별도 그룹이라
+    // "병합되지 않음" 단언이 회귀를 실제로 검증하지 못한다.
     const pristine = {
       allSchedulesById: {
         s1: oldSession('s1', '카페', 10000),
-        s2: oldSession('s2', '편의점', 12000),
+        s2: oldSession('s2', '편의점', 10000),
       },
     };
     storage.set(SCHEDULE_BACKUP_KEY, persisted(pristine));
@@ -91,7 +94,7 @@ describe('runWorkplaceMigration', () => {
       state: {
         allSchedulesById: {
           s1: { ...oldSession('s1', '카페', 10000), jobName: undefined, workplaceId: 'half-migrated-wp' },
-          s2: { ...oldSession('s2', '편의점', 12000), jobName: undefined, workplaceId: 'half-migrated-wp' },
+          s2: { ...oldSession('s2', '편의점', 10000), jobName: undefined, workplaceId: 'half-migrated-wp' },
         },
       },
       version: 2,
@@ -108,6 +111,24 @@ describe('runWorkplaceMigration', () => {
     const backup = JSON.parse(storage.getString(SCHEDULE_BACKUP_KEY)!);
     expect(backup.state.allSchedulesById.s1.jobName).toBe('카페');
     expect(backup.state.allSchedulesById.s2.jobName).toBe('편의점');
+  });
+
+  it('손상된 schedule-store에서 첫 실행 시 백업을 남기지 않고 원본을 훼손하지 않는다', () => {
+    // 최초 실행 (백업 없음)인데 schedule-store 자체가 손상된 상황.
+    // 손상된 문자열이 영구 백업으로 굳어버리면 이후 실행마다 같은 실패가 반복되어
+    // 절대 복구되지 않는다 — parse 성공 이후에만 백업을 기록해야 한다.
+    const corrupted = '{{{not json';
+    storage.set('schedule-store', corrupted);
+
+    let ran: boolean | undefined;
+    expect(() => {
+      ran = runWorkplaceMigration();
+    }).not.toThrow();
+
+    expect(ran).toBe(false);
+    expect(storage.getString(SCHEDULE_BACKUP_KEY)).toBeFalsy();
+    expect(storage.getString(MIGRATION_FLAG_KEY)).not.toBe('1');
+    expect(storage.getString('schedule-store')).toBe(corrupted);
   });
 
   it('allSchedulesById가 비어있으면 false를 반환하고 플래그를 세운다', () => {

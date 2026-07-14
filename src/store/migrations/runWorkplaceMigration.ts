@@ -31,10 +31,10 @@ export const runWorkplaceMigration = (): boolean => {
     const existingBackupStr = storage.getString(SCHEDULE_BACKUP_KEY);
     const sourceStr = existingBackupStr ?? rawScheduleStr;
 
-    if (!existingBackupStr) {
-      storage.set(SCHEDULE_BACKUP_KEY, rawScheduleStr);
-    }
-
+    // 백업 기록은 sourceStr 파싱 성공 이후로 미룬다. 최초 실행(백업 없음)에서
+    // schedule-store 자체가 손상돼 있으면, 파싱 전에 백업부터 남길 경우 그
+    // 손상된 문자열이 영구 백업으로 굳어버려 이후 실행마다 같은 실패가
+    // 반복되고 영영 복구되지 않는다.
     const parsed = JSON.parse(sourceStr);
     const allSchedulesById = parsed?.state?.allSchedulesById ?? {};
 
@@ -42,6 +42,10 @@ export const runWorkplaceMigration = (): boolean => {
       // 마이그레이션할 세션이 없다 — 완료로 간주.
       storage.set(MIGRATION_FLAG_KEY, "1");
       return false;
+    }
+
+    if (!existingBackupStr) {
+      storage.set(SCHEDULE_BACKUP_KEY, rawScheduleStr);
     }
 
     const { workplacesById, sessionsById } = buildWorkplaceMigration(
