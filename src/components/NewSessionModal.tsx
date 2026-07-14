@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
 import { useShiftStore } from "../store/shiftStore";
+import { useWorkplaceStore } from "../store/workplaceStore";
 import Dropdown from "./Dropdown";
 import { dayNames, repeatOptions } from "../utils/repeatOptions";
 import TimePicker from "./TimePicker";
@@ -23,6 +24,7 @@ import SlideInView from "./SlideInView";
 import { formatNumberWithComma } from "../utils/formatNumbs";
 import { useTheme } from "../hooks/useTheme";
 import { spacing, radius, fontSize, fontWeight } from "../theme/tokens";
+import { sessionTotalMinutes } from "../utils/payFns";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -44,10 +46,12 @@ export const NewSessionModal = ({
   const { colors, scheme } = useTheme();
 
   const {
-    jobName,
-    setJobName,
+    workplaceId,
+    setWorkplaceId,
     wage,
     setWage,
+    breakMinutes,
+    setBreakMinutes,
     startDate,
     endDate,
     startTime,
@@ -62,6 +66,7 @@ export const NewSessionModal = ({
     setRepeatOption,
     reset,
   } = useShiftStore();
+  const activeWorkplaces = useWorkplaceStore((s) => s.getActiveWorkplaces());
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(true);
   const [description, setDescription] = useState("");
   const [wageType, setWageType] = useState<"hourly" | "daily" | "monthly">(
@@ -75,7 +80,8 @@ export const NewSessionModal = ({
   // 기존 세션 데이터가 있으면 초기값 설정
   useEffect(() => {
     if (existingSession && mode === "update") {
-      setJobName(existingSession.jobName || "");
+      setWorkplaceId(existingSession.workplaceId);
+      setBreakMinutes(existingSession.breakMinutes ?? null);
       setWage(existingSession.wage || 0);
       setWageType(existingSession.wageType || "hourly");
       setWageValue(formatNumberWithComma(String(existingSession.wage || "")));
@@ -104,6 +110,17 @@ export const NewSessionModal = ({
     const formattedValue = formatNumberWithComma(value);
     setWageValue(formattedValue);
     setWage(Number(formattedValue.replace(/,/g, "")));
+  };
+
+  // 근무지 선택 시 시급·급여유형·휴게시간 기본값 자동 채움
+  const handleSelectWorkplace = (id: string) => {
+    const wp = activeWorkplaces.find((w) => w.id === id);
+    if (!wp) return;
+    setWorkplaceId(id);
+    setWageType(wp.wageType);
+    setWage(wp.wage);
+    setWageValue(formatNumberWithComma(String(wp.wage)));
+    if (breakMinutes === null) setBreakMinutes(wp.defaultBreakMinutes);
   };
 
   // selectedWeekDays가 undefined일 때를 대비한 안전한 처리
@@ -141,12 +158,11 @@ export const NewSessionModal = ({
     if (!startDate || !endDate) return;
 
     // 입력값 검증
-    const trimmedJobName = jobName.trim();
-    if (!trimmedJobName) {
-      Alert.alert('입력 오류', '근무지명을 입력해주세요.');
+    if (!workplaceId) {
+      Alert.alert('입력 오류', '근무지를 선택해주세요.');
       return;
     }
-    if (wage <= 0) {
+    if (!wage || wage <= 0) {
       Alert.alert('입력 오류', '급여를 입력해주세요.');
       return;
     }
@@ -159,9 +175,10 @@ export const NewSessionModal = ({
 
     const newSession = {
       id: existingSession?.id,
-      jobName: trimmedJobName,
+      workplaceId,
       wage,
       wageType,
+      breakMinutes,
       startTime,
       endTime,
       startDate,
@@ -218,16 +235,17 @@ export const NewSessionModal = ({
               <View style={styles.iconWrap}>
                 <Ionicons name="location-outline" size={22} color={colors.brand} />
               </View>
-              <TextInput
-                style={[
-                  styles.input,
-                  { backgroundColor: colors.surface, color: colors.textPrimary },
-                ]}
-                placeholder="근무지명을 입력하세요"
-                placeholderTextColor={colors.textMuted}
-                value={jobName}
-                onChangeText={setJobName}
-              />
+              <View style={{ flex: 1 }}>
+                <Dropdown
+                  data={activeWorkplaces.map((w) => ({ value: w.id, label: w.name }))}
+                  onChange={(item) => handleSelectWorkplace(item.value)}
+                  placeholder={
+                    activeWorkplaces.length === 0
+                      ? "먼저 근무지를 추가하세요"
+                      : activeWorkplaces.find((w) => w.id === workplaceId)?.name ?? "근무지 선택"
+                  }
+                />
+              </View>
             </View>
           </View>
 
@@ -280,6 +298,32 @@ export const NewSessionModal = ({
                 />
               </View>
             </View>
+          </View>
+
+          {/* 휴게시간 */}
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.inputGroup}>
+              <View style={styles.iconWrap}>
+                <Ionicons name="cafe-outline" size={22} color={colors.brand} />
+              </View>
+              <View style={styles.wageInputRow}>
+                <TextInput
+                  style={[styles.input, { flex: 1, backgroundColor: colors.surface, color: colors.textPrimary }]}
+                  placeholder="휴게시간(분)"
+                  placeholderTextColor={colors.textMuted}
+                  value={breakMinutes != null ? String(breakMinutes) : ""}
+                  keyboardType="number-pad"
+                  onChangeText={(v) => setBreakMinutes(v === "" ? null : Number(v.replace(/[^0-9]/g, "")))}
+                />
+              </View>
+            </View>
+            <Text style={{ fontSize: fontSize.md, color: colors.textSecondary }}>
+              {(() => {
+                const total = sessionTotalMinutes(startTime, endTime);
+                const paid = Math.max(0, total - (breakMinutes ?? 0));
+                return `실 근무 ${(paid / 60).toFixed(1)}시간 (총 ${(total / 60).toFixed(1)}시간, 휴게 ${breakMinutes ?? 0}분)`;
+              })()}
+            </Text>
           </View>
 
           {/* 시간 */}

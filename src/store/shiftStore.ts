@@ -136,8 +136,10 @@ const createPersistConfig = (name: StoreName) => ({
 // 임시 저장 스토어
 interface ShiftStore extends WorkSession {
   setJobName: (jobName: string) => void;
+  setWorkplaceId: (workplaceId: string) => void;
   setWage: (wage: number) => void;
   setWageType: (wageType: "hourly" | "daily" | "monthly") => void;
+  setBreakMinutes: (breakMinutes: number | null) => void;
   setStartDate: (date: Date) => void;
   setEndDate: (date: Date) => void;
   setStartTime: (startTime: Date) => void;
@@ -152,8 +154,10 @@ const createInitialShiftState = (): Omit<
   ShiftStore,
   keyof {
     setJobName: never;
+    setWorkplaceId: never;
     setWage: never;
     setWageType: never;
+    setBreakMinutes: never;
     setStartDate: never;
     setEndDate: never;
     setStartTime: never;
@@ -169,8 +173,10 @@ const createInitialShiftState = (): Omit<
   isCurrentlyWorking: true,
   color: "",
   jobName: "",
+  workplaceId: "",
   wage: 0,
   wageType: "hourly",
+  breakMinutes: null,
   startDate: startOfDay(new Date()),
   endDate: startOfDay(new Date()),
   startTime: new Date(),
@@ -183,8 +189,10 @@ const createInitialShiftState = (): Omit<
 export const useShiftStore = create<ShiftStore>((set) => ({
   ...createInitialShiftState(),
   setJobName: (jobName) => set({ jobName }),
+  setWorkplaceId: (workplaceId) => set({ workplaceId }),
   setWage: (wage) => set({ wage }),
   setWageType: (wageType) => set({ wageType }),
+  setBreakMinutes: (breakMinutes) => set({ breakMinutes }),
   setStartDate: (startDate) => set({ startDate: startOfDay(startDate) }),
   setEndDate: (endDate) => set({ endDate: startOfDay(endDate) }),
   setStartTime: (startTime) => set({ startTime }),
