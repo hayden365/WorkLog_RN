@@ -11,13 +11,14 @@ import {
 } from "react-native";
 import { AppText as Text, AppTextInput as TextInput } from './AppText';
 import { WorkSession, RepeatOption } from "../models/WorkSession";
+import { Workplace } from "../models/Workplace";
 import { SafeAreaView } from "react-native-safe-area-context";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
 import { useShiftStore } from "../store/shiftStore";
 import { useWorkplaceStore } from "../store/workplaceStore";
 import Dropdown from "./Dropdown";
-import { WorkplaceManagerModal } from "./WorkplaceManagerModal";
+import uuid from "react-native-uuid";
 import { dayNames, repeatOptions } from "../utils/repeatOptions";
 import TimePicker from "./TimePicker";
 import DatePicker from "./DatePicker";
@@ -25,11 +26,9 @@ import SlideInView from "./SlideInView";
 import { formatNumberWithComma } from "../utils/formatNumbs";
 import { useTheme } from "../hooks/useTheme";
 import { spacing, radius, fontSize, fontWeight } from "../theme/tokens";
-
-// 드롭다운에서 '새 근무지 추가'를 나타내는 특수 값
-const ADD_NEW_WORKPLACE = "__add_new_workplace__";
 import { sessionTotalMinutes } from "../utils/payFns";
 import { resolveEditInitValues, toSavedOverrides } from "../utils/sessionForm";
+import { SESSION_COLORS } from "../utils/colorManager";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -51,8 +50,6 @@ export const NewSessionModal = ({
   const { colors, scheme } = useTheme();
 
   const {
-    workplaceId,
-    setWorkplaceId,
     wage,
     setWage,
     breakMinutes,
@@ -72,21 +69,15 @@ export const NewSessionModal = ({
     reset,
   } = useShiftStore();
   const workplacesById = useWorkplaceStore((s) => s.workplacesById);
+  const addWorkplace = useWorkplaceStore((s) => s.addWorkplace);
   // 스토어 셀렉터가 매 렌더 새 배열을 반환하면 무한 렌더 루프가 발생하므로
   // 안정적인 workplacesById를 구독하고 파생 배열은 useMemo로 계산한다.
   const activeWorkplaces = useMemo(
     () => Object.values(workplacesById).filter((w) => !w.archived),
     [workplacesById]
   );
-  // 편집 모드에서는 보관된 근무지도 선택 목록에 포함시켜야 이름이 보이고 재선택할 수 있다.
-  const workplaceOptions =
-    mode === "update" &&
-    existingSession &&
-    !activeWorkplaces.some((w) => w.id === existingSession.workplaceId) &&
-    workplacesById[existingSession.workplaceId]
-      ? [...activeWorkplaces, workplacesById[existingSession.workplaceId]]
-      : activeWorkplaces;
-  const [workplaceManagerVisible, setWorkplaceManagerVisible] = useState(false);
+  // 근무지는 이름으로 입력한다. 저장 시 같은 이름이 있으면 재사용, 없으면 자동 생성.
+  const [workplaceName, setWorkplaceName] = useState("");
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(true);
   const [description, setDescription] = useState("");
   const [wageType, setWageType] = useState<"hourly" | "daily" | "monthly">(
@@ -100,8 +91,8 @@ export const NewSessionModal = ({
   // 기존 세션 데이터가 있으면 초기값 설정
   useEffect(() => {
     if (existingSession && mode === "update") {
-      setWorkplaceId(existingSession.workplaceId);
       const wp = workplacesById[existingSession.workplaceId];
+      setWorkplaceName(wp?.name ?? "");
       const initValues = resolveEditInitValues(existingSession, wp);
       setBreakMinutes(initValues.breakMinutes);
       setWage(initValues.wage);
@@ -118,6 +109,7 @@ export const NewSessionModal = ({
     } else if (mode === "create") {
       // 새로 생성할 때는 초기화
       reset();
+      setWorkplaceName("");
       setWageValue("");
       setIsCurrentlyWorking(true);
       setDescription("");
@@ -134,20 +126,13 @@ export const NewSessionModal = ({
     setWage(Number(formattedValue.replace(/,/g, "")));
   };
 
-  // 근무지 선택 시 시급·급여유형·휴게시간 기본값 자동 채움.
-  // 특수 항목(새 근무지 추가)을 고르면 근무지 관리 화면을 연다.
-  const handleSelectWorkplace = (id: string) => {
-    if (id === ADD_NEW_WORKPLACE) {
-      setWorkplaceManagerVisible(true);
-      return;
-    }
-    const wp = workplaceOptions.find((w) => w.id === id);
-    if (!wp) return;
-    setWorkplaceId(id);
+  // 기존 근무지 칩을 누르면 이름과 함께 시급·급여유형·휴게시간을 자동으로 채운다.
+  const handlePickWorkplace = (wp: Workplace) => {
+    setWorkplaceName(wp.name);
     setWageType(wp.wageType);
     setWage(wp.wage);
     setWageValue(formatNumberWithComma(String(wp.wage)));
-    if (breakMinutes === null) setBreakMinutes(wp.defaultBreakMinutes);
+    setBreakMinutes(wp.defaultBreakMinutes);
   };
 
   // selectedWeekDays가 undefined일 때를 대비한 안전한 처리
@@ -185,8 +170,9 @@ export const NewSessionModal = ({
     if (!startDate || !endDate) return;
 
     // 입력값 검증
-    if (!workplaceId) {
-      Alert.alert('입력 오류', '근무지를 선택해주세요.');
+    const trimmedName = workplaceName.trim();
+    if (!trimmedName) {
+      Alert.alert('입력 오류', '근무지명을 입력해주세요.');
       return;
     }
     if (!wage || wage <= 0) {
@@ -200,16 +186,35 @@ export const NewSessionModal = ({
 
     const endDateValue = isCurrentlyWorking ? null : endDate;
 
+    // 근무지 해석: 같은 이름이 이미 있으면 재사용, 없으면 입력값으로 자동 생성한다.
+    let wp: Workplace | undefined = Object.values(workplacesById).find(
+      (w) => w.name.trim() === trimmedName
+    );
+    if (!wp) {
+      const palette = SESSION_COLORS;
+      wp = {
+        id: uuid.v4() as string,
+        name: trimmedName,
+        color: palette[Object.keys(workplacesById).length % palette.length],
+        wageType,
+        wage,
+        defaultBreakMinutes: breakMinutes ?? 0,
+        archived: false,
+      };
+      addWorkplace(wp);
+    }
+
     // 입력값이 근무지 기본값과 같으면 null(상속)로 저장해 상속 관계를 유지한다.
-    const wp = workplacesById[workplaceId];
     const savedOverrides = toSavedOverrides({ wageType, wage }, wp);
+    const savedBreak =
+      (breakMinutes ?? 0) === wp.defaultBreakMinutes ? null : breakMinutes;
 
     const newSession = {
       id: existingSession?.id,
-      workplaceId,
+      workplaceId: wp.id,
       wage: savedOverrides.wage,
       wageType: savedOverrides.wageType,
-      breakMinutes,
+      breakMinutes: savedBreak,
       startTime,
       endTime,
       startDate,
@@ -220,6 +225,7 @@ export const NewSessionModal = ({
       description,
     };
     onSave(newSession as WorkSession);
+    setWorkplaceName("");
     setWageValue("");
     setIsCurrentlyWorking(true);
     setDescription("");
@@ -266,20 +272,47 @@ export const NewSessionModal = ({
               <View style={styles.iconWrap}>
                 <Ionicons name="location-outline" size={22} color={colors.brand} />
               </View>
-              <View style={{ flex: 1 }}>
-                <Dropdown
-                  data={[
-                    ...workplaceOptions.map((w) => ({ value: w.id, label: w.name })),
-                    { value: ADD_NEW_WORKPLACE, label: "+ 새 근무지 추가" },
-                  ]}
-                  onChange={(item) => handleSelectWorkplace(item.value)}
-                  placeholder={
-                    workplaceOptions.find((w) => w.id === workplaceId)?.name ??
-                    (workplaceOptions.length === 0 ? "근무지를 추가하세요" : "근무지 선택")
-                  }
-                />
-              </View>
+              <TextInput
+                style={[
+                  styles.input,
+                  { backgroundColor: colors.surface, color: colors.textPrimary },
+                ]}
+                placeholder="근무지명 입력"
+                placeholderTextColor={colors.textMuted}
+                value={workplaceName}
+                onChangeText={setWorkplaceName}
+              />
             </View>
+            {/* 기존 근무지를 원탭으로 불러오는 칩 */}
+            {activeWorkplaces.length > 0 && (
+              <View style={styles.chipRow}>
+                {activeWorkplaces.map((w) => {
+                  const selected = workplaceName.trim() === w.name.trim();
+                  return (
+                    <TouchableOpacity
+                      key={w.id}
+                      style={[
+                        styles.chip,
+                        { borderColor: colors.border },
+                        selected && { backgroundColor: colors.brand, borderColor: colors.brand },
+                      ]}
+                      onPress={() => handlePickWorkplace(w)}
+                    >
+                      <View style={[styles.chipDot, { backgroundColor: w.color }]} />
+                      <Text
+                        style={{
+                          fontSize: fontSize.md,
+                          color: selected ? colors.accentText : colors.textPrimary,
+                        }}
+                        numberOfLines={1}
+                      >
+                        {w.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
           </View>
 
           {/* 급여 */}
@@ -480,11 +513,6 @@ export const NewSessionModal = ({
             </View>
           </View>
         </ScrollView>
-        {/* 세션 입력 중에도 새 근무지를 바로 만들 수 있도록 근무지 관리 화면을 중첩 렌더 */}
-        <WorkplaceManagerModal
-          visible={workplaceManagerVisible}
-          onClose={() => setWorkplaceManagerVisible(false)}
-        />
       </SafeAreaView>
     </Modal>
   );
@@ -520,6 +548,25 @@ const styles = StyleSheet.create({
     minHeight: 48,
     alignItems: "center",
     gap: spacing.md,
+  },
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderWidth: 1,
+    borderRadius: radius.full,
+  },
+  chipDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   rowTop: {
     flexDirection: "row",
