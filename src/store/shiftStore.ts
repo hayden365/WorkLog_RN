@@ -83,6 +83,12 @@ const createPersistConfig = (name: StoreName) => ({
   name: name,
   storage: mmkvStorage,
   version: SCHEDULE_STORE_VERSION,
+  // date-schedule-store / calendar-display-store는 여전히 version:1로 디스크에
+  // 남아있어 SCHEDULE_STORE_VERSION(2) 승격 시 zustand가 마이그레이션 함수 부재로
+  // persisted state를 버리고 console.error를 낸다. no-op migrate로 그대로
+  // 통과시켜 소음 없이 1→2로 승격한다. schedule-store는 마이그레이션 러너가
+  // 이미 version:2로 기록하므로 rehydrate 시 이 migrate는 호출되지 않는다.
+  migrate: (persistedState: any) => persistedState,
   merge: (persistedState: any, currentState: any) => {
     if (persistedState && Object.keys(persistedState).length > 0) {
       // 스케줄 스토어의 경우 Date 객체와 Set 객체 복원

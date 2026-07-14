@@ -44,7 +44,13 @@ export default function App() {
   const [ready, setReady] = React.useState(false);
 
   React.useEffect(() => {
-    runWorkplaceMigration();
+    try {
+      runWorkplaceMigration();
+    } catch (error) {
+      // runWorkplaceMigration은 내부적으로 예외를 삼키지만, 예기치 못한
+      // 오류로 여기까지 올라오더라도 부팅이 멈춰서는 안 된다(영구 빈 화면 방지).
+      console.warn('[App] runWorkplaceMigration 예기치 못한 오류', error);
+    }
     // MMKV를 직접 수정했으므로 persist 스토어를 재수화한다.
     Promise.all([
       useWorkplaceStore.persist.rehydrate(),
