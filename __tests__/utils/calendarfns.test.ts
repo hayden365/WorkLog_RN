@@ -19,8 +19,9 @@ function createTestResolvedSession(
   return {
     id: base.id,
     workplaceId: base.workplaceId,
-    jobName: base.jobName ?? '테스트 알바',
-    color: base.color ?? '#3D5AFE',
+    // 세션에는 더 이상 jobName/color가 없으므로(근무지 소유) 기본값을 여기서 채운다.
+    jobName: '테스트 알바',
+    color: '#3D5AFE',
     wageType: base.wageType ?? 'hourly',
     wage: base.wage ?? 10000,
     breakMinutes: base.breakMinutes ?? 0,

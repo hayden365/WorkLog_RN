@@ -10,7 +10,6 @@ import {
   CalendarDisplayMap,
   CalendarDisplayItem,
 } from "../models/WorkSession";
-import { getSessionColor } from "../utils/colorManager";
 
 const SCHEDULE_STORE_VERSION = 2;
 const STORE_NAMES = {
@@ -135,7 +134,6 @@ const createPersistConfig = (name: StoreName) => ({
 
 // 임시 저장 스토어
 interface ShiftStore extends WorkSession {
-  setJobName: (jobName: string) => void;
   setWorkplaceId: (workplaceId: string) => void;
   setWage: (wage: number) => void;
   setWageType: (wageType: "hourly" | "daily" | "monthly") => void;
@@ -153,7 +151,6 @@ interface ShiftStore extends WorkSession {
 const createInitialShiftState = (): Omit<
   ShiftStore,
   keyof {
-    setJobName: never;
     setWorkplaceId: never;
     setWage: never;
     setWageType: never;
@@ -169,10 +166,7 @@ const createInitialShiftState = (): Omit<
   }
 > => ({
   id: "",
-  calculatedDailyWage: 0,
   isCurrentlyWorking: true,
-  color: "",
-  jobName: "",
   workplaceId: "",
   wage: 0,
   wageType: "hourly",
@@ -188,7 +182,6 @@ const createInitialShiftState = (): Omit<
 
 export const useShiftStore = create<ShiftStore>((set) => ({
   ...createInitialShiftState(),
-  setJobName: (jobName) => set({ jobName }),
   setWorkplaceId: (workplaceId) => set({ workplaceId }),
   setWage: (wage) => set({ wage }),
   setWageType: (wageType) => set({ wageType }),
@@ -221,13 +214,11 @@ export const useScheduleStore = create<ScheduleStore>()(
       allSchedulesById: {},
 
       addSchedule: (schedule: WorkSession) =>
+        // 색상은 더 이상 세션이 아닌 근무지(Workplace) 소유이므로 여기서 부여하지 않는다.
         set((state: ScheduleStore) => ({
           allSchedulesById: {
             ...state.allSchedulesById,
-            [schedule.id]: {
-              ...schedule,
-              color: schedule.color || getSessionColor(schedule.id),
-            },
+            [schedule.id]: { ...schedule },
           },
         })),
 

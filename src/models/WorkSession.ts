@@ -19,10 +19,6 @@ export interface WorkSession {
   selectedWeekDays: Set<number>; // 0 = 월 ~ 6 = 일
   isCurrentlyWorking: boolean;
   description: string;
-  // ── Deprecated: Task 12에서 제거 (마이그레이션/표시 호환용으로 임시 유지) ──
-  jobName?: string;
-  color?: string;
-  calculatedDailyWage?: number | null;
 }
 
 export type ScheduleByDate = {

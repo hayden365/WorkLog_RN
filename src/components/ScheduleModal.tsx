@@ -15,6 +15,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useScheduleManager } from "../hooks/useScheduleManager";
 import { NewSessionModal } from "./NewSessionModal";
 import { useShiftStore } from "../store/shiftStore";
+import { useWorkplaceStore } from "../store/workplaceStore";
 import { formatNumberWithComma } from "../utils/formatNumbs";
 import { dayNames, repeatOptions } from "../utils/repeatOptions";
 import { useTheme } from "../hooks/useTheme";
@@ -30,9 +31,12 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
   const { getScheduleById, deleteSchedule, updateSchedule } =
     useScheduleManager();
   const session = sessionId ? getScheduleById(sessionId) : undefined;
+  // 근무지 이름·색상은 더 이상 세션에 저장되지 않으므로 근무지 스토어에서 해석한다.
+  const workplace = useWorkplaceStore((s) =>
+    session ? s.workplacesById[session.workplaceId] : undefined
+  );
 
   const {
-    setJobName,
     setWage,
     setWageType,
     setStartTime,
@@ -69,8 +73,7 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
 
   const handleEdit = () => {
     if (session) {
-      // shiftStore의 상태를 먼저 설정
-      setJobName(session.jobName || "");
+      // shiftStore의 상태를 먼저 설정 (근무지 선택은 NewSessionModal의 useEffect가 처리)
       setWage(session.wage || 0);
       setWageType(session.wageType || "hourly");
       setStartTime(session.startTime || new Date());
@@ -135,12 +138,12 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
                   {
                     width: 24,
                     height: 24,
-                    backgroundColor: session.color,
+                    backgroundColor: workplace?.color ?? colors.border,
                     borderRadius: 10,
                   },
                 ]}
               />
-              <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>{session.jobName}</Text>
+              <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>{workplace?.name ?? ""}</Text>
             </View>
           </View>
           <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
@@ -160,10 +163,12 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
               >
                 <FontAwesome name="won" size={16} color={colors.textPrimary} />
                 <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>
-                  {formatNumberWithComma(session.wage.toString())} (
-                  {session.wageType === "hourly"
+                  {formatNumberWithComma(
+                    (session.wage ?? workplace?.wage ?? 0).toString()
+                  )} (
+                  {(session.wageType ?? workplace?.wageType) === "hourly"
                     ? "시급"
-                    : session.wageType === "daily"
+                    : (session.wageType ?? workplace?.wageType) === "daily"
                     ? "일급"
                     : "월급"}
                   )

@@ -43,7 +43,7 @@ describe('useScheduleManager', () => {
 
     act(() => {
       result.current.addSchedule({
-        jobName: '삭제 테스트',
+        workplaceId: 'wp-delete-test',
         wageType: 'daily',
         wage: 80000,
         startTime: new Date(2026, 3, 15, 9, 0),
@@ -73,7 +73,7 @@ describe('useScheduleManager', () => {
 
     act(() => {
       result.current.addSchedule({
-        jobName: '초기화 테스트',
+        workplaceId: 'wp-clear-test',
         wageType: 'daily',
         wage: 80000,
         startTime: new Date(2026, 3, 15, 9, 0),

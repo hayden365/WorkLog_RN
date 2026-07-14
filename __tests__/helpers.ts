@@ -15,10 +15,6 @@ export function createTestSession(overrides: Partial<WorkSession> = {}): WorkSes
     selectedWeekDays: new Set<number>(),
     isCurrentlyWorking: true,
     description: '',
-    // deprecated 호환
-    jobName: '테스트 알바',
-    color: '#3D5AFE',
-    calculatedDailyWage: 90000,
     ...overrides,
   };
 }
