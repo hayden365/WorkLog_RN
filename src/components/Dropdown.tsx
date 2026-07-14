@@ -31,7 +31,6 @@ export default function Dropdown({
   const { colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const buttonRef = useRef<View>(null);
-  const [value, setValue] = useState("");
   const [dropdownLayout, setDropdownLayout] = useState({
     x: 0,
     y: 0,
@@ -60,7 +59,6 @@ export default function Dropdown({
   const onSelect = useCallback(
     (item: OptionItem) => {
       onChange(item);
-      setValue(item.label);
       setExpanded(false);
     },
     [onChange]
@@ -92,7 +90,7 @@ export default function Dropdown({
         activeOpacity={0.8}
         onPress={toggleExpanded}
       >
-        <Text style={[styles.text, { color: colors.textPrimary }]}>{value || placeholder}</Text>
+        <Text style={[styles.text, { color: colors.textPrimary }]}>{placeholder}</Text>
         <Ionicons name="chevron-expand" size={22} color={colors.textPrimary} />
       </TouchableOpacity>
       {expanded ? (
