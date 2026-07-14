@@ -19,6 +19,7 @@ import { useWorkplaceStore } from "../store/workplaceStore";
 import { formatNumberWithComma } from "../utils/formatNumbs";
 import { dayNames, repeatOptions } from "../utils/repeatOptions";
 import { useTheme } from "../hooks/useTheme";
+import { resolveEditInitValues } from "../utils/sessionForm";
 
 interface ScheduleModalProps {
   visible: boolean;
@@ -74,8 +75,11 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
   const handleEdit = () => {
     if (session) {
       // shiftStore의 상태를 먼저 설정 (근무지 선택은 NewSessionModal의 useEffect가 처리)
-      setWage(session.wage || 0);
-      setWageType(session.wageType || "hourly");
+      // 세션 오버라이드가 없으면(null) 근무지 기본값으로 상속해야 하므로
+      // session.wage/session.wageType을 직접 || 0으로 폴백하지 않는다.
+      const init = resolveEditInitValues(session, workplace);
+      setWage(init.wage);
+      setWageType(init.wageType);
       setStartTime(session.startTime || new Date());
       setEndTime(session.endTime || new Date());
       setStartDate(session.startDate || new Date());
