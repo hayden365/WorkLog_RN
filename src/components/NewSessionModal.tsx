@@ -17,6 +17,7 @@ import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
 import { useShiftStore } from "../store/shiftStore";
 import { useWorkplaceStore } from "../store/workplaceStore";
 import Dropdown from "./Dropdown";
+import { WorkplaceManagerModal } from "./WorkplaceManagerModal";
 import { dayNames, repeatOptions } from "../utils/repeatOptions";
 import TimePicker from "./TimePicker";
 import DatePicker from "./DatePicker";
@@ -24,6 +25,9 @@ import SlideInView from "./SlideInView";
 import { formatNumberWithComma } from "../utils/formatNumbs";
 import { useTheme } from "../hooks/useTheme";
 import { spacing, radius, fontSize, fontWeight } from "../theme/tokens";
+
+// 드롭다운에서 '새 근무지 추가'를 나타내는 특수 값
+const ADD_NEW_WORKPLACE = "__add_new_workplace__";
 import { sessionTotalMinutes } from "../utils/payFns";
 import { resolveEditInitValues, toSavedOverrides } from "../utils/sessionForm";
 
@@ -82,6 +86,7 @@ export const NewSessionModal = ({
     workplacesById[existingSession.workplaceId]
       ? [...activeWorkplaces, workplacesById[existingSession.workplaceId]]
       : activeWorkplaces;
+  const [workplaceManagerVisible, setWorkplaceManagerVisible] = useState(false);
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(true);
   const [description, setDescription] = useState("");
   const [wageType, setWageType] = useState<"hourly" | "daily" | "monthly">(
@@ -129,8 +134,13 @@ export const NewSessionModal = ({
     setWage(Number(formattedValue.replace(/,/g, "")));
   };
 
-  // 근무지 선택 시 시급·급여유형·휴게시간 기본값 자동 채움
+  // 근무지 선택 시 시급·급여유형·휴게시간 기본값 자동 채움.
+  // 특수 항목(새 근무지 추가)을 고르면 근무지 관리 화면을 연다.
   const handleSelectWorkplace = (id: string) => {
+    if (id === ADD_NEW_WORKPLACE) {
+      setWorkplaceManagerVisible(true);
+      return;
+    }
     const wp = workplaceOptions.find((w) => w.id === id);
     if (!wp) return;
     setWorkplaceId(id);
@@ -258,12 +268,14 @@ export const NewSessionModal = ({
               </View>
               <View style={{ flex: 1 }}>
                 <Dropdown
-                  data={workplaceOptions.map((w) => ({ value: w.id, label: w.name }))}
+                  data={[
+                    ...workplaceOptions.map((w) => ({ value: w.id, label: w.name })),
+                    { value: ADD_NEW_WORKPLACE, label: "+ 새 근무지 추가" },
+                  ]}
                   onChange={(item) => handleSelectWorkplace(item.value)}
                   placeholder={
-                    workplaceOptions.length === 0
-                      ? "먼저 근무지를 추가하세요"
-                      : workplaceOptions.find((w) => w.id === workplaceId)?.name ?? "근무지 선택"
+                    workplaceOptions.find((w) => w.id === workplaceId)?.name ??
+                    (workplaceOptions.length === 0 ? "근무지를 추가하세요" : "근무지 선택")
                   }
                 />
               </View>
@@ -468,6 +480,11 @@ export const NewSessionModal = ({
             </View>
           </View>
         </ScrollView>
+        {/* 세션 입력 중에도 새 근무지를 바로 만들 수 있도록 근무지 관리 화면을 중첩 렌더 */}
+        <WorkplaceManagerModal
+          visible={workplaceManagerVisible}
+          onClose={() => setWorkplaceManagerVisible(false)}
+        />
       </SafeAreaView>
     </Modal>
   );
