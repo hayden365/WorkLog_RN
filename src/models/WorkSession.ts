@@ -1,12 +1,16 @@
+import { WageType } from "./Workplace";
+export type { WageType };
+
 export type RepeatOption = "none" | "daily" | "weekly" | "biweekly" | "monthly";
 
 // 데이터 저장 형식
 export interface WorkSession {
   id: string;
-  jobName: string;
-  wageType: "hourly" | "daily" | "monthly";
-  wage: number;
-  calculatedDailyWage: number | null; // 미리 계산된 일급 (시급인 경우)
+  workplaceId: string; // 신규: 근무지 참조
+  // 오버라이드 (null이면 근무지 기본값 상속)
+  wageType: WageType | null;
+  wage: number | null;
+  breakMinutes: number | null; // 신규: null이면 근무지 defaultBreakMinutes
   startTime: Date;
   endTime: Date;
   startDate: Date;
@@ -15,7 +19,10 @@ export interface WorkSession {
   selectedWeekDays: Set<number>; // 0 = 월 ~ 6 = 일
   isCurrentlyWorking: boolean;
   description: string;
-  color: string; // 스케줄 색상
+  // ── Deprecated: Task 12에서 제거 (마이그레이션/표시 호환용으로 임시 유지) ──
+  jobName?: string;
+  color?: string;
+  calculatedDailyWage?: number | null;
 }
 
 export type ScheduleByDate = {
