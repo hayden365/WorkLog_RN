@@ -222,8 +222,8 @@ const HomeScreen = () => {
         <View
           style={[
             styles.earnings,
-            styles.cardShadow,
-            { backgroundColor: colors.surfaceElevated },
+            styles.cardBorder,
+            { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
           ]}
         >
           <View style={styles.earningsTopRow}>
@@ -279,8 +279,8 @@ const HomeScreen = () => {
         <View
           style={[
             styles.card,
-            styles.cardShadow,
-            { backgroundColor: colors.surfaceElevated },
+            styles.cardBorder,
+            { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
           ]}
         >
           <View style={styles.monthNav}>
@@ -429,8 +429,8 @@ const HomeScreen = () => {
           <View
             style={[
               styles.scheduleCard,
-              styles.cardShadow,
-              { backgroundColor: colors.surfaceElevated },
+              styles.cardBorder,
+              { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
             ]}
           >
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
@@ -445,8 +445,8 @@ const HomeScreen = () => {
               onPress={() => setEditSessionId(session.id)}
               style={[
                 styles.scheduleCard,
-                styles.cardShadow,
-                { backgroundColor: colors.surfaceElevated },
+                styles.cardBorder,
+                { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
               ]}
             >
               <View
@@ -544,13 +544,10 @@ const styles = StyleSheet.create({
   logoMarkImg: { width: 22, height: 22 },
   brandName: { fontSize: fontSize.xl, ...font('bold') },
 
-  // Soft elevation shared by the earnings, calendar, and schedule cards.
-  cardShadow: {
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+  // Hairline outline shared by the earnings, calendar, and schedule cards.
+  // borderColor is applied inline from the active theme.
+  cardBorder: {
+    borderWidth: StyleSheet.hairlineWidth,
   },
 
   earnings: {
@@ -710,11 +707,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 8,
     zIndex: 10,
   },
 });

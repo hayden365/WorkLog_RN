@@ -103,7 +103,7 @@ export default function Dropdown({
                 style={[
                   styles.options,
                   getDropdownStyle(),
-                  { backgroundColor: colors.surfaceElevated, borderColor: colors.divider },
+                  { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
                 ]}
               >
                 <FlatList
@@ -159,14 +159,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     maxHeight: 250,
-    shadowColor: "rgba(0, 0, 0, 0.2)",
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 5,
   },
   text: {
     fontSize: 15,
