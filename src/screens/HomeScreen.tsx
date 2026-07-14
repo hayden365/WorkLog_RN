@@ -30,9 +30,11 @@ import {
   computeMonthlyTotal,
   resolveSession,
   computeSessionPay,
+  sessionTotalMinutes,
   ResolvedSession,
 } from '../utils/payFns';
 import { useWorkplaceStore } from '../store/workplaceStore';
+import { useSettingsStore } from '../store/settingsStore';
 import { formatNumberWithComma } from '../utils/formatNumbs';
 import { WorkSession } from '../models/WorkSession';
 import { NewSessionModal } from '../components/NewSessionModal';
@@ -42,15 +44,6 @@ import { AdBanner } from '../components/AdBanner';
 
 const WEEKDAYS = ['월', '화', '수', '목', '금', '토', '일'];
 const WD_KO = ['일', '월', '화', '수', '목', '금', '토'];
-
-/** Worked hours for one session, wrapping past midnight (mirrors calculateDailyWage). */
-function sessionHours(s: WorkSession): number {
-  const start = s.startTime.getHours() * 60 + s.startTime.getMinutes();
-  const end = s.endTime.getHours() * 60 + s.endTime.getMinutes();
-  let mins = end - start;
-  if (mins < 0) mins += 24 * 60;
-  return mins / 60;
-}
 
 /** 104000 → "104k"; 0/undefined → "". */
 function formatK(n: number): string {
@@ -102,6 +95,17 @@ const HomeScreen = () => {
   const { setCalendarDisplay, calendarDisplayMap } = useCalendarDisplayStore();
   const { year, month, setYearMonth } = useDateStore();
   const workplacesById = useWorkplaceStore((s) => s.workplacesById);
+  const displayMode = useSettingsStore((s) => s.workTimeDisplayMode);
+
+  // 세션의 표시 근무시간(분): 토글이 total이면 휴게 포함 총 시간, actual이면 실근무(휴게 제외).
+  // 급여 계산(payFns.computeSessionPay)에는 영향 없음 — 급여는 항상 실근무 기준으로 고정.
+  const sessionDisplayMinutes = (s: WorkSession): number => {
+    const total = sessionTotalMinutes(s.startTime, s.endTime);
+    if (displayMode === 'total') return total;
+    const wp = workplacesById[s.workplaceId];
+    const breakMinutes = wp ? resolveSession(s, wp).breakMinutes : 0;
+    return Math.max(0, total - breakMinutes);
+  };
 
   // Move the calendar by ±1 month, rolling the year over at the boundaries.
   const shiftMonth = (delta: number) => {
@@ -187,7 +191,10 @@ const HomeScreen = () => {
       sum +
       ids.reduce(
         (h, id) =>
-          h + (allSchedulesById[id] ? sessionHours(allSchedulesById[id]) : 0),
+          h +
+          (allSchedulesById[id]
+            ? sessionDisplayMinutes(allSchedulesById[id]) / 60
+            : 0),
         0,
       ),
     0,
@@ -490,7 +497,9 @@ const HomeScreen = () => {
                     {format(session.startTime, 'HH:mm')} –{' '}
                     {format(session.endTime, 'HH:mm')}
                     {'  ·  '}
-                    {Math.round(sessionHours(session) * 10) / 10}시간
+                    {Math.round((sessionDisplayMinutes(session) / 60) * 10) /
+                      10}
+                    시간
                   </Text>
                 </View>
                 {pay && (
