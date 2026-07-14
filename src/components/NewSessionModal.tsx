@@ -25,6 +25,7 @@ import { formatNumberWithComma } from "../utils/formatNumbs";
 import { useTheme } from "../hooks/useTheme";
 import { spacing, radius, fontSize, fontWeight } from "../theme/tokens";
 import { sessionTotalMinutes } from "../utils/payFns";
+import { resolveEditInitValues, toSavedOverrides } from "../utils/sessionForm";
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -67,6 +68,15 @@ export const NewSessionModal = ({
     reset,
   } = useShiftStore();
   const activeWorkplaces = useWorkplaceStore((s) => s.getActiveWorkplaces());
+  const workplacesById = useWorkplaceStore((s) => s.workplacesById);
+  // 편집 모드에서는 보관된 근무지도 선택 목록에 포함시켜야 이름이 보이고 재선택할 수 있다.
+  const workplaceOptions =
+    mode === "update" &&
+    existingSession &&
+    !activeWorkplaces.some((w) => w.id === existingSession.workplaceId) &&
+    workplacesById[existingSession.workplaceId]
+      ? [...activeWorkplaces, workplacesById[existingSession.workplaceId]]
+      : activeWorkplaces;
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(true);
   const [description, setDescription] = useState("");
   const [wageType, setWageType] = useState<"hourly" | "daily" | "monthly">(
@@ -81,10 +91,12 @@ export const NewSessionModal = ({
   useEffect(() => {
     if (existingSession && mode === "update") {
       setWorkplaceId(existingSession.workplaceId);
-      setBreakMinutes(existingSession.breakMinutes ?? null);
-      setWage(existingSession.wage || 0);
-      setWageType(existingSession.wageType || "hourly");
-      setWageValue(formatNumberWithComma(String(existingSession.wage || "")));
+      const wp = workplacesById[existingSession.workplaceId];
+      const initValues = resolveEditInitValues(existingSession, wp);
+      setBreakMinutes(initValues.breakMinutes);
+      setWage(initValues.wage);
+      setWageType(initValues.wageType);
+      setWageValue(initValues.wage ? formatNumberWithComma(String(initValues.wage)) : "");
       setIsCurrentlyWorking(existingSession.isCurrentlyWorking ?? true);
       setDescription(existingSession.description || "");
       setStartTime(existingSession.startTime || new Date());
@@ -114,7 +126,7 @@ export const NewSessionModal = ({
 
   // 근무지 선택 시 시급·급여유형·휴게시간 기본값 자동 채움
   const handleSelectWorkplace = (id: string) => {
-    const wp = activeWorkplaces.find((w) => w.id === id);
+    const wp = workplaceOptions.find((w) => w.id === id);
     if (!wp) return;
     setWorkplaceId(id);
     setWageType(wp.wageType);
@@ -173,11 +185,15 @@ export const NewSessionModal = ({
 
     const endDateValue = isCurrentlyWorking ? null : endDate;
 
+    // 입력값이 근무지 기본값과 같으면 null(상속)로 저장해 상속 관계를 유지한다.
+    const wp = workplacesById[workplaceId];
+    const savedOverrides = toSavedOverrides({ wageType, wage }, wp);
+
     const newSession = {
       id: existingSession?.id,
       workplaceId,
-      wage,
-      wageType,
+      wage: savedOverrides.wage,
+      wageType: savedOverrides.wageType,
       breakMinutes,
       startTime,
       endTime,
@@ -237,12 +253,12 @@ export const NewSessionModal = ({
               </View>
               <View style={{ flex: 1 }}>
                 <Dropdown
-                  data={activeWorkplaces.map((w) => ({ value: w.id, label: w.name }))}
+                  data={workplaceOptions.map((w) => ({ value: w.id, label: w.name }))}
                   onChange={(item) => handleSelectWorkplace(item.value)}
                   placeholder={
-                    activeWorkplaces.length === 0
+                    workplaceOptions.length === 0
                       ? "먼저 근무지를 추가하세요"
-                      : activeWorkplaces.find((w) => w.id === workplaceId)?.name ?? "근무지 선택"
+                      : workplaceOptions.find((w) => w.id === workplaceId)?.name ?? "근무지 선택"
                   }
                 />
               </View>

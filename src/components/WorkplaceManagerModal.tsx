@@ -101,6 +101,10 @@ export const WorkplaceManagerModal = ({
       Alert.alert("입력 오류", "기본 급여를 입력해주세요.");
       return;
     }
+    if (wage > 100_000_000) {
+      Alert.alert("입력 오류", "급여가 너무 큽니다. 다시 확인해주세요.");
+      return;
+    }
 
     if (editingId) {
       updateWorkplace(editingId, {
