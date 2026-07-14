@@ -18,7 +18,8 @@
 - 급여 유형: `"hourly" | "daily" | "monthly"`. 새 타입 별칭 `WageType` 도입 후 재사용.
 - **마이그레이션 불변식:** 마이그레이션 후 모든 세션의 계산 급여·근무일수·근무시간이 마이그레이션 전과 정확히 동일해야 한다 (`defaultBreakMinutes = 0`으로 보장).
 - **급여는 항상 실근무(휴게 제외) 기준.** 표시 시간만 `workTimeDisplayMode` 토글을 따른다.
-- 리팩터는 **추가 → 소비자 이전 → 제거** 순서로 진행해 각 태스크 종료 시 앱이 컴파일되도록 유지한다. 구 필드(`jobName`/`color`/`calculatedDailyWage`)는 마지막 Task 12에서 제거한다.
+- 리팩터는 **추가 → 소비자 이전 → 제거** 순서로 진행한다. 구 필드(`jobName`/`color`/`calculatedDailyWage`)는 마지막 Task 12에서 제거한다.
+- **tsc 그린 게이트에 대한 정정(Task 4 실행 중 발견):** 모델 마이그레이션 특성상 Task 4에서 `WorkSession`에 필수 필드(`workplaceId`/`breakMinutes`)를 추가하고 `wage`/`wageType`를 nullable로 넓히는 순간, 이를 소비하는 파일들(NewSessionModal, ScheduleModal, calendarfns, wageFns, shiftStore, mockSchedules)의 `tsc --noEmit`가 **일시적으로 실패**한다. 이는 회피 불가능하며(소비자를 모두 Task 4에 몰아넣으면 태스크가 비대해짐), CI가 tsc를 게이트하지 않고 Jest(babel, 타입체크 없음)는 전 구간 그린이라 **앱은 정상 동작**한다. 따라서 **중간 태스크의 게이트는 Jest**로 하고, **`tsc --noEmit` 그린은 Task 12 종료 시점에만 요구**한다. 각 소비자 파일의 tsc 오류는 지정된 태스크에서 해소된다: NewSessionModal·shiftStore→Task 9, calendarfns→Task 8, wageFns·ScheduleModal·mockSchedules→Task 12.
 - 각 테스트 스텝 실행 명령: `npx jest <경로> -t "<이름>"` 또는 파일 단위 `npx jest <경로>`.
 
 ---
@@ -1532,7 +1533,9 @@ git commit -m "feat: 근무시간 표시 토글(실근무/총근무) 추가"
 - Modify: `src/store/shiftStore.ts` (jobName 세터/초기값, calculatedDailyWage 초기값, color 관련 잔재, Date 직렬화의 불필요 필드 정리)
 - Delete or reduce: `src/utils/wageFns.ts` (`calculateDailyWage`/`displayMonthlyWage` 제거) + `__tests__/utils/wageFns.test.ts`
 - Modify: `__tests__/helpers.ts` (deprecated 필드 제거)
-- Modify: 남은 참조 (`src/components/ScheduleModal.tsx:73,138,143`, `src/components/CalendarDisplayItem.tsx`는 `CalendarDisplayItem.jobName`/`color`를 쓰므로 유지 — 이는 표시 DTO라 근무지에서 채워진 값. 세션의 구 필드 참조만 제거)
+- Modify: 남은 참조 (`src/components/ScheduleModal.tsx:73,138,143` 및 `:163`의 `session.wage` null 참조, `src/components/CalendarDisplayItem.tsx`는 `CalendarDisplayItem.jobName`/`color`를 쓰므로 유지 — 이는 표시 DTO라 근무지에서 채워진 값. 세션의 구 필드 참조만 제거)
+- Delete: `src/data/mockSchedules.ts` (임포터 없음 — dead code. Task 4 모델 변경으로 tsc 오류 9건 발생. 삭제해 tsc-green 확보. 만약 어딘가에서 임포트가 새로 생겼다면 삭제 대신 `workplaceId`/`breakMinutes` 백필)
+- **tsc-green 최종 게이트:** 이 태스크 종료 시 `npx tsc --noEmit`가 **0 오류**여야 한다 (Task 4 이후 누적된 전이 오류를 모두 해소하는 최종 지점).
 
 **Interfaces:**
 - Change: `WorkSession`에서 `jobName?`, `color?`, `calculatedDailyWage?` 제거. `wageType`/`wage`는 nullable 유지.
