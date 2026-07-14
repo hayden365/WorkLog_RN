@@ -10,9 +10,8 @@ import {
   CalendarDisplayMap,
   CalendarDisplayItem,
 } from "../models/WorkSession";
-import { getSessionColor } from "../utils/colorManager";
 
-const SCHEDULE_STORE_VERSION = 1;
+const SCHEDULE_STORE_VERSION = 2;
 const STORE_NAMES = {
   SCHEDULE: "schedule-store",
   DATE_SCHEDULE: "date-schedule-store",
@@ -83,6 +82,12 @@ const createPersistConfig = (name: StoreName) => ({
   name: name,
   storage: mmkvStorage,
   version: SCHEDULE_STORE_VERSION,
+  // date-schedule-store / calendar-display-store는 여전히 version:1로 디스크에
+  // 남아있어 SCHEDULE_STORE_VERSION(2) 승격 시 zustand가 마이그레이션 함수 부재로
+  // persisted state를 버리고 console.error를 낸다. no-op migrate로 그대로
+  // 통과시켜 소음 없이 1→2로 승격한다. schedule-store는 마이그레이션 러너가
+  // 이미 version:2로 기록하므로 rehydrate 시 이 migrate는 호출되지 않는다.
+  migrate: (persistedState: any) => persistedState,
   merge: (persistedState: any, currentState: any) => {
     if (persistedState && Object.keys(persistedState).length > 0) {
       // 스케줄 스토어의 경우 Date 객체와 Set 객체 복원
@@ -129,9 +134,10 @@ const createPersistConfig = (name: StoreName) => ({
 
 // 임시 저장 스토어
 interface ShiftStore extends WorkSession {
-  setJobName: (jobName: string) => void;
+  setWorkplaceId: (workplaceId: string) => void;
   setWage: (wage: number) => void;
   setWageType: (wageType: "hourly" | "daily" | "monthly") => void;
+  setBreakMinutes: (breakMinutes: number | null) => void;
   setStartDate: (date: Date) => void;
   setEndDate: (date: Date) => void;
   setStartTime: (startTime: Date) => void;
@@ -145,9 +151,10 @@ interface ShiftStore extends WorkSession {
 const createInitialShiftState = (): Omit<
   ShiftStore,
   keyof {
-    setJobName: never;
+    setWorkplaceId: never;
     setWage: never;
     setWageType: never;
+    setBreakMinutes: never;
     setStartDate: never;
     setEndDate: never;
     setStartTime: never;
@@ -159,12 +166,11 @@ const createInitialShiftState = (): Omit<
   }
 > => ({
   id: "",
-  calculatedDailyWage: 0,
   isCurrentlyWorking: true,
-  color: "",
-  jobName: "",
+  workplaceId: "",
   wage: 0,
   wageType: "hourly",
+  breakMinutes: null,
   startDate: startOfDay(new Date()),
   endDate: startOfDay(new Date()),
   startTime: new Date(),
@@ -176,9 +182,10 @@ const createInitialShiftState = (): Omit<
 
 export const useShiftStore = create<ShiftStore>((set) => ({
   ...createInitialShiftState(),
-  setJobName: (jobName) => set({ jobName }),
+  setWorkplaceId: (workplaceId) => set({ workplaceId }),
   setWage: (wage) => set({ wage }),
   setWageType: (wageType) => set({ wageType }),
+  setBreakMinutes: (breakMinutes) => set({ breakMinutes }),
   setStartDate: (startDate) => set({ startDate: startOfDay(startDate) }),
   setEndDate: (endDate) => set({ endDate: startOfDay(endDate) }),
   setStartTime: (startTime) => set({ startTime }),
@@ -207,13 +214,11 @@ export const useScheduleStore = create<ScheduleStore>()(
       allSchedulesById: {},
 
       addSchedule: (schedule: WorkSession) =>
+        // 색상은 더 이상 세션이 아닌 근무지(Workplace) 소유이므로 여기서 부여하지 않는다.
         set((state: ScheduleStore) => ({
           allSchedulesById: {
             ...state.allSchedulesById,
-            [schedule.id]: {
-              ...schedule,
-              color: schedule.color || getSessionColor(schedule.id),
-            },
+            [schedule.id]: { ...schedule },
           },
         })),
 

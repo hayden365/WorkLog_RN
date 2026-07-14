@@ -29,6 +29,7 @@ export const CalendarDisplayItem: React.FC<CalendarDisplayItemProps> = ({
         styles.container,
         { backgroundColor: item.color },
         isSelected && styles.selected,
+        isSelected && { borderColor: colors.accentText },
       ]}
       onPress={handlePress}
       activeOpacity={0.7}
@@ -49,23 +50,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 1,
     minHeight: 24,
     justifyContent: "center",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.15)",
   },
   selected: {
-    elevation: 4,
-    shadowOpacity: 0.4,
+    borderWidth: 2,
     transform: [{ scale: 1.05 }],
   },
   jobName: {
     fontSize: 12,
     fontWeight: "600",
     textAlign: "center",
-    textShadowColor: "rgba(0, 0, 0, 0.3)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
   },
 });

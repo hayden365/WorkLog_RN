@@ -26,7 +26,15 @@ import {
 } from '../store/shiftStore';
 import { useScheduleManager } from '../hooks/useScheduleManager';
 import { generateViewMonthScheduleData } from '../utils/calendarfns';
-import { displayMonthlyWage } from '../utils/wageFns';
+import {
+  computeMonthlyTotal,
+  resolveSession,
+  computeSessionPay,
+  sessionTotalMinutes,
+  ResolvedSession,
+} from '../utils/payFns';
+import { useWorkplaceStore } from '../store/workplaceStore';
+import { useSettingsStore } from '../store/settingsStore';
 import { formatNumberWithComma } from '../utils/formatNumbs';
 import { WorkSession } from '../models/WorkSession';
 import { NewSessionModal } from '../components/NewSessionModal';
@@ -36,15 +44,6 @@ import { AdBanner } from '../components/AdBanner';
 
 const WEEKDAYS = ['월', '화', '수', '목', '금', '토', '일'];
 const WD_KO = ['일', '월', '화', '수', '목', '금', '토'];
-
-/** Worked hours for one session, wrapping past midnight (mirrors calculateDailyWage). */
-function sessionHours(s: WorkSession): number {
-  const start = s.startTime.getHours() * 60 + s.startTime.getMinutes();
-  const end = s.endTime.getHours() * 60 + s.endTime.getMinutes();
-  let mins = end - start;
-  if (mins < 0) mins += 24 * 60;
-  return mins / 60;
-}
 
 /** 104000 → "104k"; 0/undefined → "". */
 function formatK(n: number): string {
@@ -95,6 +94,18 @@ const HomeScreen = () => {
   const { dateSchedule, setDateSchedule } = useDateScheduleStore();
   const { setCalendarDisplay, calendarDisplayMap } = useCalendarDisplayStore();
   const { year, month, setYearMonth } = useDateStore();
+  const workplacesById = useWorkplaceStore((s) => s.workplacesById);
+  const displayMode = useSettingsStore((s) => s.workTimeDisplayMode);
+
+  // 세션의 표시 근무시간(분): 토글이 total이면 휴게 포함 총 시간, actual이면 실근무(휴게 제외).
+  // 급여 계산(payFns.computeSessionPay)에는 영향 없음 — 급여는 항상 실근무 기준으로 고정.
+  const sessionDisplayMinutes = (s: WorkSession): number => {
+    const total = sessionTotalMinutes(s.startTime, s.endTime);
+    if (displayMode === 'total') return total;
+    const wp = workplacesById[s.workplaceId];
+    const breakMinutes = wp ? resolveSession(s, wp).breakMinutes : 0;
+    return Math.max(0, total - breakMinutes);
+  };
 
   // Move the calendar by ±1 month, rolling the year over at the boundaries.
   const shiftMonth = (delta: number) => {
@@ -118,24 +129,35 @@ const HomeScreen = () => {
   // Rebuild the view-month calendar + earnings whenever schedules or month change.
   useEffect(() => {
     const all = getAllSchedules();
+    // 근무지와 병합해 색상/이름이 확정된 ResolvedSession으로 변환 (근무지 없는 세션은 제외)
+    const resolvedSchedules = all
+      .map((s) => {
+        const wp = workplacesById[s.workplaceId];
+        return wp ? resolveSession(s, wp) : null;
+      })
+      .filter((r): r is ResolvedSession => r !== null);
+
     const viewMonth = new Date(year, month, 1);
     const { markedDates, dateSchedule: byDate } = generateViewMonthScheduleData(
-      all,
+      resolvedSchedules,
       viewMonth,
     );
     setDateSchedule(byDate);
     setCalendarDisplay(markedDates);
-    setEarnings(displayMonthlyWage(byDate, allSchedulesById, viewMonth));
+    setEarnings(
+      computeMonthlyTotal(byDate, allSchedulesById, workplacesById, viewMonth).net,
+    );
 
     const prevMonth = new Date(year, month - 1, 1);
     const { dateSchedule: prevByDate } = generateViewMonthScheduleData(
-      all,
+      resolvedSchedules,
       prevMonth,
     );
     setPrevEarnings(
-      displayMonthlyWage(prevByDate, allSchedulesById, prevMonth),
+      computeMonthlyTotal(prevByDate, allSchedulesById, workplacesById, prevMonth)
+        .net,
     );
-  }, [allSchedulesById, year, month]);
+  }, [allSchedulesById, workplacesById, year, month]);
 
   const grid = useMemo(() => buildGrid(year, month), [year, month]);
   const weeks: Cell[][] = [];
@@ -154,12 +176,14 @@ const HomeScreen = () => {
     return Array.from(byJob, ([jobName, color]) => ({ jobName, color }));
   }, [calendarDisplayMap]);
 
-  // Sum of a day's daily wages (monthly-type jobs have null daily wage → skipped).
+  // Sum of a day's daily wages, derived from workplace + session (근무지 없으면 0).
   const dayWage = (key: string) =>
-    (dateSchedule[key] ?? []).reduce(
-      (sum, id) => sum + (allSchedulesById[id]?.calculatedDailyWage ?? 0),
-      0,
-    );
+    (dateSchedule[key] ?? []).reduce((sum, id) => {
+      const s = allSchedulesById[id];
+      const wp = s ? workplacesById[s.workplaceId] : undefined;
+      if (!s || !wp) return sum;
+      return sum + computeSessionPay(resolveSession(s, wp)).net;
+    }, 0);
 
   const workDays = Object.keys(dateSchedule).length;
   const totalHours = Object.values(dateSchedule).reduce(
@@ -167,7 +191,10 @@ const HomeScreen = () => {
       sum +
       ids.reduce(
         (h, id) =>
-          h + (allSchedulesById[id] ? sessionHours(allSchedulesById[id]) : 0),
+          h +
+          (allSchedulesById[id]
+            ? sessionDisplayMinutes(allSchedulesById[id]) / 60
+            : 0),
         0,
       ),
     0,
@@ -222,8 +249,8 @@ const HomeScreen = () => {
         <View
           style={[
             styles.earnings,
-            styles.cardShadow,
-            { backgroundColor: colors.surfaceElevated },
+            styles.cardBorder,
+            { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
           ]}
         >
           <View style={styles.earningsTopRow}>
@@ -279,8 +306,8 @@ const HomeScreen = () => {
         <View
           style={[
             styles.card,
-            styles.cardShadow,
-            { backgroundColor: colors.surfaceElevated },
+            styles.cardBorder,
+            { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
           ]}
         >
           <View style={styles.monthNav}>
@@ -429,8 +456,8 @@ const HomeScreen = () => {
           <View
             style={[
               styles.scheduleCard,
-              styles.cardShadow,
-              { backgroundColor: colors.surfaceElevated },
+              styles.cardBorder,
+              { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
             ]}
           >
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
@@ -438,47 +465,53 @@ const HomeScreen = () => {
             </Text>
           </View>
         ) : (
-          selectedSessions.map((session) => (
-            <TouchableOpacity
-              key={session.id}
-              activeOpacity={0.8}
-              onPress={() => setEditSessionId(session.id)}
-              style={[
-                styles.scheduleCard,
-                styles.cardShadow,
-                { backgroundColor: colors.surfaceElevated },
-              ]}
-            >
-              <View
+          selectedSessions.map((session) => {
+            const wp = workplacesById[session.workplaceId];
+            const pay = wp ? computeSessionPay(resolveSession(session, wp)) : null;
+            return (
+              <TouchableOpacity
+                key={session.id}
+                activeOpacity={0.8}
+                onPress={() => setEditSessionId(session.id)}
                 style={[
-                  styles.scheduleBar,
-                  { backgroundColor: session.color || colors.brand },
+                  styles.scheduleCard,
+                  styles.cardBorder,
+                  { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
                 ]}
-              />
-              <View style={styles.scheduleBody}>
-                <Text
-                  style={[styles.scheduleTitle, { color: colors.textPrimary }]}
-                >
-                  {session.jobName}
-                </Text>
-                <Text
-                  style={[styles.scheduleTime, { color: colors.textSecondary }]}
-                >
-                  {format(session.startTime, 'HH:mm')} –{' '}
-                  {format(session.endTime, 'HH:mm')}
-                  {'  ·  '}
-                  {Math.round(sessionHours(session) * 10) / 10}시간
-                </Text>
-              </View>
-              {session.calculatedDailyWage != null && (
-                <Text
-                  style={[styles.scheduleWage, { color: colors.textPrimary }]}
-                >
-                  ₩{formatNumberWithComma(String(session.calculatedDailyWage))}
-                </Text>
-              )}
-            </TouchableOpacity>
-          ))
+              >
+                <View
+                  style={[
+                    styles.scheduleBar,
+                    { backgroundColor: wp?.color ?? colors.brand },
+                  ]}
+                />
+                <View style={styles.scheduleBody}>
+                  <Text
+                    style={[styles.scheduleTitle, { color: colors.textPrimary }]}
+                  >
+                    {wp?.name ?? ''}
+                  </Text>
+                  <Text
+                    style={[styles.scheduleTime, { color: colors.textSecondary }]}
+                  >
+                    {format(session.startTime, 'HH:mm')} –{' '}
+                    {format(session.endTime, 'HH:mm')}
+                    {'  ·  '}
+                    {Math.round((sessionDisplayMinutes(session) / 60) * 10) /
+                      10}
+                    시간
+                  </Text>
+                </View>
+                {pay && (
+                  <Text
+                    style={[styles.scheduleWage, { color: colors.textPrimary }]}
+                  >
+                    ₩{formatNumberWithComma(String(Math.round(pay.net)))}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            );
+          })
         )}
       </ScrollView>
 
@@ -544,13 +577,10 @@ const styles = StyleSheet.create({
   logoMarkImg: { width: 22, height: 22 },
   brandName: { fontSize: fontSize.xl, ...font('bold') },
 
-  // Soft elevation shared by the earnings, calendar, and schedule cards.
-  cardShadow: {
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
+  // Hairline outline shared by the earnings, calendar, and schedule cards.
+  // borderColor is applied inline from the active theme.
+  cardBorder: {
+    borderWidth: StyleSheet.hairlineWidth,
   },
 
   earnings: {
@@ -710,11 +740,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 8,
     zIndex: 10,
   },
 });

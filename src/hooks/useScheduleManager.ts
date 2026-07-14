@@ -5,8 +5,6 @@ import {
   scheduleStoreUtils,
 } from "../store/shiftStore";
 import { WorkSession } from "../models/WorkSession";
-import { calculateDailyWage } from "../utils/wageFns";
-import { getSessionColor } from "../utils/colorManager";
 import { useDateStore } from "../store/dateStore";
 import uuid from "react-native-uuid";
 
@@ -35,26 +33,18 @@ export const useScheduleManager = () => {
     getCalendarDisplayForDate,
   } = useCalendarDisplayStore();
 
-  // 시급이 계산된 세션 추가
+  // 세션 추가. 급여는 더 이상 미리 계산하지 않고 근무지+세션에서 파생 계산한다.
   const addScheduleWithCalculatedWage = (schedule: Partial<WorkSession>) => {
-    const wage = calculateDailyWage(schedule as WorkSession);
-
-    const id = uuid.v4();
-    addSchedule({
-      ...schedule,
-      id,
-      calculatedDailyWage: wage,
-      color: getSessionColor(id),
-    } as WorkSession);
+    const id = uuid.v4() as string;
+    addSchedule({ ...schedule, id } as WorkSession);
   };
 
-  // 시급이 계산된 세션 업데이트
+  // 세션 업데이트. 급여는 더 이상 미리 계산하지 않고 근무지+세션에서 파생 계산한다.
   const updateScheduleWithCalculatedWage = (
     id: string,
     updates: Partial<WorkSession>
   ) => {
-    const wage = calculateDailyWage(updates as WorkSession);
-    updateSchedule(id, { ...updates, calculatedDailyWage: wage });
+    updateSchedule(id, updates);
   };
 
   // 스케줄 삭제 시 관련 데이터도 함께 정리

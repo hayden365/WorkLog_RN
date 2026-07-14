@@ -107,7 +107,7 @@ export const CalendarPage = ({
   );
 
   return (
-    <View style={[styles.calendarContainer, { backgroundColor: colors.background }]}>
+    <View style={[styles.calendarContainer, { backgroundColor: colors.background, borderColor: colors.border }]}>
       <Calendar
         current={selectedDate}
         onDayPress={handleDayPress}
@@ -166,7 +166,7 @@ export const CalendarPage = ({
 const styles = StyleSheet.create({
   calendarContainer: {
     borderRadius: 12,
-    elevation: 2,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   calendar: {
     borderRadius: 12,

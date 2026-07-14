@@ -13,15 +13,15 @@ describe('useShiftStore', () => {
 
   it('초기 상태는 빈 폼이다', () => {
     const state = useShiftStore.getState();
-    expect(state.jobName).toBe('');
+    expect(state.workplaceId).toBe('');
     expect(state.wage).toBe(0);
     expect(state.wageType).toBe('hourly');
     expect(state.repeatOption).toBe('none');
   });
 
-  it('setJobName으로 직업명을 변경한다', () => {
-    useShiftStore.getState().setJobName('카페 알바');
-    expect(useShiftStore.getState().jobName).toBe('카페 알바');
+  it('setWorkplaceId로 근무지를 변경한다', () => {
+    useShiftStore.getState().setWorkplaceId('wp-cafe');
+    expect(useShiftStore.getState().workplaceId).toBe('wp-cafe');
   });
 
   it('setWage로 급여를 변경한다', () => {
@@ -35,10 +35,10 @@ describe('useShiftStore', () => {
   });
 
   it('reset()으로 모든 필드를 초기화한다', () => {
-    useShiftStore.getState().setJobName('테스트');
+    useShiftStore.getState().setWorkplaceId('wp-cafe');
     useShiftStore.getState().setWage(20000);
     useShiftStore.getState().reset();
-    expect(useShiftStore.getState().jobName).toBe('');
+    expect(useShiftStore.getState().workplaceId).toBe('');
     expect(useShiftStore.getState().wage).toBe(0);
   });
 });
@@ -52,14 +52,14 @@ describe('useScheduleStore', () => {
     const session = createTestSession({ id: 'add-1' });
     useScheduleStore.getState().addSchedule(session);
     expect(useScheduleStore.getState().getScheduleById('add-1')).toBeDefined();
-    expect(useScheduleStore.getState().getScheduleById('add-1')!.jobName).toBe('테스트 알바');
+    expect(useScheduleStore.getState().getScheduleById('add-1')!.workplaceId).toBe('test-wp-1');
   });
 
   it('updateSchedule로 스케줄을 수정한다', () => {
     const session = createTestSession({ id: 'update-1' });
     useScheduleStore.getState().addSchedule(session);
-    useScheduleStore.getState().updateSchedule('update-1', { jobName: '수정됨' });
-    expect(useScheduleStore.getState().getScheduleById('update-1')!.jobName).toBe('수정됨');
+    useScheduleStore.getState().updateSchedule('update-1', { description: '수정됨' });
+    expect(useScheduleStore.getState().getScheduleById('update-1')!.description).toBe('수정됨');
   });
 
   it('deleteSchedule로 스케줄을 삭제한다', () => {

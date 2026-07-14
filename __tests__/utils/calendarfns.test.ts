@@ -8,6 +8,34 @@ import {
   generateViewMonthScheduleData,
 } from '../../src/utils/calendarfns';
 import { createTestSession } from '../helpers';
+import { ResolvedSession } from '../../src/utils/payFns';
+
+// calendarfns는 ResolvedSession(근무지 병합 결과)을 입력으로 받으므로,
+// 기존 WorkSession 빌더(createTestSession)를 ResolvedSession 형태로 변환한다.
+function createTestResolvedSession(
+  overrides: Partial<ResolvedSession> = {}
+): ResolvedSession {
+  const base = createTestSession();
+  return {
+    id: base.id,
+    workplaceId: base.workplaceId,
+    // 세션에는 더 이상 jobName/color가 없으므로(근무지 소유) 기본값을 여기서 채운다.
+    jobName: '테스트 알바',
+    color: '#3D5AFE',
+    wageType: base.wageType ?? 'hourly',
+    wage: base.wage ?? 10000,
+    breakMinutes: base.breakMinutes ?? 0,
+    startTime: base.startTime,
+    endTime: base.endTime,
+    startDate: base.startDate,
+    endDate: base.endDate,
+    repeatOption: base.repeatOption,
+    selectedWeekDays: base.selectedWeekDays,
+    isCurrentlyWorking: base.isCurrentlyWorking,
+    description: base.description,
+    ...overrides,
+  };
+}
 
 describe('calculateScheduleByDate', () => {
   it('날짜에 세션 ID를 매핑한다', () => {
@@ -35,7 +63,7 @@ describe('calculateScheduleByDate', () => {
 
 describe('getMarkedDatesFromNoneSchedule', () => {
   it('단일 날짜(endDate=null)를 마킹한다', () => {
-    const session = createTestSession({
+    const session = createTestResolvedSession({
       id: 'none-1',
       repeatOption: 'none',
       startDate: new Date(2026, 3, 15),
@@ -51,7 +79,7 @@ describe('getMarkedDatesFromNoneSchedule', () => {
   });
 
   it('날짜 범위를 마킹한다', () => {
-    const session = createTestSession({
+    const session = createTestResolvedSession({
       id: 'none-2',
       repeatOption: 'none',
       startDate: new Date(2026, 3, 15),
@@ -68,11 +96,29 @@ describe('getMarkedDatesFromNoneSchedule', () => {
       '2026-04-17',
     ]);
   });
+
+  it('마킹 아이템이 근무지 색상과 이름을 담는다', () => {
+    const resolved = createTestResolvedSession({
+      id: 'none-3',
+      repeatOption: 'none',
+      startDate: new Date(2026, 3, 15),
+      endDate: null,
+      color: '#ABC',
+      jobName: '카페',
+    });
+    const marked = getMarkedDatesFromNoneSchedule({
+      schedule: resolved,
+      viewMonth: new Date(2026, 3, 1),
+    });
+    const first = Object.values(marked)[0];
+    expect(first.color).toBe('#ABC');
+    expect(first.jobName).toBe('카페');
+  });
 });
 
 describe('getMarkedDatesFromDailySchedule', () => {
   it('시작일~종료일 사이 매일 마킹한다', () => {
-    const session = createTestSession({
+    const session = createTestResolvedSession({
       id: 'daily-1',
       repeatOption: 'daily',
       startDate: new Date(2026, 3, 1),
@@ -89,7 +135,7 @@ describe('getMarkedDatesFromDailySchedule', () => {
 
 describe('getMarkedDatesFromWeeklySchedule', () => {
   it('선택된 요일만 마킹한다 (월,수,금 = 1,3,5)', () => {
-    const session = createTestSession({
+    const session = createTestResolvedSession({
       id: 'weekly-1',
       repeatOption: 'weekly',
       startDate: new Date(2026, 3, 1),
@@ -111,7 +157,7 @@ describe('getMarkedDatesFromWeeklySchedule', () => {
 
 describe('getMarkedDatesFromBiweeklySchedule', () => {
   it('격주로 선택된 요일만 마킹한다', () => {
-    const session = createTestSession({
+    const session = createTestResolvedSession({
       id: 'biweekly-1',
       repeatOption: 'biweekly',
       startDate: new Date(2026, 3, 1),
@@ -131,7 +177,7 @@ describe('getMarkedDatesFromBiweeklySchedule', () => {
 
 describe('getMarkedDatesFromMonthlySchedule', () => {
   it('매월 같은 날짜를 마킹한다', () => {
-    const session = createTestSession({
+    const session = createTestResolvedSession({
       id: 'monthly-1',
       repeatOption: 'monthly',
       startDate: new Date(2026, 3, 15),
@@ -149,14 +195,14 @@ describe('getMarkedDatesFromMonthlySchedule', () => {
 describe('generateViewMonthScheduleData', () => {
   it('여러 패턴을 통합하여 markedDates와 dateSchedule을 반환한다', () => {
     const sessions = [
-      createTestSession({
+      createTestResolvedSession({
         id: 'daily-1',
         repeatOption: 'daily',
         startDate: new Date(2026, 3, 1),
         endDate: new Date(2026, 3, 5),
         color: '#3D5AFE',
       }),
-      createTestSession({
+      createTestResolvedSession({
         id: 'none-1',
         repeatOption: 'none',
         startDate: new Date(2026, 3, 3),

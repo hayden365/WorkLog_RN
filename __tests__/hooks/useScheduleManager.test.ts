@@ -11,12 +11,14 @@ describe('useScheduleManager', () => {
     resetColorManager();
   });
 
-  it('addSchedule로 일급 자동 계산 + 색상 할당 + 스토어 업데이트한다', () => {
+  // 급여는 더 이상 훅에서 미리 계산하지 않고(payFns의 파생 계산으로 전환),
+  // addSchedule은 uuid 채번 + 스토어 반영만 담당한다.
+  it('addSchedule로 uuid 채번 + 스토어 업데이트한다', () => {
     const { result } = renderHook(() => useScheduleManager());
 
     act(() => {
       result.current.addSchedule({
-        jobName: '카페 알바',
+        workplaceId: 'wp-1',
         wageType: 'hourly',
         wage: 10000,
         startTime: new Date(2026, 3, 15, 9, 0),
@@ -32,8 +34,7 @@ describe('useScheduleManager', () => {
 
     const schedules = result.current.getAllSchedules();
     expect(schedules.length).toBe(1);
-    expect(schedules[0].calculatedDailyWage).toBe(90000);
-    expect(schedules[0].color).toBeTruthy();
+    expect(schedules[0].workplaceId).toBe('wp-1');
     expect(schedules[0].id).toBeTruthy();
   });
 
@@ -42,7 +43,7 @@ describe('useScheduleManager', () => {
 
     act(() => {
       result.current.addSchedule({
-        jobName: '삭제 테스트',
+        workplaceId: 'wp-delete-test',
         wageType: 'daily',
         wage: 80000,
         startTime: new Date(2026, 3, 15, 9, 0),
@@ -72,7 +73,7 @@ describe('useScheduleManager', () => {
 
     act(() => {
       result.current.addSchedule({
-        jobName: '초기화 테스트',
+        workplaceId: 'wp-clear-test',
         wageType: 'daily',
         wage: 80000,
         startTime: new Date(2026, 3, 15, 9, 0),
