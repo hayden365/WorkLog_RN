@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Modal,
   View,
@@ -67,8 +67,13 @@ export const NewSessionModal = ({
     setRepeatOption,
     reset,
   } = useShiftStore();
-  const activeWorkplaces = useWorkplaceStore((s) => s.getActiveWorkplaces());
   const workplacesById = useWorkplaceStore((s) => s.workplacesById);
+  // 스토어 셀렉터가 매 렌더 새 배열을 반환하면 무한 렌더 루프가 발생하므로
+  // 안정적인 workplacesById를 구독하고 파생 배열은 useMemo로 계산한다.
+  const activeWorkplaces = useMemo(
+    () => Object.values(workplacesById).filter((w) => !w.archived),
+    [workplacesById]
+  );
   // 편집 모드에서는 보관된 근무지도 선택 목록에 포함시켜야 이름이 보이고 재선택할 수 있다.
   const workplaceOptions =
     mode === "update" &&

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   TouchableOpacity,
@@ -42,7 +42,10 @@ export const WorkplaceManagerModal = ({
   onClose,
 }: WorkplaceManagerModalProps) => {
   const { colors, scheme } = useTheme();
-  const workplaces = useWorkplaceStore((s) => s.getAllWorkplaces());
+  // 스토어 셀렉터가 매 렌더 새 배열을 반환하면 무한 렌더 루프가 발생하므로
+  // 안정적인 workplacesById를 구독하고 파생 배열은 useMemo로 계산한다.
+  const workplacesById = useWorkplaceStore((s) => s.workplacesById);
+  const workplaces = useMemo(() => Object.values(workplacesById), [workplacesById]);
   const addWorkplace = useWorkplaceStore((s) => s.addWorkplace);
   const updateWorkplace = useWorkplaceStore((s) => s.updateWorkplace);
   const archiveWorkplace = useWorkplaceStore((s) => s.archiveWorkplace);
