@@ -12,7 +12,7 @@ import {
 } from "../models/WorkSession";
 import { getSessionColor } from "../utils/colorManager";
 
-const SCHEDULE_STORE_VERSION = 1;
+const SCHEDULE_STORE_VERSION = 2;
 const STORE_NAMES = {
   SCHEDULE: "schedule-store",
   DATE_SCHEDULE: "date-schedule-store",
