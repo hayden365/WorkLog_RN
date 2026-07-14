@@ -26,7 +26,12 @@ import {
 } from '../store/shiftStore';
 import { useScheduleManager } from '../hooks/useScheduleManager';
 import { generateViewMonthScheduleData } from '../utils/calendarfns';
-import { computeMonthlyTotal, resolveSession, computeSessionPay } from '../utils/payFns';
+import {
+  computeMonthlyTotal,
+  resolveSession,
+  computeSessionPay,
+  ResolvedSession,
+} from '../utils/payFns';
 import { useWorkplaceStore } from '../store/workplaceStore';
 import { formatNumberWithComma } from '../utils/formatNumbs';
 import { WorkSession } from '../models/WorkSession';
@@ -120,9 +125,17 @@ const HomeScreen = () => {
   // Rebuild the view-month calendar + earnings whenever schedules or month change.
   useEffect(() => {
     const all = getAllSchedules();
+    // 근무지와 병합해 색상/이름이 확정된 ResolvedSession으로 변환 (근무지 없는 세션은 제외)
+    const resolvedSchedules = all
+      .map((s) => {
+        const wp = workplacesById[s.workplaceId];
+        return wp ? resolveSession(s, wp) : null;
+      })
+      .filter((r): r is ResolvedSession => r !== null);
+
     const viewMonth = new Date(year, month, 1);
     const { markedDates, dateSchedule: byDate } = generateViewMonthScheduleData(
-      all,
+      resolvedSchedules,
       viewMonth,
     );
     setDateSchedule(byDate);
@@ -133,7 +146,7 @@ const HomeScreen = () => {
 
     const prevMonth = new Date(year, month - 1, 1);
     const { dateSchedule: prevByDate } = generateViewMonthScheduleData(
-      all,
+      resolvedSchedules,
       prevMonth,
     );
     setPrevEarnings(

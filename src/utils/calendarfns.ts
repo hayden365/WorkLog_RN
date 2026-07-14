@@ -15,10 +15,9 @@ import {
 } from "date-fns";
 import {
   ScheduleByDate,
-  WorkSession,
   CalendarDisplayItem,
 } from "../models/WorkSession";
-import { getSessionColor } from "./colorManager";
+import { ResolvedSession } from "./payFns";
 
 // 날짜별 스케줄 인덱싱 함수
 export function calculateScheduleByDate(
@@ -52,11 +51,11 @@ export function getMarkedDatesFromNoneSchedule({
   schedule,
   viewMonth,
 }: {
-  schedule: WorkSession;
+  schedule: ResolvedSession;
   viewMonth: Date;
 }): Record<string, CalendarDisplayItem> {
   const markedDates: Record<string, CalendarDisplayItem> = {};
-  const sessionColor = schedule.color || getSessionColor(schedule.id);
+  const sessionColor = schedule.color;
   const startDate = schedule.startDate;
   const endDate = schedule.endDate;
 
@@ -93,7 +92,7 @@ export function getMarkedDatesFromDailySchedule({
   schedule,
   viewMonth,
 }: {
-  schedule: WorkSession;
+  schedule: ResolvedSession;
   viewMonth: Date;
 }): Record<string, CalendarDisplayItem> {
   const markedDates: Record<string, CalendarDisplayItem> = {};
@@ -114,7 +113,7 @@ export function getMarkedDatesFromDailySchedule({
     })
     .map((d) => format(d, "yyyy-MM-dd"));
 
-  const sessionColor = schedule.color || getSessionColor(schedule.id);
+  const sessionColor = schedule.color;
 
   matchedDates.forEach((dateStr: string) => {
     (markedDates as Record<string, CalendarDisplayItem>)[dateStr] = {
@@ -133,7 +132,7 @@ export function getMarkedDatesFromWeeklySchedule({
   schedule,
   viewMonth,
 }: {
-  schedule: WorkSession;
+  schedule: ResolvedSession;
   viewMonth: Date;
 }): Record<string, CalendarDisplayItem> {
   const markedDates: Record<string, CalendarDisplayItem> = {};
@@ -159,7 +158,7 @@ export function getMarkedDatesFromWeeklySchedule({
     })
     .map((d) => format(d, "yyyy-MM-dd"));
 
-  const sessionColor = schedule.color || getSessionColor(schedule.id);
+  const sessionColor = schedule.color;
 
   matchedDates.forEach((dateStr: string) => {
     markedDates[dateStr] = {
@@ -177,13 +176,13 @@ export function getMarkedDatesFromBiweeklySchedule({
   schedule,
   viewMonth,
 }: {
-  schedule: WorkSession;
+  schedule: ResolvedSession;
   viewMonth: Date;
 }): Record<string, CalendarDisplayItem> {
   const markedDates: Record<string, CalendarDisplayItem> = {};
   const startDate = schedule.startDate;
   const endDate = schedule.endDate ?? endOfMonth(addMonths(viewMonth, 2));
-  const sessionColor = schedule.color || getSessionColor(schedule.id);
+  const sessionColor = schedule.color;
   const selectedWeekDays = Array.from(schedule.selectedWeekDays);
 
   const monthStart = startOfMonth(viewMonth);
@@ -220,11 +219,11 @@ export function getMarkedDatesFromMonthlySchedule({
   schedule,
   viewMonth,
 }: {
-  schedule: WorkSession;
+  schedule: ResolvedSession;
   viewMonth: Date;
 }): Record<string, CalendarDisplayItem> {
   const markedDates: Record<string, CalendarDisplayItem> = {};
-  const sessionColor = schedule.color || getSessionColor(schedule.id);
+  const sessionColor = schedule.color;
 
   const startDate = schedule.startDate;
   const endDate = schedule.endDate;
@@ -282,7 +281,7 @@ export function getMarkedDatesFromMonthlySchedule({
 
 // 월별 스케줄 데이터 생성 함수
 export function generateViewMonthScheduleData(
-  schedules: WorkSession[],
+  schedules: ResolvedSession[],
   viewMonth: Date
 ): {
   markedDates: Record<string, CalendarDisplayItem[]>;
