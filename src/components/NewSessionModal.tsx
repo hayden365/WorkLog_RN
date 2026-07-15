@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -8,27 +8,27 @@ import {
   Switch,
   Animated,
   Alert,
-} from "react-native";
+} from 'react-native';
 import { AppText as Text, AppTextInput as TextInput } from './AppText';
-import { WorkSession, RepeatOption } from "../models/WorkSession";
-import { Workplace } from "../models/Workplace";
-import { SafeAreaView } from "react-native-safe-area-context";
-import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
-import { useShiftStore } from "../store/shiftStore";
-import { useWorkplaceStore } from "../store/workplaceStore";
-import Dropdown from "./Dropdown";
-import uuid from "react-native-uuid";
-import { dayNames, repeatOptions } from "../utils/repeatOptions";
-import TimePicker from "./TimePicker";
-import DatePicker from "./DatePicker";
-import SlideInView from "./SlideInView";
-import { formatNumberWithComma } from "../utils/formatNumbs";
-import { useTheme } from "../hooks/useTheme";
-import { spacing, radius, fontSize, fontWeight } from "../theme/tokens";
-import { sessionTotalMinutes } from "../utils/payFns";
-import { resolveEditInitValues, toSavedOverrides } from "../utils/sessionForm";
-import { SESSION_COLORS } from "../utils/colorManager";
+import { WorkSession, RepeatOption } from '../models/WorkSession';
+import { Workplace } from '../models/Workplace';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import { FontAwesome, Ionicons, Feather, Entypo } from '@expo/vector-icons';
+import { useShiftStore } from '../store/shiftStore';
+import { useWorkplaceStore } from '../store/workplaceStore';
+import Dropdown from './Dropdown';
+import uuid from 'react-native-uuid';
+import { dayNames, repeatOptions } from '../utils/repeatOptions';
+import TimePicker from './TimePicker';
+import DatePicker from './DatePicker';
+import SlideInView from './SlideInView';
+import { formatNumberWithComma } from '../utils/formatNumbs';
+import { useTheme } from '../hooks/useTheme';
+import { spacing, radius, fontSize, fontWeight } from '../theme/tokens';
+import { sessionTotalMinutes } from '../utils/payFns';
+import { resolveEditInitValues, toSavedOverrides } from '../utils/sessionForm';
+import { SESSION_COLORS } from '../utils/colorManager';
 
 interface NewSessionModalProps {
   visible: boolean;
@@ -37,7 +37,7 @@ interface NewSessionModalProps {
   // 업데이트를 위한 기존 세션 데이터
   existingSession?: WorkSession;
   // 모달 모드 (새로 생성 또는 업데이트)
-  mode?: "create" | "update";
+  mode?: 'create' | 'update';
 }
 
 export const NewSessionModal = ({
@@ -45,7 +45,7 @@ export const NewSessionModal = ({
   onClose,
   onSave,
   existingSession,
-  mode = "create",
+  mode = 'create',
 }: NewSessionModalProps) => {
   const { colors, scheme } = useTheme();
 
@@ -74,46 +74,48 @@ export const NewSessionModal = ({
   // 안정적인 workplacesById를 구독하고 파생 배열은 useMemo로 계산한다.
   const activeWorkplaces = useMemo(
     () => Object.values(workplacesById).filter((w) => !w.archived),
-    [workplacesById]
+    [workplacesById],
   );
   // 근무지는 이름으로 입력한다. 저장 시 같은 이름이 있으면 재사용, 없으면 자동 생성.
-  const [workplaceName, setWorkplaceName] = useState("");
+  const [workplaceName, setWorkplaceName] = useState('');
   const [isCurrentlyWorking, setIsCurrentlyWorking] = useState(true);
-  const [description, setDescription] = useState("");
-  const [wageType, setWageType] = useState<"hourly" | "daily" | "monthly">(
-    "hourly"
+  const [description, setDescription] = useState('');
+  const [wageType, setWageType] = useState<'hourly' | 'daily' | 'monthly'>(
+    'hourly',
   );
-  const [wageValue, setWageValue] = useState<string>("");
+  const [wageValue, setWageValue] = useState<string>('');
 
   const scrollViewRef = useRef<ScrollView>(null);
   const anim = useRef(new Animated.Value(0)).current;
 
   // 기존 세션 데이터가 있으면 초기값 설정
   useEffect(() => {
-    if (existingSession && mode === "update") {
+    if (existingSession && mode === 'update') {
       const wp = workplacesById[existingSession.workplaceId];
-      setWorkplaceName(wp?.name ?? "");
+      setWorkplaceName(wp?.name ?? '');
       const initValues = resolveEditInitValues(existingSession, wp);
       setBreakMinutes(initValues.breakMinutes);
       setWage(initValues.wage);
       setWageType(initValues.wageType);
-      setWageValue(initValues.wage ? formatNumberWithComma(String(initValues.wage)) : "");
+      setWageValue(
+        initValues.wage ? formatNumberWithComma(String(initValues.wage)) : '',
+      );
       setIsCurrentlyWorking(existingSession.isCurrentlyWorking ?? true);
-      setDescription(existingSession.description || "");
+      setDescription(existingSession.description || '');
       setStartTime(existingSession.startTime || new Date());
       setEndTime(existingSession.endTime || new Date());
       setStartDate(existingSession.startDate || new Date());
       setEndDate(existingSession.endDate || new Date());
-      setRepeatOption(existingSession.repeatOption || "none");
+      setRepeatOption(existingSession.repeatOption || 'none');
       setSelectedWeekDays(existingSession.selectedWeekDays || new Set());
-    } else if (mode === "create") {
+    } else if (mode === 'create') {
       // 새로 생성할 때는 초기화
       reset();
-      setWorkplaceName("");
-      setWageValue("");
+      setWorkplaceName('');
+      setWageValue('');
       setIsCurrentlyWorking(true);
-      setDescription("");
-      setRepeatOption("none");
+      setDescription('');
+      setRepeatOption('none');
     }
   }, [existingSession, mode]);
 
@@ -123,7 +125,7 @@ export const NewSessionModal = ({
   const handleWageChange = (value: string) => {
     const formattedValue = formatNumberWithComma(value);
     setWageValue(formattedValue);
-    setWage(Number(formattedValue.replace(/,/g, "")));
+    setWage(Number(formattedValue.replace(/,/g, '')));
   };
 
   // 기존 근무지 칩을 누르면 이름과 함께 시급·급여유형·휴게시간을 자동으로 채운다.
@@ -155,7 +157,7 @@ export const NewSessionModal = ({
     setRepeatOption(newRepeatOption);
 
     // daily나 monthly로 변경 시 selectedWeekDays 초기화
-    if (newRepeatOption === "daily" || newRepeatOption === "monthly") {
+    if (newRepeatOption === 'daily' || newRepeatOption === 'monthly') {
       setSelectedWeekDays(new Set());
     }
 
@@ -188,7 +190,7 @@ export const NewSessionModal = ({
 
     // 근무지 해석: 같은 이름이 이미 있으면 재사용, 없으면 입력값으로 자동 생성한다.
     let wp: Workplace | undefined = Object.values(workplacesById).find(
-      (w) => w.name.trim() === trimmedName
+      (w) => w.name.trim() === trimmedName,
     );
     if (!wp) {
       const palette = SESSION_COLORS;
@@ -225,40 +227,49 @@ export const NewSessionModal = ({
       description,
     };
     onSave(newSession as WorkSession);
-    setWorkplaceName("");
-    setWageValue("");
+    setWorkplaceName('');
+    setWageValue('');
     setIsCurrentlyWorking(true);
-    setDescription("");
+    setDescription('');
     reset();
     onClose();
   };
 
   const getHeaderTitle = () => {
-    return mode === "update" ? "근무 일정 수정" : "근무 일정 추가";
+    return mode === 'update' ? '근무 일정 수정' : '근무 일정 추가';
   };
 
   return (
     <Modal
       visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
+      animationType='slide'
+      presentationStyle='pageSheet'
     >
-      <SafeAreaView style={[styles.areaContainer, { backgroundColor: colors.surface }]}>
+      <SafeAreaView
+        style={[styles.areaContainer, { backgroundColor: colors.surface }]}
+      >
         <View style={styles.headerContainer}>
           {/* 닫기 */}
           <TouchableOpacity
-            style={[styles.closeButton, { backgroundColor: colors.surfaceElevated }]}
+            style={[
+              styles.closeButton,
+              { backgroundColor: colors.surfaceElevated },
+            ]}
             onPress={onClose}
           >
-            <Feather name="x" size={20} color={colors.textPrimary} />
+            <Feather name='x' size={20} color={colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={[styles.header, { color: colors.textPrimary }]}>{getHeaderTitle()}</Text>
+          <Text style={[styles.header, { color: colors.textPrimary }]}>
+            {getHeaderTitle()}
+          </Text>
           {/* 저장 버튼 */}
           <TouchableOpacity
             style={[styles.saveButton, { backgroundColor: colors.brand }]}
             onPress={handleSave}
           >
-            <Text style={[styles.saveButtonText, { color: colors.accentText }]}>저장</Text>
+            <Text style={[styles.saveButtonText, { color: colors.accentText }]}>
+              저장
+            </Text>
           </TouchableOpacity>
         </View>
         <ScrollView
@@ -267,17 +278,26 @@ export const NewSessionModal = ({
           showsVerticalScrollIndicator={false}
         >
           {/* 근무지 */}
-          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+          <View
+            style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
+          >
             <View style={styles.inputGroup}>
               <View style={styles.iconWrap}>
-                <Ionicons name="location-outline" size={22} color={colors.brand} />
+                <Ionicons
+                  name='location-outline'
+                  size={22}
+                  color={colors.brand}
+                />
               </View>
               <TextInput
                 style={[
                   styles.input,
-                  { backgroundColor: colors.surface, color: colors.textPrimary },
+                  {
+                    backgroundColor: colors.surface,
+                    color: colors.textPrimary,
+                  },
                 ]}
-                placeholder="근무지명 입력"
+                placeholder='근무지명 입력'
                 placeholderTextColor={colors.textMuted}
                 value={workplaceName}
                 onChangeText={setWorkplaceName}
@@ -294,15 +314,22 @@ export const NewSessionModal = ({
                       style={[
                         styles.chip,
                         { borderColor: colors.border },
-                        selected && { backgroundColor: colors.brand, borderColor: colors.brand },
+                        selected && {
+                          backgroundColor: colors.brand,
+                          borderColor: colors.brand,
+                        },
                       ]}
                       onPress={() => handlePickWorkplace(w)}
                     >
-                      <View style={[styles.chipDot, { backgroundColor: w.color }]} />
+                      <View
+                        style={[styles.chipDot, { backgroundColor: w.color }]}
+                      />
                       <Text
                         style={{
                           fontSize: fontSize.md,
-                          color: selected ? colors.accentText : colors.textPrimary,
+                          color: selected
+                            ? colors.accentText
+                            : colors.textPrimary,
                         }}
                         numberOfLines={1}
                       >
@@ -316,48 +343,58 @@ export const NewSessionModal = ({
           </View>
 
           {/* 급여 */}
-          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+          <View
+            style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
+          >
             <SegmentedControl
               appearance={scheme}
               tintColor={colors.surface}
               backgroundColor={colors.divider}
               fontStyle={{ color: colors.textPrimary }}
               activeFontStyle={{ color: colors.textPrimary }}
-              values={["시급", "일급", "월급"]}
+              values={['시급', '일급', '월급']}
               selectedIndex={
-                wageType === "hourly" ? 0 : wageType === "daily" ? 1 : 2
+                wageType === 'hourly' ? 0 : wageType === 'daily' ? 1 : 2
               }
               onChange={(event) => {
                 setWageType(
                   event.nativeEvent.selectedSegmentIndex === 0
-                    ? "hourly"
+                    ? 'hourly'
                     : event.nativeEvent.selectedSegmentIndex === 1
-                    ? "daily"
-                    : "monthly"
+                    ? 'daily'
+                    : 'monthly',
                 );
               }}
             />
             <View style={styles.inputGroup}>
               <View style={styles.iconWrap}>
-                <Ionicons name="cash-outline" size={22} color={colors.brand} />
+                <Ionicons name='cash-outline' size={22} color={colors.brand} />
               </View>
               <View style={styles.wageInputRow}>
-                <FontAwesome name="won" size={16} color={colors.textSecondary} />
+                <FontAwesome
+                  name='won'
+                  size={16}
+                  color={colors.textSecondary}
+                />
                 <TextInput
                   style={[
                     styles.input,
-                    { flex: 1, backgroundColor: colors.surface, color: colors.textPrimary },
+                    {
+                      flex: 1,
+                      backgroundColor: colors.surface,
+                      color: colors.textPrimary,
+                    },
                   ]}
                   placeholder={
-                    wageType === "hourly"
-                      ? "시급"
-                      : wageType === "daily"
-                      ? "일급"
-                      : "월급"
+                    wageType === 'hourly'
+                      ? '시급'
+                      : wageType === 'daily'
+                      ? '일급'
+                      : '월급'
                   }
                   placeholderTextColor={colors.textMuted}
                   value={wageValue}
-                  keyboardType="number-pad"
+                  keyboardType='number-pad'
                   onChangeText={(value) => {
                     handleWageChange(value);
                   }}
@@ -366,37 +403,13 @@ export const NewSessionModal = ({
             </View>
           </View>
 
-          {/* 휴게시간 */}
-          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
-            <View style={styles.inputGroup}>
-              <View style={styles.iconWrap}>
-                <Ionicons name="cafe-outline" size={22} color={colors.brand} />
-              </View>
-              <View style={styles.wageInputRow}>
-                <TextInput
-                  style={[styles.input, { flex: 1, backgroundColor: colors.surface, color: colors.textPrimary }]}
-                  placeholder="휴게시간(분)"
-                  placeholderTextColor={colors.textMuted}
-                  value={breakMinutes != null ? String(breakMinutes) : ""}
-                  keyboardType="number-pad"
-                  onChangeText={(v) => setBreakMinutes(v === "" ? null : Number(v.replace(/[^0-9]/g, "")))}
-                />
-              </View>
-            </View>
-            <Text style={{ fontSize: fontSize.md, color: colors.textSecondary }}>
-              {(() => {
-                const total = sessionTotalMinutes(startTime, endTime);
-                const paid = Math.max(0, total - (breakMinutes ?? 0));
-                return `실 근무 ${(paid / 60).toFixed(1)}시간 (총 ${(total / 60).toFixed(1)}시간, 휴게 ${breakMinutes ?? 0}분)`;
-              })()}
-            </Text>
-          </View>
-
           {/* 시간 */}
-          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+          <View
+            style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
+          >
             <View style={styles.rowTop}>
               <View style={styles.iconWrap}>
-                <Ionicons name="time-outline" size={22} color={colors.brand} />
+                <Ionicons name='time-outline' size={22} color={colors.brand} />
               </View>
               <View style={{ flex: 1 }}>
                 <TimePicker />
@@ -404,16 +417,70 @@ export const NewSessionModal = ({
             </View>
           </View>
 
+          {/* 휴게시간 */}
+          <View
+            style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
+          >
+            <View style={styles.inputGroup}>
+              <View style={styles.iconWrap}>
+                <Ionicons name='cafe-outline' size={22} color={colors.brand} />
+              </View>
+              <View style={styles.wageInputRow}>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      flex: 1,
+                      backgroundColor: colors.surface,
+                      color: colors.textPrimary,
+                    },
+                  ]}
+                  placeholder='휴게시간(분)'
+                  placeholderTextColor={colors.textMuted}
+                  value={breakMinutes != null ? String(breakMinutes) : ''}
+                  keyboardType='number-pad'
+                  onChangeText={(v) =>
+                    setBreakMinutes(
+                      v === '' ? null : Number(v.replace(/[^0-9]/g, '')),
+                    )
+                  }
+                />
+              </View>
+            </View>
+            <Text
+              style={{ fontSize: fontSize.md, color: colors.textSecondary }}
+            >
+              {(() => {
+                const total = sessionTotalMinutes(startTime, endTime);
+                const paid = Math.max(0, total - (breakMinutes ?? 0));
+                return `실 근무 ${(paid / 60).toFixed(1)}시간 (총 ${(
+                  total / 60
+                ).toFixed(1)}시간, 휴게 ${breakMinutes ?? 0}분)`;
+              })()}
+            </Text>
+          </View>
+
           {/* 날짜 */}
-          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+          <View
+            style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
+          >
             <View style={styles.rowTop}>
               <View style={styles.iconWrap}>
-                <Ionicons name="calendar-outline" size={22} color={colors.brand} />
+                <Ionicons
+                  name='calendar-outline'
+                  size={22}
+                  color={colors.brand}
+                />
               </View>
               <View style={{ flex: 1, gap: spacing.sm }}>
                 <DatePicker isCurrentlyWorking={isCurrentlyWorking} />
                 <View style={styles.switchRow}>
-                  <Text style={{ fontSize: fontSize.base, color: colors.textPrimary }}>
+                  <Text
+                    style={{
+                      fontSize: fontSize.base,
+                      color: colors.textPrimary,
+                    }}
+                  >
                     종료일 없음
                   </Text>
                   <Switch
@@ -431,30 +498,37 @@ export const NewSessionModal = ({
           </View>
 
           {/* 반복 주기 */}
-          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+          <View
+            style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
+          >
             <View style={styles.inputGroup}>
               <View style={styles.iconWrap}>
-                <Ionicons name="repeat-outline" size={22} color={colors.brand} />
+                <Ionicons
+                  name='repeat-outline'
+                  size={22}
+                  color={colors.brand}
+                />
               </View>
               <View style={{ flex: 1 }}>
                 <Dropdown
                   data={repeatOptions}
                   onChange={handleRepeatOptionChange}
                   placeholder={
-                    repeatOptions.find((option) => option.value === repeatOption)
-                      ?.label ?? "반복 없음"
+                    repeatOptions.find(
+                      (option) => option.value === repeatOption,
+                    )?.label ?? '반복 없음'
                   }
                 />
               </View>
             </View>
             {/* 요일 선택 */}
             <SlideInView
-              visible={repeatOption === "weekly" || repeatOption === "biweekly"}
-              direction="down"
+              visible={repeatOption === 'weekly' || repeatOption === 'biweekly'}
+              direction='down'
             >
               <View
                 style={
-                  repeatOption === "weekly" || repeatOption === "biweekly"
+                  repeatOption === 'weekly' || repeatOption === 'biweekly'
                     ? { paddingTop: spacing.md }
                     : { height: 0 }
                 }
@@ -479,7 +553,9 @@ export const NewSessionModal = ({
                           style={{
                             fontSize: fontSize.md,
                             fontWeight: fontWeight.medium,
-                            color: selected ? colors.accentText : colors.textPrimary,
+                            color: selected
+                              ? colors.accentText
+                              : colors.textPrimary,
                           }}
                         >
                           {day.label}
@@ -493,18 +569,23 @@ export const NewSessionModal = ({
           </View>
 
           {/* 메모 */}
-          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+          <View
+            style={[styles.card, { backgroundColor: colors.surfaceElevated }]}
+          >
             <View style={styles.rowTop}>
               <View style={styles.iconWrap}>
-                <Entypo name="text" size={22} color={colors.brand} />
+                <Entypo name='text' size={22} color={colors.brand} />
               </View>
               <TextInput
                 style={[
                   styles.input,
                   styles.memoInput,
-                  { backgroundColor: colors.surface, color: colors.textPrimary },
+                  {
+                    backgroundColor: colors.surface,
+                    color: colors.textPrimary,
+                  },
                 ]}
-                placeholder="설명 추가"
+                placeholder='설명 추가'
                 placeholderTextColor={colors.textMuted}
                 value={description}
                 multiline
@@ -521,17 +602,17 @@ export const NewSessionModal = ({
 const styles = StyleSheet.create({
   areaContainer: { flex: 1 },
   headerContainer: {
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
   header: {
     fontSize: fontSize.lg,
     fontWeight: fontWeight.bold,
-    textAlign: "center",
+    textAlign: 'center',
   },
   container: {
     padding: spacing.lg,
@@ -544,19 +625,19 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   inputGroup: {
-    flexDirection: "row",
+    flexDirection: 'row',
     minHeight: 48,
-    alignItems: "center",
+    alignItems: 'center',
     gap: spacing.md,
   },
   chipRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
   },
   chip: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.xs,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -569,15 +650,15 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   rowTop: {
-    flexDirection: "row",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: spacing.md,
   },
   iconWrap: {
     width: 28,
     height: 48,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   input: {
     flex: 1,
@@ -590,32 +671,32 @@ const styles = StyleSheet.create({
     minHeight: 88,
     height: undefined,
     paddingVertical: spacing.md,
-    textAlignVertical: "top",
+    textAlignVertical: 'top',
   },
   wageInputRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
     gap: spacing.sm,
   },
   switchRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     height: 48,
     paddingHorizontal: spacing.xs,
   },
   rowWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    width: "100%",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    width: '100%',
+    justifyContent: 'space-around',
   },
   optionButton: {
     width: 40,
     height: 40,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderRadius: radius.full,
   },
@@ -623,8 +704,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: radius.full,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   saveButtonText: {
     fontSize: fontSize.md,
@@ -634,7 +715,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: radius.full,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
