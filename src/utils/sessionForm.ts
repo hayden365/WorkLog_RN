@@ -11,12 +11,14 @@ export interface EditInitValues {
 // 근무지를 찾지 못해도(보관/삭제 등) 크래시 없이 시급/0으로 폴백한다.
 export function resolveEditInitValues(
   session: Pick<WorkSession, "wage" | "wageType" | "breakMinutes">,
-  workplace: Pick<Workplace, "wage" | "wageType"> | undefined
+  workplace:
+    | Pick<Workplace, "wage" | "wageType" | "defaultBreakMinutes">
+    | undefined
 ): EditInitValues {
   return {
     wageType: session.wageType ?? workplace?.wageType ?? "hourly",
     wage: session.wage ?? workplace?.wage ?? 0,
-    breakMinutes: session.breakMinutes ?? null,
+    breakMinutes: session.breakMinutes ?? workplace?.defaultBreakMinutes ?? null,
   };
 }
 

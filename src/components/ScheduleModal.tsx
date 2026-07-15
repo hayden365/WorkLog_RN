@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState } from 'react';
 import {
   Modal,
   View,
@@ -6,26 +6,38 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
-} from "react-native";
+} from 'react-native';
 import { AppText as Text } from './AppText';
-import { WorkSession } from "../models/WorkSession";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FontAwesome, Ionicons, Feather, Entypo } from "@expo/vector-icons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useScheduleManager } from "../hooks/useScheduleManager";
-import { NewSessionModal } from "./NewSessionModal";
-import { useShiftStore } from "../store/shiftStore";
-import { useWorkplaceStore } from "../store/workplaceStore";
-import { formatNumberWithComma } from "../utils/formatNumbs";
-import { dayNames, repeatOptions } from "../utils/repeatOptions";
-import { useTheme } from "../hooks/useTheme";
-import { resolveEditInitValues } from "../utils/sessionForm";
+import { WorkSession } from '../models/WorkSession';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { FontAwesome, Ionicons, Feather, Entypo } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useScheduleManager } from '../hooks/useScheduleManager';
+import { NewSessionModal } from './NewSessionModal';
+import { useShiftStore } from '../store/shiftStore';
+import { useWorkplaceStore } from '../store/workplaceStore';
+import { formatNumberWithComma } from '../utils/formatNumbs';
+import { dayNames, repeatOptions } from '../utils/repeatOptions';
+import { useTheme } from '../hooks/useTheme';
+import { spacing, radius, fontSize, fontWeight } from '../theme/tokens';
+import { sessionTotalMinutes } from '../utils/payFns';
+import { resolveEditInitValues } from '../utils/sessionForm';
 
 interface ScheduleModalProps {
   visible: boolean;
   onClose: () => void;
   sessionId?: string;
 }
+
+const wageTypeLabel = (type: 'hourly' | 'daily' | 'monthly' | undefined) =>
+  type === 'hourly' ? '시급' : type === 'daily' ? '일급' : '월급';
+
+const formatTime = (value: Date) =>
+  new Date(value).toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
 
 const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
   const { colors } = useTheme();
@@ -34,12 +46,13 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
   const session = sessionId ? getScheduleById(sessionId) : undefined;
   // 근무지 이름·색상은 더 이상 세션에 저장되지 않으므로 근무지 스토어에서 해석한다.
   const workplace = useWorkplaceStore((s) =>
-    session ? s.workplacesById[session.workplaceId] : undefined
+    session ? s.workplacesById[session.workplaceId] : undefined,
   );
 
   const {
     setWage,
     setWageType,
+    setBreakMinutes,
     setStartTime,
     setEndTime,
     setStartDate,
@@ -51,18 +64,28 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
 
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const insets = useSafeAreaInsets();
-
   const [editModalVisible, setEditModalVisible] = useState(false);
 
   if (!session) return null;
 
+  // 세션 오버라이드가 null이면 근무지 기본값을 상속한다.
+  const wage = session.wage ?? workplace?.wage ?? 0;
+  const wageType = session.wageType ?? workplace?.wageType;
+  const breakMinutes =
+    session.breakMinutes ?? workplace?.defaultBreakMinutes ?? 0;
+
+  const totalMinutes = sessionTotalMinutes(
+    new Date(session.startTime),
+    new Date(session.endTime),
+  );
+  const paidMinutes = Math.max(0, totalMinutes - breakMinutes);
+
   const handleDelete = () => {
-    Alert.alert("확인", "스케줄을 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
+    Alert.alert('확인', '스케줄을 삭제하시겠습니까?', [
+      { text: '취소', style: 'cancel' },
       {
-        text: "삭제",
-        style: "destructive",
+        text: '삭제',
+        style: 'destructive',
         onPress: () => {
           if (sessionId) {
             deleteSchedule(sessionId);
@@ -80,13 +103,14 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
       const init = resolveEditInitValues(session, workplace);
       setWage(init.wage);
       setWageType(init.wageType);
+      setBreakMinutes(init.breakMinutes);
       setStartTime(session.startTime || new Date());
       setEndTime(session.endTime || new Date());
       setStartDate(session.startDate || new Date());
       setEndDate(session.endDate || new Date());
-      setRepeatOption(session.repeatOption || "none");
+      setRepeatOption(session.repeatOption || 'none');
       setSelectedWeekDays(session.selectedWeekDays || new Set());
-      setDescription(session.description || "");
+      setDescription(session.description || '');
       // 상태 설정 후 모달 열기
       setEditModalVisible(true);
     }
@@ -99,200 +123,228 @@ const ScheduleModal = ({ visible, onClose, sessionId }: ScheduleModalProps) => {
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="fullScreen"
-    >
-      <View
-        style={[
-          styles.areaContainer,
-          { paddingTop: insets.top, paddingBottom: insets.bottom, backgroundColor: colors.background },
-        ]}
+    <Modal visible={visible} animationType='slide' presentationStyle='pageSheet'>
+      <SafeAreaView
+        style={[styles.areaContainer, { backgroundColor: colors.surface }]}
       >
-        <View style={[styles.headerContainer]}>
-          <TouchableOpacity onPress={onClose}>
-            <Feather name="x" size={22} color={colors.textPrimary} />
+        <View style={styles.headerContainer}>
+          {/* 닫기 */}
+          <TouchableOpacity
+            style={[
+              styles.iconButton,
+              { backgroundColor: colors.surfaceElevated },
+            ]}
+            onPress={onClose}
+          >
+            <Feather name='x' size={20} color={colors.textPrimary} />
           </TouchableOpacity>
-
-          <View style={{ flexDirection: "row", gap: 22 }}>
-            <TouchableOpacity style={styles.saveButton}>
+          <Text style={[styles.header, { color: colors.textPrimary }]}>
+            근무 일정
+          </Text>
+          {/* 수정 · 삭제 */}
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[
+                styles.iconButton,
+                { backgroundColor: colors.surfaceElevated },
+              ]}
+              onPress={handleEdit}
+            >
               <MaterialCommunityIcons
-                name="pencil"
-                size={22}
+                name='pencil'
+                size={18}
                 color={colors.textPrimary}
-                onPress={handleEdit}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.saveButton} onPress={handleDelete}>
-              <Ionicons name="trash-outline" size={22} color={colors.textPrimary} />
+            <TouchableOpacity
+              style={[
+                styles.iconButton,
+                { backgroundColor: colors.surfaceElevated },
+              ]}
+              onPress={handleDelete}
+            >
+              <Ionicons
+                name='trash-outline'
+                size={18}
+                color={colors.textPrimary}
+              />
             </TouchableOpacity>
           </View>
         </View>
         <ScrollView
           ref={scrollViewRef}
           contentContainerStyle={styles.container}
+          showsVerticalScrollIndicator={false}
         >
           {/* 근무지 */}
-          <View style={{ gap: 12 }}>
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
             <View style={styles.inputGroup}>
-              <View
-                style={[
-                  styles.inputLabel,
-                  {
-                    width: 24,
-                    height: 24,
-                    backgroundColor: workplace?.color ?? colors.border,
-                    borderRadius: 10,
-                  },
-                ]}
-              />
-              <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>{workplace?.name ?? ""}</Text>
-            </View>
-          </View>
-          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
-          {/* 시급 */}
-          <View style={{ gap: 12 }}>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
-                <Ionicons name="cash-outline" size={24} color={colors.textPrimary} />
-              </Text>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  flex: 1,
-                  gap: 10,
-                }}
-              >
-                <FontAwesome name="won" size={16} color={colors.textPrimary} />
-                <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>
-                  {formatNumberWithComma(
-                    (session.wage ?? workplace?.wage ?? 0).toString()
-                  )} (
-                  {(session.wageType ?? workplace?.wageType) === "hourly"
-                    ? "시급"
-                    : (session.wageType ?? workplace?.wageType) === "daily"
-                    ? "일급"
-                    : "월급"}
-                  )
+              <View style={styles.iconWrap}>
+                <Ionicons
+                  name='location-outline'
+                  size={22}
+                  color={colors.brand}
+                />
+              </View>
+              <View style={styles.valueRow}>
+                <View
+                  style={[
+                    styles.workplaceDot,
+                    { backgroundColor: workplace?.color ?? colors.border },
+                  ]}
+                />
+                <Text style={[styles.value, { color: colors.textPrimary }]}>
+                  {workplace?.name ?? '근무지 없음'}
                 </Text>
               </View>
             </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
+
+          {/* 급여 */}
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.inputGroup}>
+              <View style={styles.iconWrap}>
+                <Ionicons name='cash-outline' size={22} color={colors.brand} />
+              </View>
+              <View style={styles.valueRow}>
+                <FontAwesome name='won' size={16} color={colors.textSecondary} />
+                <Text style={[styles.value, { color: colors.textPrimary }]}>
+                  {formatNumberWithComma(String(wage))}
+                </Text>
+                <Text style={[styles.badge, { color: colors.textSecondary }]}>
+                  {wageTypeLabel(wageType)}
+                </Text>
+              </View>
+            </View>
+          </View>
 
           {/* 시간 */}
-          <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
-              <Ionicons name="time-outline" size={24} color={colors.textPrimary} />
-            </Text>
-            <View style={{ flex: 1 }}>
-              <View style={styles.timeContainer}>
-                <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>
-                  {`${new Date(session.startTime).toLocaleTimeString("ko-KR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false,
-                  })} - ${new Date(session.endTime).toLocaleTimeString(
-                    "ko-KR",
-                    {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: false,
-                    }
-                  )}`}
-                </Text>
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.inputGroup}>
+              <View style={styles.iconWrap}>
+                <Ionicons name='time-outline' size={22} color={colors.brand} />
               </View>
-            </View>
-          </View>
-          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
-
-          {/* 날짜 */}
-          <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
-              <Ionicons name="calendar-outline" size={24} color={colors.textPrimary} />
-            </Text>
-            <View style={{ flex: 1, gap: 8 }}>
-              <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>
-                {`${new Date(session.startDate).toLocaleDateString(
-                  "ko-KR"
-                )} - ${
-                  session.endDate
-                    ? new Date(session.endDate).toLocaleDateString("ko-KR")
-                    : ""
-                }`}
-                {session.isCurrentlyWorking && " (종료일 없음)"}
+              <Text style={[styles.value, { color: colors.textPrimary }]}>
+                {`${formatTime(session.startTime)} - ${formatTime(
+                  session.endTime,
+                )}`}
               </Text>
             </View>
           </View>
-          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
 
-          {/* 반복 주기 */}
-          <View style={[styles.inputGroup]}>
-            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
-              <Ionicons name="repeat-outline" size={24} color={colors.textPrimary} />
-            </Text>
-            <View
-              style={{
-                flex: 1,
-                flexDirection: "row",
-                gap: 10,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <View
-                style={[
-                  {
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: 10,
-                  },
-                  styles.readOnlyText,
-                ]}
-              >
-                <Text style={{ fontSize: 16, color: colors.textPrimary }}>
-                  {
-                    repeatOptions.find((r) => r.value === session.repeatOption)
-                      ?.label
-                  }
-                </Text>
-                <Text style={[styles.readOnlyText, { fontSize: 14, color: colors.textPrimary }]}>
-                  (
-                  {session.selectedWeekDays.size > 0
-                    ? Array.from(session.selectedWeekDays)
-                        .map((day) => {
-                          return dayNames.find((d) => d.value === day)?.label;
-                        })
-                        .join(", ")
-                    : "요일 없음"}
-                  )
-                </Text>
+          {/* 휴게시간 */}
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.inputGroup}>
+              <View style={styles.iconWrap}>
+                <Ionicons name='cafe-outline' size={22} color={colors.brand} />
               </View>
+              <Text style={[styles.value, { color: colors.textPrimary }]}>
+                {`휴게 ${breakMinutes}분`}
+              </Text>
+            </View>
+            <Text style={{ fontSize: fontSize.md, color: colors.textSecondary }}>
+              {`실 근무 ${(paidMinutes / 60).toFixed(1)}시간 (총 ${(
+                totalMinutes / 60
+              ).toFixed(1)}시간, 휴게 ${breakMinutes}분)`}
+            </Text>
+          </View>
+
+          {/* 날짜 */}
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.inputGroup}>
+              <View style={styles.iconWrap}>
+                <Ionicons
+                  name='calendar-outline'
+                  size={22}
+                  color={colors.brand}
+                />
+              </View>
+              <Text style={[styles.value, { color: colors.textPrimary }]}>
+                {new Date(session.startDate).toLocaleDateString('ko-KR')}
+                {session.isCurrentlyWorking
+                  ? ' - 종료일 없음'
+                  : session.endDate
+                  ? ` - ${new Date(session.endDate).toLocaleDateString('ko-KR')}`
+                  : ''}
+              </Text>
             </View>
           </View>
-          {/* 요일 선택 */}
-          <View style={{ borderBottomWidth: 1, borderColor: colors.border }} />
+
+          {/* 반복 주기 */}
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.inputGroup}>
+              <View style={styles.iconWrap}>
+                <Ionicons name='repeat-outline' size={22} color={colors.brand} />
+              </View>
+              <Text style={[styles.value, { color: colors.textPrimary }]}>
+                {repeatOptions.find((r) => r.value === session.repeatOption)
+                  ?.label ?? '반복 없음'}
+              </Text>
+            </View>
+            {/* 요일 선택 */}
+            {(session.repeatOption === 'weekly' ||
+              session.repeatOption === 'biweekly') && (
+              <View style={styles.rowWrap}>
+                {dayNames.map((day) => {
+                  const selected = session.selectedWeekDays.has(day.value);
+                  return (
+                    <View
+                      key={day.value}
+                      style={[
+                        styles.optionButton,
+                        { borderColor: colors.border },
+                        selected && {
+                          backgroundColor: colors.brand,
+                          borderColor: colors.brand,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={{
+                          fontSize: fontSize.md,
+                          fontWeight: fontWeight.medium,
+                          color: selected
+                            ? colors.accentText
+                            : colors.textMuted,
+                        }}
+                      >
+                        {day.label}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </View>
 
           {/* 메모 */}
-          <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: colors.textPrimary }]}>
-              <Entypo name="text" size={24} color={colors.textPrimary} />
-            </Text>
-
-            <Text style={[styles.readOnlyText, { color: colors.textPrimary }]}>
-              {session.description || "설명 없음"}
-            </Text>
+          <View style={[styles.card, { backgroundColor: colors.surfaceElevated }]}>
+            <View style={styles.rowTop}>
+              <View style={styles.iconWrap}>
+                <Entypo name='text' size={22} color={colors.brand} />
+              </View>
+              <Text
+                style={[
+                  styles.value,
+                  styles.memo,
+                  {
+                    color: session.description
+                      ? colors.textPrimary
+                      : colors.textMuted,
+                  },
+                ]}
+              >
+                {session.description || '설명 없음'}
+              </Text>
+            </View>
           </View>
         </ScrollView>
-      </View>
+      </SafeAreaView>
       <NewSessionModal
         visible={editModalVisible}
         onClose={() => setEditModalVisible(false)}
         onSave={handleUpdate}
-        mode="update"
+        mode='update'
         existingSession={session}
       />
     </Modal>
@@ -304,117 +356,90 @@ export default ScheduleModal;
 const styles = StyleSheet.create({
   areaContainer: { flex: 1 },
   headerContainer: {
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 18,
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
-  container: {
-    paddingHorizontal: 16,
-    paddingBottom: 60,
-    gap: 16,
+  headerActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
   },
   header: {
-    fontSize: 16,
-    textAlign: "center",
+    fontSize: fontSize.lg,
+    fontWeight: fontWeight.bold,
+    textAlign: 'center',
+  },
+  container: {
+    padding: spacing.lg,
+    paddingBottom: 60,
+    gap: spacing.md,
+  },
+  card: {
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
   },
   inputGroup: {
-    flexDirection: "row",
+    flexDirection: 'row',
     minHeight: 48,
-    alignItems: "center",
-    alignSelf: "center",
-    gap: 24,
+    alignItems: 'center',
+    gap: spacing.md,
   },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    textAlignVertical: "center",
-    lineHeight: 48,
-    alignSelf: "center",
+  rowTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
   },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
+  iconWrap: {
+    width: 28,
     height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  readOnlyText: {
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
-    fontSize: 16,
-    paddingVertical: 12,
+    gap: spacing.sm,
   },
-  timeContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  timeButton: {
+  value: {
     flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: "center",
+    fontSize: fontSize.base,
   },
-  timeButtonText: {
-    fontSize: 16,
+  badge: {
+    fontSize: fontSize.md,
   },
-  timeSeparator: {
-    fontSize: 16,
+  memo: {
+    paddingVertical: spacing.md,
+    lineHeight: 22,
   },
-  dateContainer: {
-    flexDirection: "row",
-    gap: 10,
+  workplaceDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
-  dateButton: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: "center",
-  },
-  dateButtonDisabled: {
-    opacity: 0.5,
-  },
-  dateButtonText: {
-    fontSize: 16,
-  },
-  dateButtonTextDisabled: {},
   rowWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginTop: -10,
-    marginBottom: 12,
-    width: "100%",
-    flex: 1,
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    width: '100%',
+    justifyContent: 'space-around',
   },
   optionButton: {
     width: 40,
     height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderRadius: 20,
-    marginRight: 6,
-    marginBottom: 6,
+    borderRadius: radius.full,
   },
-  optionButtonSelected: {},
-  optionButtonDisabled: {
-    opacity: 0.6,
-  },
-  optionButtonText: {},
-  optionButtonTextSelected: {},
-  optionButtonTextDisabled: {},
-  saveButton: {
-    alignItems: "center",
-    borderRadius: 8,
-  },
-  saveButtonText: {
-    fontWeight: "bold",
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

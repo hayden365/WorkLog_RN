@@ -20,7 +20,20 @@ describe('resolveEditInitValues', () => {
     const result = resolveEditInitValues(session, wp);
     expect(result.wageType).toBe('monthly');
     expect(result.wage).toBe(2500000);
-    expect(result.breakMinutes).toBeNull();
+    expect(result.breakMinutes).toBe(60);
+  });
+
+  it('(a-2) 휴게 오버라이드가 null이면 근무지 기본 휴게시간을 상속한다 (0으로 변조되지 않음)', () => {
+    // null을 그대로 두면 저장 시 (null ?? 0) !== 60 이 되어 상속 휴게가 0분으로 덮인다.
+    const session = createTestSession({ breakMinutes: null });
+    const wp = workplace({ defaultBreakMinutes: 60 });
+    expect(resolveEditInitValues(session, wp).breakMinutes).toBe(60);
+  });
+
+  it('(a-3) 근무지 기본 휴게시간이 0이면 0을 그대로 상속한다', () => {
+    const session = createTestSession({ breakMinutes: null });
+    const wp = workplace({ defaultBreakMinutes: 0 });
+    expect(resolveEditInitValues(session, wp).breakMinutes).toBe(0);
   });
 
   it('(b) 오버라이드가 null이고 근무지가 일급제이면 일급제·근무지 급여를 반환한다', () => {
