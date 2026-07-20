@@ -274,7 +274,12 @@ const HomeScreen = () => {
             </Text>
           </View>
           <View style={styles.earningsBottomRow}>
-            <Text style={[styles.earningsAmount, { color: colors.brand }]}>
+            <Text
+              style={[styles.earningsAmount, { color: colors.brand }]}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.6}
+            >
               {amountVisible ? (
                 <>
                   <Text style={[styles.earningsSymbol, { color: colors.brand }]}>₩</Text>
@@ -293,7 +298,10 @@ const HomeScreen = () => {
                   size={14}
                   color={colors.brand}
                 />
-                <Text style={[styles.trendText, { color: colors.brand }]}>
+                <Text
+                  style={[styles.trendText, { color: colors.brand }]}
+                  numberOfLines={1}
+                >
                   지난달 {trendPct >= 0 ? '+' : ''}
                   {trendPct}%
                 </Text>
@@ -607,6 +615,7 @@ const styles = StyleSheet.create({
     ...font('bold'),
     ...numeric,
     letterSpacing: -1,
+    flexShrink: 1,
   },
   earningsSymbol: {
     fontSize: fontSize.xxl,
@@ -617,6 +626,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'space-between',
     marginTop: spacing.sm,
+    gap: spacing.sm,
   },
   earningsMeta: {
     fontSize: fontSize.md,
@@ -630,6 +640,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.full,
     marginBottom: spacing.xs,
+    flexShrink: 0,
   },
   trendText: {
     fontSize: fontSize.sm,
